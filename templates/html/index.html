@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Top Navbar Support Include  -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSPro PowerDesk</title>
+    <!-- Icons -->
+    <link rel="icon" href="../../static/images/logoSundaya300x.png">
+    <!-- Bootstrap CSS -->
+    <link href="../../static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles -->
+    <link href="../../static/css/custom.css" rel="stylesheet">
+    <!-- fontawesome material -->
+    <link href="../../static/css/font-awesome/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="body-overlay"></div>
+
+        <!-- Sidebar Include  -->
+        <nav id="sidebar" class="active">
+            <div class="sidebar-header">
+                <h3>
+                    <img src="../../static/images/logoSundaya300x.png" class="img-fluid" /><span>Sundaya</span>
+                </h3>
+            </div>
+            <ul class="list-unstyled components">
+                <li class="active">
+                    <a href="#" class="dashboard">
+                        <i class="material-icons fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+        
+                <li class="dropdown">
+                    <a href="#homeSubmenu1" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-tachometer-alt"></i>
+                        <span>Monitoring</span></a>
+                        <ul class="collapse list-unstyled menu" id="homeSubmenu1">
+                        <li>
+                            <a href="#">Solar Charge Controller</a>
+                        </li>
+                        <li>
+                            <a href="#">Battery Monitoring</a>
+                        </li>
+                        <li>
+                            <a href="#">Load Monitoring</a>
+                        </li>
+                    </ul>
+                </li>
+        
+                <li class="dropdown">
+                    <a href="#homeSubmenu2" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-clock-rotate-left"></i>
+                        <span>History</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu2">
+                        <li>
+                            <a href="#">Data Log</a>
+                        </li>
+                        <li>
+                            <a href="#">Event</a>
+                        </li>
+                    </ul>
+                </li>
+        
+                <li class="">
+                    <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
+                </li>
+                
+                <li class="">
+                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content  -->
+        <div id="content" class="active">
+            <!-- Top Navbar Content -->
+            <div class="top-navbar">
+                <!-- Top navbar -->
+                <nav class="navbar navbar-expand-lg" aria-label="Main Navigation">
+                    <div class="container-fluid">
+                        <button type="button" id="sidebarCollapse" class="d-xl-block d-lg-block d-md-mone d-none">
+                            <span class="material-icons"><i class="fas fa-bars"></i></span>
+                        </button>
+
+                        <b> Site Name | 192.168.100.234</b>
+
+                        <button class="d-inline-block d-lg-none ml-auto more-button" type="button"
+                            data-toggle="collapse" data-target="#navbarSupportedContent"
+                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="material-icons"><i class="fas fa-ellipsis-v"></i></span>
+                        </button>
+
+                        <!-- Top Navbar Support Include  -->
+                        <div class="collapse navbar-collapse d-lg-block d-xl-block d-sm-none d-md-none d-none" id="navbarSupportedContent">
+                            <ul class="nav navbar-nav ml-auto">
+                                <li class="nav-item">
+                                    <div class="nav-link" id="datetime-bar"></div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Breadcrumbs  -->
+                <div>
+                    <div class="card card-stats page-nav-location">
+                        <div class="card-header">
+                            <p class="category"><strong>Dashboard</strong></p>
+                        </div>
+                        <div class="card-content">
+                            <p class="category"><strong>JSPro PowerDesk</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- Top Main Content Include  -->
+
+                <!-- content row -->
+                <div class="row">
+                    <!--Site Location and Device Info -->
+                    <!-- <div class="col-lg-6 col-md-12">
+                        <div class="card" style="min-height: 450px">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row mb-3">
+                                    <label for="SiteId" class="col-sm-4 col-form-label">Site ID</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="siteId" placeholder="Site ID" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="siteName" class="col-sm-4 col-form-label">Site Name</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="siteName" placeholder="Site Name" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="address" class="col-sm-4 col-form-label">Address</label>
+                                    <div class="col-sm-8">
+                                        <textarea type="text" class="form-control" id="address" placeholder="Address" disabled></textarea>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="ipAddress" class="col-sm-4 col-form-label">IP Address</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="ipAddress" placeholder="IP Address" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="netMask" class="col-sm-4 col-form-label">Net Mask</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="netMask" placeholder="Net Mask" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="gateway" placeholder="Gateway" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!--Device Info -->
+                    <!-- <div class="col-lg-6 col-md-12">
+                        <div class="card" style="min-height: 450px">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
+                        
+                            </div>
+                            <div class="card-content">
+                                <div class="row mb-3">
+                                    <label for="model" class="col-sm-4 col-form-label">Model</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="model" placeholder="Model" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="partNumber" class="col-sm-4 col-form-label">Part Number</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="partNumber" placeholder="Part Number" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="serialNumber" class="col-sm-4 col-form-label">Serial Number</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="serialNumber" placeholder="Serial Number" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="softwareVersion" class="col-sm-4 col-form-label">Software Version</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="softwareVersion" placeholder="Software Version" disabled>
+                                    </div>
+                                </div>
+                        
+                                <div class="row mb-3">
+                                    <label for="hardwareVersion" class="col-sm-4 col-form-label">Hardware Version</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="hardwareVersion" placeholder="Hard Version" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+
+                <!-- Device Information -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text">
+                                    <a href="#" style="text-decoration: none;">
+                                        <i class="fas fa-info"></i> Device Information
+                                    </a>
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>MPPT TYPE</strong></p>
+                                                <h6 id="system-voltage" class="card-title left-text">mppt-srne</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>disk usage</strong></p>
+                                                <h6 id="system-voltage" class="card-title left-text">
+                                                    <mark class="status-danger">used: 13.5 GB | free: 3.5 GB/16 GB</mark>
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Data Loggers Length</strong></p>
+                                                <h6 id="system-voltage" class="card-title left-text">
+                                                    <mark class="status-danger">1157 data</mark>
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Battery Overview -->
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text">
+                                    <a href="#" style="text-decoration: none;">
+                                        <i class="fas fa-battery-full"></i> Battery Overview
+                                    </a>
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <!-- Status Pack -->
+                                    <!-- <div class="col-12">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content text-center">
+                                                <button class="btn btn-success btn-lg">status pack</button>
+                                                <div class="btn-group" role="group" aria-label="Battery Status">
+                                                    <button class="btn btn-success btn-lg">1</button>
+                                                    <button class="btn btn-success btn-lg">2</button>
+                                                    <button class="btn btn-success btn-lg">3</button>
+                                                    <button class="btn btn-dark btn-lg">4</button>
+                                                    <button class="btn btn-dark btn-lg">5</button>
+                                                    <button class="btn btn-dark btn-lg">6</button>
+                                                    <button class="btn btn-success btn-lg">7</button>
+                                                    <button class="btn btn-success btn-lg">8</button>
+                                                    <button class="btn btn-success btn-lg">9</button>
+                                                    <button class="btn btn-success btn-lg">10</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> -->
+                                    
+                                    <!-- Battery Voltage -->
+                                    <div class="col-lg-3">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Battery Voltage</strong></p>
+                                                <h5 id="battVolt" class="card-title left-text">51.64 V
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <!-- Battery Current -->
+                                    <div class="col-lg-3">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Battery Current</strong></p>
+                                                <h5 id="battCurr" class="card-title left-text">0 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <!-- Battery Power -->
+                                    <div class="col-lg-3">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Battery Power</strong></p>
+                                                <h5 id="battPower" class="card-title left-text">0 W</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <!-- Battery SOC -->
+                                    <div class="col-lg-3">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Battery SOC</strong></p>
+                                                <h5 id="battSoc" class="card-title left-text">50.1 %</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Power/LVD Overview -->
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text">
+                                    <a href="#" style="text-decoration: none;">
+                                        <i class="fas fa-bolt"></i> Power Overview
+                                    </a>
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <!-- System Voltage -->
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>System Voltage</strong></p>
+                                                <h5 id="system-voltage" class="card-title left-text">2.92 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- VSAT Lvd -->
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>VSAT LVD</strong></p>
+                                                <h5 id="vsat-lvd" class="card-title left-text">
+                                                    <mark class="status-inactive">Close</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- BTS Lvd -->
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>BTS LVD</strong></p>
+                                                <h5 id="bts-lvd" class="card-title left-text">
+                                                    <mark class="status-active">Open</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Load 1 -->
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 1 Voltage</strong></p>
+                                                <h5 id="load1-voltage" class="card-title left-text">87.34 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 1 Current</strong></p>
+                                                <h5 id="load1-current" class="card-title left-text">56.3 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Load 2 -->
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 2 Voltage</strong></p>
+                                                <h5 id="load2-voltage" class="card-title left-text">67.5 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 2 Current</strong></p>
+                                                <h5 id="load2-current" class="card-title left-text">57.2 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCC Overview -->
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text">
+                                    <a href="#" style="text-decoration: none;">
+                                        <i class="fas fa-solar-panel"></i> MPPT Overview
+                                    </a>
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <!-- MPPT Status -->
+                                    <!-- jika ada 3 scc, col-lg-4 -->
+                                    <!-- jika ada 2 scc, col-lg-6 -->
+                                    
+                                    <div class="col-lg-6">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>MPPT 1 Status</strong></p>
+                                                <h5 id="mppt1-status" class="card-title left-text">
+                                                    <mark class="status-active">is running</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>MPPT 2 Status</strong></p>
+                                                <h5 id="mppt2-status" class="card-title left-text">
+                                                    <mark class="status-inactive">is standby</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PV 1 -->
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
+                                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>PV1 Current</strong></p>
+                                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- PV 2  -->
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>PV2 Voltage</strong></p>
+                                                <h5 id="pv2-voltage" class="card-title left-text">65.2 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>PV2 Current</strong></p>
+                                                <h5 id="pv2-current" class="card-title left-text">7.9 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Main Content Include  -->
+                <footer class="footer">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="copyright d-flex justify-content-end" id="dynamic-year"></p>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="../../static/js/jquery.js"></script>
+    <script src="../../static/js/jquery-3.3.1.slim.min.js"></script>
+    <script src="../../static/js/popper.min.js"></script>
+    <script src="../../static/js/bootstrap.min.js"></script>
+    <script src="../../static/js/jquery-3.3.1.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#sidebarCollapse").on("click", function () {
+                $("#sidebar").toggleClass("active");
+                $("#content").toggleClass("active");
+            });
+
+            $(".more-button,.body-overlay").on("click", function () {
+                $("#sidebar,.body-overlay").toggleClass("show-nav");
+            });
+        });
+
+        const yearNow = () => {
+            const date = new Date();
+            const year = date.getFullYear();
+            const yearBar = document.getElementById('dynamic-year');
+            yearBar.innerHTML = `&copy ${year}&nbsp;<a target="_blank" href="https://www.sundaya.com/"> Sundaya Indonesia</a>`;
+        }
+
+        const timeNow = () => {
+            const date = new Date();
+            const time = date.toLocaleTimeString('en-US', {
+                timeZone: 'Asia/Jakarta',
+                hour12: false
+            });
+            const timeBar = document.getElementById('datetime-bar');
+            timeBar.innerHTML = `<b>${time}</b>`;
+        }
+
+        yearNow();
+        setInterval(timeNow, 1000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Top Navbar Support Include  -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSPro PowerDesk</title>
+    <!-- Icons -->
+    <link rel="icon" href="../../static/images/logoSundaya300x.png">
+    <!-- Bootstrap CSS -->
+    <link href="../../static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles -->
+    <link href="../../static/css/custom.css" rel="stylesheet">
+    <!-- fontawesome material -->
+    <link href="../../static/css/font-awesome/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="body-overlay"></div>
+
+        <!-- Sidebar Include  -->
+        <nav id="sidebar" class="active">
+            <div class="sidebar-header">
+                <h3>
+                    <img src="../../static/images/logoSundaya300x.png" class="img-fluid" /><span>Sundaya</span>
+                </h3>
+            </div>
+            <ul class="list-unstyled components">
+                <li class="active">
+                    <a href="#" class="dashboard">
+                        <i class="material-icons fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+        
+                <li class="dropdown">
+                    <a href="#homeSubmenu1" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-tachometer-alt"></i>
+                        <span>Monitoring</span></a>
+                        <ul class="collapse list-unstyled menu" id="homeSubmenu1">
+                        <li>
+                            <a href="#">Solar Charge Controller</a>
+                        </li>
+                        <li>
+                            <a href="#">Battery Monitoring</a>
+                        </li>
+                        <li>
+                            <a href="#">Load Monitoring</a>
+                        </li>
+                    </ul>
+                </li>
+        
+                <li class="dropdown">
+                    <a href="#homeSubmenu2" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-clock-rotate-left"></i>
+                        <span>History</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu2">
+                        <li>
+                            <a href="#">Data Log</a>
+                        </li>
+                        <li>
+                            <a href="#">Event</a>
+                        </li>
+                    </ul>
+                </li>
+        
+                <li class="">
+                    <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
+                </li>
+                
+                <li class="">
+                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content  -->
+        <div id="content" class="active">
+            <!-- Top Navbar Content -->
+            <div class="top-navbar">
+                <!-- Top navbar -->
+                <nav class="navbar navbar-expand-lg" aria-label="Main Navigation">
+                    <div class="container-fluid">
+                        <button type="button" id="sidebarCollapse" class="d-xl-block d-lg-block d-md-mone d-none">
+                            <span class="material-icons"><i class="fas fa-bars"></i></span>
+                        </button>
+
+                        <b> Site Name | 192.168.100.234</b>
+
+                        <button class="d-inline-block d-lg-none ml-auto more-button" type="button"
+                            data-toggle="collapse" data-target="#navbarSupportedContent"
+                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="material-icons"><i class="fas fa-ellipsis-v"></i></span>
+                        </button>
+
+                        <!-- Top Navbar Support Include  -->
+                        <div class="collapse navbar-collapse d-lg-block d-xl-block d-sm-none d-md-none d-none" id="navbarSupportedContent">
+                            <ul class="nav navbar-nav ml-auto">
+                                <li class="nav-item">
+                                    <div class="nav-link" id="datetime-bar"></div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Breadcrumbs  -->
+                <div>
+                    <div class="card card-stats page-nav-location">
+                        <div class="card-header">
+                            <p class="category"><strong>Load Monitoring</strong></p>
+                        </div>
+                        <div class="card-content">
+                            <p class="category"><strong>JSPro PowerDesk</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- Top Main Content Include  -->
+                
+                <!--Power/LVD Overview -->
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
+                                <h4 class="card-title left-text">
+                                    <a href="#" style="text-decoration: none;">
+                                        <i class="fas fa-solar-panel"></i>
+                                        Power Overview
+                                    </a>
+                                </h4>
+                                <h4 class="card-title text-right">
+                                    <a href="#" style="text-decoration: none;">
+                                        <i class="fas fa-heart"></i>
+                                        Heartbeat: 13
+                                    </a>
+                                </h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <!-- System Voltage -->
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>System Voltage</strong></p>
+                                                <h5 id="system-voltage" class="card-title left-text">2.92 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- VSAT Lvd -->
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>VSAT LVD</strong></p>
+                                                <h5 id="vsat-lvd" class="card-title left-text">
+                                                    <mark class="status-inactive">Close</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- BTS Lvd -->
+                                    <div class="col-lg-4">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>BTS LVD</strong></p>
+                                                <h5 id="bts-lvd" class="card-title left-text">
+                                                    <mark class="status-active">Open</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Load 1 -->
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 1 Voltage</strong></p>
+                                                <h5 id="load1-voltage" class="card-title left-text">87.34 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 1 Current</strong></p>
+                                                <h5 id="load1-current" class="card-title left-text">56.3 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Load 2 -->
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 2 Voltage</strong></p>
+                                                <h5 id="load2-voltage" class="card-title left-text">67.5 V</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>Load 2 Current</strong></p>
+                                                <h5 id="load2-current" class="card-title left-text">57.2 A</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Main Content Include  -->
+                <footer class="footer">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="copyright d-flex justify-content-end" id="dynamic-year"></p>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="../../static/js/jquery.js"></script>
+    <script src="../../static/js/jquery-3.3.1.slim.min.js"></script>
+    <script src="../../static/js/popper.min.js"></script>
+    <script src="../../static/js/bootstrap.min.js"></script>
+    <script src="../../static/js/jquery-3.3.1.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#sidebarCollapse").on("click", function () {
+                $("#sidebar").toggleClass("active");
+                $("#content").toggleClass("active");
+            });
+
+            $(".more-button,.body-overlay").on("click", function () {
+                $("#sidebar,.body-overlay").toggleClass("show-nav");
+            });
+        });
+
+        const yearNow = () => {
+            const date = new Date();
+            const year = date.getFullYear();
+            const yearBar = document.getElementById('dynamic-year');
+            yearBar.innerHTML = `&copy ${year}&nbsp;<a target="_blank" href="https://www.sundaya.com/"> Sundaya Indonesia</a>`;
+        }
+
+        const timeNow = () => {
+            const date = new Date();
+            const time = date.toLocaleTimeString('en-US', {
+                timeZone: 'Asia/Jakarta',
+                hour12: false
+            });
+            const timeBar = document.getElementById('datetime-bar');
+            timeBar.innerHTML = `<b>${time}</b>`;
+        }
+
+        yearNow();
+        setInterval(timeNow, 1000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,740 @@
+[
+    {
+        "site": "IP CUSTOM",
+        "gateway": "",
+        "ip": "",
+        "subnet_mask": ""
+    },
+    {
+        "site": "AFFANG",
+        "gateway": "172.23.2.1",
+        "ip": "172.23.2.2",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "AIFAM",
+        "gateway": "172.23.0.49",
+        "ip": "172.23.0.50",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "AISA",
+        "gateway": "10.10.69.09",
+        "ip": "10.10.69.10",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "AISANDAMI",
+        "gateway": "172.23.2.129",
+        "ip": "172.23.2.130",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "ARTAFELA",
+        "gateway": "172.23.0.137",
+        "ip": "172.23.0.138",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "ATHABU",
+        "gateway": "10.53.12.137",
+        "ip": "10.53.12.139",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "BEDARE",
+        "gateway": "10.10.68.217",
+        "ip": "10.10.68.218",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "BITORIK",
+        "gateway": "10.53.12.177",
+        "ip": "10.53.12.179",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "BOHA",
+        "gateway": "10.53.50.1",
+        "ip": "10.53.50.3",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "BOLDON",
+        "gateway": "10.10.68.241",
+        "ip": "10.10.68.242",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "BORI",
+        "gateway": "10.53.12.73",
+        "ip": "10.53.12.75",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "BUMI RAHMAT",
+        "gateway": "172.23.51.9",
+        "ip": "172.23.51.10",
+        "subnet_mask": "/16"
+    },
+    {
+        "site": "DEMINI",
+        "gateway": "172.23.2.73",
+        "ip": "172.23.2.74",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "DOROLAMO 1",
+        "gateway": "10.151.160.66",
+        "ip": "10.151.160.68",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "ELIASA",
+        "gateway": "172.23.0.113",
+        "ip": "172.23.0.114",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "FAITSAMA",
+        "gateway": "172.23.0.9",
+        "ip": "172.23.0.10",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "FATASE",
+        "gateway": "10.161.1.105",
+        "ip": "10.161.1.107",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "GAH",
+        "gateway": "172.23.1.113",
+        "ip": "172.23.1.114",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "GAYA BARU",
+        "gateway": "172.23.2.81",
+        "ip": "172.23.2.82",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "HISIOBANAH",
+        "gateway": "10.161.1.113",
+        "ip": "10.161.1.115",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "HONITETU",
+        "gateway": "172.23.2.41",
+        "ip": "172.23.2.42",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "HORE HORE",
+        "gateway": "172.23.2.145",
+        "ip": "172.23.2.146",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "HUHUA",
+        "gateway": "10.161.1.209",
+        "ip": "10.161.1.211",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "HUKUKECIL",
+        "gateway": "10.161.1.185",
+        "ip": "10.161.1.187",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "ILILI",
+        "gateway": "10.53.12.161",
+        "ip": "10.53.12.163",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "IMBU - IMBU",
+        "gateway": "172.23.51.66",
+        "ip": "172.23.51.66",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "INYORA",
+        "gateway": "172.23.0.41",
+        "ip": "172.23.0.42",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "ISENEBUAI",
+        "gateway": "10.53.12.65",
+        "ip": "10.53.12.67",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "ISOGO",
+        "gateway": "10.53.12.145",
+        "ip": "10.53.12.147",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "JEMBATAN BASAH",
+        "gateway": "10.53.13.65",
+        "ip": "10.53.13.67",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KAIERU",
+        "gateway": "172.23.51.74",
+        "ip": "172.23.51.74",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KAINARA",
+        "gateway": "172.23.0.105",
+        "ip": "172.23.0.106",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KAMAR",
+        "gateway": "10.53.13.41",
+        "ip": "10.53.13.43",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KAMBUSKATO UTARA",
+        "gateway": "10.161.1.121",
+        "ip": "10.161.1.123",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KAMPUNG BARU",
+        "gateway": "10.171.1.41",
+        "ip": "10.171.1.43",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KARAY",
+        "gateway": "172.23.1.225",
+        "ip": "172.23.1.226",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KARUAN",
+        "gateway": "10.53.12.169",
+        "ip": "10.53.12.171",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KELO",
+        "gateway": "172.23.51.49",
+        "ip": "172.23.51.50",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KILESER",
+        "gateway": "10.53.13.89",
+        "ip": "10.53.13.91",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KLABOT",
+        "gateway": "10.151.160.9",
+        "ip": "10.151.160.11",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KLAILY",
+        "gateway": "10.151.160.17",
+        "ip": "10.151.160.19",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KOBROR",
+        "gateway": "10.161.1.249",
+        "ip": "10.161.1.251",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KOMA-KOMA",
+        "gateway": "172.23.2.121",
+        "ip": "172.23.2.122",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "KOREWATARA",
+        "gateway": "10.10.69.25",
+        "ip": "10.10.69.26",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "LAMDESAR TIMUR",
+        "gateway": "172.23.1.233",
+        "ip": "172.23.1.234",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "LILI",
+        "gateway": "10.151.160.50",
+        "ip": "10.151.160.52",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "LOLEBA",
+        "gateway": "10.151.160.36",
+        "ip": "10.151.160.36",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MAAN",
+        "gateway": "10.10.68.233",
+        "ip": "10.10.68.234",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MADAK",
+        "gateway": "172.23.1.169",
+        "ip": "172.23.1.170",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MAIKOR",
+        "gateway": "172.23.0.97",
+        "ip": "172.23.0.98",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MAKARORO",
+        "gateway": "172.23.0.1",
+        "ip": "172.23.0.2",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MARANTUTUL",
+        "gateway": "10.161.2.41",
+        "ip": "10.161.2.43",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MARFENFEN",
+        "gateway": "10.53.13.49",
+        "ip": "10.53.13.51",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MASAWOI",
+        "gateway": "172.23.2.09",
+        "ip": "172.23.2.10",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MAWE",
+        "gateway": "10.53.11.217",
+        "ip": "10.53.11.219",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MENARBU",
+        "gateway": "10.53.11.193",
+        "ip": "10.53.11.195",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MEROR",
+        "gateway": "172.23.1.241",
+        "ip": "172.23.1.242",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MIRAFAN",
+        "gateway": "172.23.0.17",
+        "ip": "172.23.0.18",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MISING",
+        "gateway": "172.23.1.145",
+        "ip": "172.23.1.146",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MITAK KOLAM",
+        "gateway": "10.53.13.57",
+        "ip": "10.53.13.59",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MOGATEMIN",
+        "gateway": "10.53.11.169",
+        "ip": "10.53.11.171",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "MUWINBOW",
+        "gateway": "172.23.2.113",
+        "ip": "172.23.2.114",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "NANIMORI",
+        "gateway": "10.53.12.201",
+        "ip": "10.53.12.203",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "NIAP",
+        "gateway": "10.10.69.89",
+        "ip": "10.10.69.90",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "NIJ",
+        "gateway": "172.23.2.89",
+        "ip": "172.23.2.90",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "NONDANG",
+        "gateway": "10.53.11.25",
+        "ip": "10.53.11.27",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "OCIMALOLEO",
+        "gateway": "172.23.51.82",
+        "ip": "172.23.51.82",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "OHA",
+        "gateway": "172.23.51.41",
+        "ip": "172.23.51.42",
+        "subnet_mask": "/16"
+    },
+    {
+        "site": "PURAGI",
+        "gateway": "10.53.12.57",
+        "ip": "10.53.12.59",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "RENIS",
+        "gateway": "10.10.68.225",
+        "ip": "10.10.68.226",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "RUMOY",
+        "gateway": "10.53.13.09",
+        "ip": "10.53.13.11",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SAKETA",
+        "gateway": "172.23.51.58",
+        "ip": "172.23.51.58",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SALAGOR KOTA",
+        "gateway": "10.53.13.17",
+        "ip": "10.53.13.19",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SALAS",
+        "gateway": "10.53.13.81",
+        "ip": "10.53.13.83",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SANDEI",
+        "gateway": "10.53.11.73",
+        "ip": "10.53.11.75",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SARARTI",
+        "gateway": "10.53.12.129",
+        "ip": "10.53.12.131",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SARIAI",
+        "gateway": "10.53.12.153",
+        "ip": "10.53.12.155",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SAYORI SIKAMA",
+        "gateway": "172.23.2.161",
+        "ip": "172.23.2.162",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SEKELY",
+        "gateway": "172.23.51.33",
+        "ip": "172.23.51.34",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SENI",
+        "gateway": "10.53.11.105",
+        "ip": "10.53.11.107",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SERA",
+        "gateway": "10.53.13.73",
+        "ip": "10.53.13.75",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SEYA",
+        "gateway": "10.10.68.193",
+        "ip": "10.10.68.194",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SILANG",
+        "gateway": "172.23.1.129",
+        "ip": "172.23.1.130",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SIRANGGO",
+        "gateway": "10.53.12.113",
+        "ip": "10.53.12.115",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SIRI-SIRI",
+        "gateway": "10.161.1.169",
+        "ip": "10.161.1.171",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SOBIAR",
+        "gateway": "10.53.11.81",
+        "ip": "10.53.11.83",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SOFYANIN",
+        "gateway": "10.161.1.217",
+        "ip": "10.161.1.219",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SOLANG",
+        "gateway": "172.23.1.249",
+        "ip": "172.23.1.250",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SOLIGI",
+        "gateway": "172.23.51.1",
+        "ip": "172.23.51.2",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SOROWAN",
+        "gateway": "10.10.69.1",
+        "ip": "10.10.69.2",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SORRY",
+        "gateway": "10.53.12.97",
+        "ip": "10.53.12.99",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SOSEPE",
+        "gateway": "172.23.51.18",
+        "ip": "172.23.51.18",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUKOWATI",
+        "gateway": "10.161.1.193",
+        "ip": "10.161.1.195",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUMA TINGGI",
+        "gateway": "10.53.12.217",
+        "ip": "10.53.12.219",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUMAE",
+        "gateway": "172.23.1.209",
+        "ip": "172.23.1.210",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUMANO",
+        "gateway": "10.53.12.121",
+        "ip": "10.53.12.123",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUMBER AGUNG",
+        "gateway": "10.53.13.33",
+        "ip": "10.53.13.35",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUN",
+        "gateway": "10.53.11.97",
+        "ip": "10.53.11.99",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUNEI",
+        "gateway": "10.53.12.89",
+        "ip": "10.53.12.91",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "SUWIYAM",
+        "gateway": "172.23.2.137",
+        "ip": "172.23.2.138",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TAA",
+        "gateway": "10.53.12.185",
+        "ip": "10.53.12.187",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TABAJAYA",
+        "gateway": "10.53.12.225",
+        "ip": "10.53.12.227",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TABANGAME",
+        "gateway": "10.53.11.1",
+        "ip": "10.53.11.3",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TATANGAPU",
+        "gateway": "10.151.160.58",
+        "ip": "10.151.160.60",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TEINEMAN",
+        "gateway": "172.23.1.161",
+        "ip": "172.23.1.162",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TIHU",
+        "gateway": "10.161.1.201",
+        "ip": "10.161.1.203",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TOMARA",
+        "gateway": "10.53.13.113",
+        "ip": "10.53.13.115",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TOSOA",
+        "gateway": "172.24.0.226",
+        "ip": "172.24.0.227",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "TUTUPA",
+        "gateway": "10.53.11.249",
+        "ip": "10.53.11.251",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "UPT SP2 PATLEAN",
+        "gateway": "10.151.160.74",
+        "ip": "10.151.160.76",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WAAN",
+        "gateway": "10.53.50.11",
+        "ip": "10.53.50.11",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WARAS-WARAS",
+        "gateway": "10.53.13.97",
+        "ip": "10.53.13.99",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WARAYARU",
+        "gateway": "10.53.12.105",
+        "ip": "10.53.12.107",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WARLOI",
+        "gateway": "10.53.13.25",
+        "ip": "10.53.13.27",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WARU",
+        "gateway": "172.23.0.145",
+        "ip": "172.23.0.146",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WASILEO",
+        "gateway": "10.151.160.42",
+        "ip": "10.151.160.44",
+        "subnet_mask": "/16"
+    },
+    {
+        "site": "WAYATIM",
+        "gateway": "172.23.1.121",
+        "ip": "172.23.1.122",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WERLUMDITY",
+        "gateway": "10.161.2.57",
+        "ip": "10.161.2.59",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WILTY",
+        "gateway": "10.151.160.1",
+        "ip": "10.151.160.3",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "WOMBU",
+        "gateway": "172.23.2.153",
+        "ip": "172.23.2.154",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "YABORE",
+        "gateway": "10.53.11.177",
+        "ip": "10.53.11.179",
+        "subnet_mask": "/29"
+    },
+    {
+        "site": "YARAT",
+        "gateway": "10.53.12.81",
+        "ip": "10.53.12.83",
+        "subnet_mask": "/29"
+    }
+]

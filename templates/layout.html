@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Top Navbar Support Include  -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Powerdesk</title>
+        <!-- Bootstrap CSS -->
+        <link href="{{ url_for('static', filename="css/bootstrap.min.css")}}" rel="stylesheet">
+        <!-- Custom styles -->
+        <link href="{{ url_for('static', filename="css/custom.css")}}" rel="stylesheet">
+        <!-- fontawesome material -->
+        <link href="{{ url_for('static', filename="css/font-awesome/css/all.min.css")}}" rel="stylesheet">
+    </head>
+
+    <body>
+        <div class="wrapper">
+            <div class="body-overlay"></div>
+            <!-- Sidebar -->
+            <nav id="sidebar">
+                <div class="sidebar-header">
+                    <h3>
+                        <img src="static/images/logoSundaya300x.png" class="img-fluid" alt="sundaya logo" /><span>Sundaya</span>
+                    </h3>
+                </div>
+                <ul class="list-unstyled components">
+                    <li class="active">
+                        <a href="#" class="dashboard"><i class="material-icons fas fa-home"></i><span>Dashboard</span></a>
+                    </li>
+            
+                    <li class="dropdown">
+                        <a href="#homeSubmenu1" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                            <i class="material-icons fas fa-tachometer-alt"></i>
+                            <span>Monitoring</span></a>
+                        <ul class="collapse list-unstyled menu" id="homeSubmenu1">
+                            <li>
+                                <a href="#">Solar Charge Controller</a>
+                            </li>
+                            <li>
+                                <a href="#">Battery Monitoring</a>
+                            </li>
+            
+                        </ul>
+                    </li>
+            
+                    <li class="dropdown">
+                        <a href="#homeSubmenu2" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                            <i class="material-icons fas fa-clock-rotate-left"></i>
+                            <span>History</span></a>
+                        <ul class="collapse list-unstyled menu" id="homeSubmenu2">
+                            <li>
+                                <a href="#">Data Log</a>
+                            </li>
+                            <li>
+                                <a href="#">Event</a>
+                            </li>
+                        </ul>
+                    </li>
+            
+                    <li class="">
+                        <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Page Content -->
+            <div id="content">
+                <!-- Top Navbar -->
+                 <div class="top-navbar">
+                    <nav class="navbar navbar-expand-lg" aria-label="Main Navigation">
+                        <div class="container-fluid">
+                            <button type="button" id="sidebarCollapse" class="d-xl-block d-lg-block d-md-mone d-none">
+                                <span class="material-icons"><i class="fas fa-bars"></i></span>
+                            </button>
+
+                            <b> jSPro PowerDesk</b>
+
+                            <button class="d-inline-block d-lg-none ml-auto more-button" type="button"
+                                data-toggle="collapse" data-target="#navbarSupportedContent"
+                                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="material-icons"><i class="fas fa-ellipsis-v"></i></span>
+                            </button>
+
+                            <!-- Top Navbar Support Include  -->
+                            <div class="collapse navbar-collapse d-lg-block d-xl-block d-sm-none d-md-none d-none" id="navbarSupportedContent">
+                                <ul class="nav navbar-nav ml-auto">
+                                    <li class="nav-item">
+                                        <div class="nav-link" id="datetime-bar"></div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                    <!-- Breadcrumbs  -->
+                      <div>
+                        <div class="card card-stats page-nav-location">
+                            <div class="card-header">
+                                <p class="category"><strong>Power Measurement</strong></p>
+                            </div>
+                            <div class="card-content">
+                                <p class="category"><strong>Dashboard | Power Measurement</strong></p>
+                            </div>
+
+                        </div>
+                    </div>
+                 </div>
+                <!-- end of Top Navbar -->
+    
+                <!-- Main Content -->
+                 <div class="main-content">
+                    <!-- content row -->
+                    <!-- footer -->
+                 </div>
+                <!-- end of Main Content -->
+            </div>
+        </div>
+
+        <!-- Javascript -->
+
+    </body>
+</html>

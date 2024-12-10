@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance to serve joulestore-web-app
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/lib/sundaya/joulestore-web-app
+ExecStart=gunicorn --workers 3 --bind unix:joulestore-web-app.sock -m 007 wsgi:app --timeout 480
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
