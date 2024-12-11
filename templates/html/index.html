@@ -28,8 +28,8 @@
                 </h3>
             </div>
             <ul class="list-unstyled components">
-                <li class="active">
-                    <a href="#" class="dashboard">
+                <li>
+                    <a href="index.html" class="dashboard">
                         <i class="material-icons fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -41,13 +41,16 @@
                         <span>Monitoring</span></a>
                         <ul class="collapse list-unstyled menu" id="homeSubmenu1">
                         <li>
-                            <a href="#">Solar Charge Controller</a>
+                            <a href="scc.html">Solar Charge Controller</a>
                         </li>
                         <li>
-                            <a href="#">Battery Monitoring</a>
+                            <a href="battery.html">Battery</a>
                         </li>
                         <li>
-                            <a href="#">Load Monitoring</a>
+                            <a href="load.html">Load</a>
+                        </li>
+                        <li>
+                            <a href="scc-alarm.html">SCC Alarm</a>
                         </li>
                     </ul>
                 </li>
@@ -58,10 +61,10 @@
                         <span>History</span></a>
                     <ul class="collapse list-unstyled menu" id="homeSubmenu2">
                         <li>
-                            <a href="#">Data Log</a>
+                            <a href="datalog.html">Data Log</a>
                         </li>
                         <li>
-                            <a href="#">Event</a>
+                            <a href="scc-alarm-log.html">SCC Alarm Log</a>
                         </li>
                     </ul>
                 </li>
@@ -70,8 +73,38 @@
                     <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
                 </li>
                 
-                <li class="">
-                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                <li class="dropdown">
+                    <a href="#homeSubmenu3" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gears"></i>
+                        <span>Setting</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu3">
+                        <li>
+                            <a href="setting-device.html">Setting Device</a>
+                        </li>
+                        <li>
+                            <a href="setting-scc.html">Setting SCC</a>
+                        </li>
+                        <li>
+                            <a href="config-value-scc.html">Config Value SCC</a>
+                        </li>
+                        <li>
+                            <a href="redis.html">Redis</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a href="#homeSubmenu4" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gavel"></i>
+                        <span>Technical</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu4">
+                        <li>
+                            <a href="#">Check EHUB</a>
+                        </li>
+                        <li>
+                            <a href="#">Check Service</a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </nav>
@@ -123,106 +156,6 @@
                 <!-- Top Main Content Include  -->
 
                 <!-- content row -->
-                <div class="row">
-                    <!--Site Location and Device Info -->
-                    <!-- <div class="col-lg-6 col-md-12">
-                        <div class="card" style="min-height: 450px">
-                            <div class="card-header card-header-text titel-border">
-                                <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
-                            </div>
-                            <div class="card-content">
-                                <div class="row mb-3">
-                                    <label for="SiteId" class="col-sm-4 col-form-label">Site ID</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="siteId" placeholder="Site ID" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="siteName" class="col-sm-4 col-form-label">Site Name</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="siteName" placeholder="Site Name" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="address" class="col-sm-4 col-form-label">Address</label>
-                                    <div class="col-sm-8">
-                                        <textarea type="text" class="form-control" id="address" placeholder="Address" disabled></textarea>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="ipAddress" class="col-sm-4 col-form-label">IP Address</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="ipAddress" placeholder="IP Address" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="netMask" class="col-sm-4 col-form-label">Net Mask</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="netMask" placeholder="Net Mask" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="gateway" placeholder="Gateway" disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> -->
-
-                    <!--Device Info -->
-                    <!-- <div class="col-lg-6 col-md-12">
-                        <div class="card" style="min-height: 450px">
-                            <div class="card-header card-header-text titel-border">
-                                <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
-                        
-                            </div>
-                            <div class="card-content">
-                                <div class="row mb-3">
-                                    <label for="model" class="col-sm-4 col-form-label">Model</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="model" placeholder="Model" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="partNumber" class="col-sm-4 col-form-label">Part Number</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="partNumber" placeholder="Part Number" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="serialNumber" class="col-sm-4 col-form-label">Serial Number</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="serialNumber" placeholder="Serial Number" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="softwareVersion" class="col-sm-4 col-form-label">Software Version</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="softwareVersion" placeholder="Software Version" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="hardwareVersion" class="col-sm-4 col-form-label">Hardware Version</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="hardwareVersion" placeholder="Hard Version" disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> -->
-                </div>
-
                 <!-- Device Information -->
                 <div class="row">
                     <div class="col-lg-12">
@@ -239,8 +172,8 @@
                                     <div class="col-lg-4">
                                         <div class="shadow card card-stats full-border">
                                             <div class="card-content">
-                                                <p class="category left-text"><strong>MPPT TYPE</strong></p>
-                                                <h6 id="system-voltage" class="card-title left-text">mppt-srne</h6>
+                                                <p class="category left-text"><strong>SCC Type</strong></p>
+                                                <h6 id="system-voltage" class="card-title left-text">SCC-SRNE</h6>
                                             </div>
                                         </div>
                                     </div>
@@ -282,28 +215,7 @@
                                 </h4>
                             </div>
                             <div class="card-content">
-                                <div class="row">
-                                    <!-- Status Pack -->
-                                    <!-- <div class="col-12">
-                                        <div class="shadow card card-stats full-border">
-                                            <div class="card-content text-center">
-                                                <button class="btn btn-success btn-lg">status pack</button>
-                                                <div class="btn-group" role="group" aria-label="Battery Status">
-                                                    <button class="btn btn-success btn-lg">1</button>
-                                                    <button class="btn btn-success btn-lg">2</button>
-                                                    <button class="btn btn-success btn-lg">3</button>
-                                                    <button class="btn btn-dark btn-lg">4</button>
-                                                    <button class="btn btn-dark btn-lg">5</button>
-                                                    <button class="btn btn-dark btn-lg">6</button>
-                                                    <button class="btn btn-success btn-lg">7</button>
-                                                    <button class="btn btn-success btn-lg">8</button>
-                                                    <button class="btn btn-success btn-lg">9</button>
-                                                    <button class="btn btn-success btn-lg">10</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div> -->
-                                    
+                                <div class="row">                                    
                                     <!-- Battery Voltage -->
                                     <div class="col-lg-3">
                                         <div class="shadow card card-stats full-border">
@@ -445,21 +357,21 @@
                             <div class="card-header card-header-text titel-border">
                                 <h4 class="card-title left-text">
                                     <a href="#" style="text-decoration: none;">
-                                        <i class="fas fa-solar-panel"></i> MPPT Overview
+                                        <i class="fas fa-solar-panel"></i> SCC Overview
                                     </a>
                                 </h4>
                             </div>
                             <div class="card-content">
                                 <div class="row">
-                                    <!-- MPPT Status -->
+                                    <!-- SCC Status -->
                                     <!-- jika ada 3 scc, col-lg-4 -->
                                     <!-- jika ada 2 scc, col-lg-6 -->
                                     
                                     <div class="col-lg-6">
                                         <div class="shadow card card-stats full-border">
                                             <div class="card-content">
-                                                <p class="category left-text"><strong>MPPT 1 Status</strong></p>
-                                                <h5 id="mppt1-status" class="card-title left-text">
+                                                <p class="category left-text"><strong>SCC 1 Status</strong></p>
+                                                <h5 id="scc1-status" class="card-title left-text">
                                                     <mark class="status-active">is running</mark>
                                                 </h5>
                                             </div>
@@ -468,8 +380,8 @@
                                     <div class="col-lg-6">
                                         <div class="shadow card card-stats full-border">
                                             <div class="card-content">
-                                                <p class="category left-text"><strong>MPPT 2 Status</strong></p>
-                                                <h5 id="mppt2-status" class="card-title left-text">
+                                                <p class="category left-text"><strong>SCC 2 Status</strong></p>
+                                                <h5 id="scc2-status" class="card-title left-text">
                                                     <mark class="status-inactive">is standby</mark>
                                                 </h5>
                                             </div>

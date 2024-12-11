@@ -143,11 +143,12 @@
                 <div>
                     <div class="card card-stats page-nav-location">
                         <div class="card-header">
-                            <p class="category"><strong>Site Information</strong></p>
+                            <p class="category"><strong>SCC Alarm</strong></p>
                         </div>
                         <div class="card-content">
                             <p class="category"><strong>JSPro PowerDesk</strong></p>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -156,106 +157,34 @@
                 <!-- Top Main Content Include  -->
 
                 <!-- content row -->
+                <!--SCC Alarm -->
                 <div class="row">
-                    <!--Site Location -->
-                    <div class="col-lg-6 col-md-12">
+                    <div class="col-lg-12 col-md-12">
                         <div class="card">
                             <div class="card-header card-header-text titel-border">
-                                <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
+                                <h4 class="card-title left-text"><i class="fas fa-battery-full"></i> Load Status</h4>
                             </div>
                             <div class="card-content">
-                                <div class="row mb-3">
-                                    <label for="site-id" class="col-sm-4 col-form-label">Site ID</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="site-id" placeholder="Site ID" disabled>
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 1 Status</strong></p>
+                                                <h5 id="scc1-status" class="card-title left-text">
+                                                    <mark class="status-active">is running</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="site-name" class="col-sm-4 col-form-label">Site Name</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="site-name" placeholder="Site Name" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="address" class="col-sm-4 col-form-label">Address</label>
-                                    <div class="col-sm-8">
-                                        <textarea type="text" class="form-control" id="address" placeholder="Address" disabled></textarea>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="ip-address-rasp1" class="col-sm-4 col-form-label">IP Address Rasp 1</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="ip-address-rasp1" placeholder="IP Address" disabled>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <label for="ip-address-rasp2" class="col-sm-4 col-form-label">IP Address Rasp 2</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="ip-address-rasp2" placeholder="IP Address" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="net-mask" class="col-sm-4 col-form-label">Net Mask</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="net-mask" placeholder="Net Mask" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="gateway" placeholder="Gateway" disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!--Device Info -->
-                    <div class="col-lg-6 col-md-12">
-                        <div class="card">
-                            <div class="card-header card-header-text titel-border">
-                                <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
-                        
-                            </div>
-                            <div class="card-content">
-                                <div class="row mb-3">
-                                    <label for="model" class="col-sm-4 col-form-label">Model</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="model" placeholder="Model" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="part-number" class="col-sm-4 col-form-label">Part Number</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="part-number" placeholder="Part Number" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="serial-number" class="col-sm-4 col-form-label">Serial Number</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="serial-number" placeholder="Serial Number" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="software-version" class="col-sm-4 col-form-label">Software Version</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="software-version" placeholder="Software Version" disabled>
-                                    </div>
-                                </div>
-                        
-                                <div class="row mb-3">
-                                    <label for="hardware-version" class="col-sm-4 col-form-label">Hardware Version</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="hardware-version" placeholder="Hard Version" disabled>
+                                    <div class="col-lg-6">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 2 Status</strong></p>
+                                                <h5 id="scc2-status" class="card-title left-text">
+                                                    <mark class="status-inactive">is standby</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -263,6 +192,87 @@
                     </div>
                 </div>
 
+                <!--temperature scc -->
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text"><i class="fas fa-thermometer-three-quarters"></i> Temperature SCC</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 1 Battery Temp</strong></p>
+                                                <h5 id="scc-1-battery-temp" class="card-title left-text">56.78 C</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 1 Device Temp</strong></p>
+                                                <h5 id="scc-1-device-temp" class="card-title left-text">5.66 C</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 2 Battery Temp</strong></p>
+                                                <h5 id="scc-2-battery-temp" class="card-title left-text">56.78 C</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 2 Device Temp</strong></p>
+                                                <h5 id="scc-2-device-temp" class="card-title left-text">5.66 C</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alarm Info -->
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text"><i class="fas fa-exclamation-triangle"></i> Alarm Info</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 1 Alarm</strong></p>
+                                                <h5 id="scc1-alarm" class="card-title left-text">
+                                                    <mark class="status-active">No Alarm</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="shadow card card-stats full-border">
+                                            <div class="card-content">
+                                                <p class="category left-text"><strong>SCC 2 Alarm</strong></p>
+                                                <h5 id="scc2-alarm" class="card-title left-text">
+                                                    <mark class="status-inactive">No Alarm</mark>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Footer Main Content Include  -->
                 <footer class="footer">
                     <div class="container-fluid">

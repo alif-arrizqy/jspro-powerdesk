@@ -28,8 +28,8 @@
                 </h3>
             </div>
             <ul class="list-unstyled components">
-                <li class="active">
-                    <a href="#" class="dashboard">
+                <li>
+                    <a href="index.html" class="dashboard">
                         <i class="material-icons fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -41,13 +41,13 @@
                         <span>Monitoring</span></a>
                         <ul class="collapse list-unstyled menu" id="homeSubmenu1">
                         <li>
-                            <a href="#">Solar Charge Controller</a>
+                            <a href="scc.html">Solar Charge Controller</a>
                         </li>
                         <li>
-                            <a href="#">Battery Monitoring</a>
+                            <a href="battery.html">Battery</a>
                         </li>
                         <li>
-                            <a href="#">Load Monitoring</a>
+                            <a href="load.html">Load</a>
                         </li>
                     </ul>
                 </li>
@@ -58,10 +58,10 @@
                         <span>History</span></a>
                     <ul class="collapse list-unstyled menu" id="homeSubmenu2">
                         <li>
-                            <a href="#">Data Log</a>
+                            <a href="datalog.html">Data Log</a>
                         </li>
                         <li>
-                            <a href="#">Event</a>
+                            <a href="scc-alarm.html">SCC Alarm</a>
                         </li>
                     </ul>
                 </li>
@@ -69,11 +69,40 @@
                 <li class="">
                     <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
                 </li>
-
-                <li class="">
-                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                
+                <li class="dropdown">
+                    <a href="#homeSubmenu3" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gears"></i>
+                        <span>Setting</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu3">
+                        <li>
+                            <a href="setting-device.html">Setting Device</a>
+                        </li>
+                        <li>
+                            <a href="setting-scc.html">Setting SCC</a>
+                        </li>
+                        <li>
+                            <a href="config-value-scc.html">Config Value SCC</a>
+                        </li>
+                        <li>
+                            <a href="redis.html">Redis</a>
+                        </li>
+                    </ul>
                 </li>
-        
+
+                <li class="dropdown">
+                    <a href="#homeSubmenu4" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gavel"></i>
+                        <span>Technical</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu4">
+                        <li>
+                            <a href="#">Check EHUB</a>
+                        </li>
+                        <li>
+                            <a href="#">Check Service</a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
 
@@ -111,7 +140,7 @@
                 <div>
                     <div class="card card-stats page-nav-location">
                         <div class="card-header">
-                            <p class="category"><strong>Setting MPPT</strong></p>
+                            <p class="category"><strong>Setting SCC</strong></p>
                         </div>
                         <div class="card-content">
                             <p class="category"><strong>JSPro PowerDesk</strong></p>
@@ -123,32 +152,32 @@
             <div class="main-content">
                 <!-- Top Main Content Include  -->
                 
-                <form method="POST">
-                    <!-- content row -->
-                    <div class="row">
-                        <!-- MPPT Config -->
-                        <div class="col-lg-6">
-                            <div class="card">
-                                <div class="card-header card-header-text titel-border">
-                                    <h4 class="card-title"><i class="fa fa-wrench"></i> MPPT Configuration</h4>
-                                </div>
+                <!-- SCC Type and Source -->
+                <!-- content row -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title"><i class="fa fa-wrench"></i> SCC Type and Source</h4>
+                            </div>
+                            <form method="POST">
                                 <div class="card-content">
                                     <div class="row mb-3">
-                                        <label for="mppt-id-1" class="col-sm-4 col-form-label">MPPT Type</label>
+                                        <label for="scc-id-1" class="col-sm-4 col-form-label">SCC Type</label>
                                         <div class="col-sm-8">
                                             <select class="form-select" aria-label="Default select example">
-                                                <option selected>Choose MPPT Type</option>
-                                                <option value="mppt-srne">MPPT Srne</option>
-                                                <option value="mppt-epveper">MPPT Epveper</option>
-                                                <option value="mppt-tristar">MPPT Trisar</option>
+                                                <option selected>Choose SCC Type</option>
+                                                <option value="scc-srne">SCC Srne</option>
+                                                <option value="scc-epveper">SCC Epveper</option>
+                                                <option value="scc-tristar">SCC Trisar</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="row mb-3">
-                                        <label for="mppt-id-2" class="col-sm-4 col-form-label">MPPT Source</label>
+                                        <label for="scc-id-2" class="col-sm-4 col-form-label">SCC Source</label>
                                         <div class="col-sm-8">
                                             <select class="form-select" aria-label="Default select example">
-                                                <option selected>Choose MPPT Source</option>
+                                                <option selected>Choose SCC Source</option>
                                                 <option value="serial">SERIAL</option>
                                                 <option value="usb">USB</option>
                                                 <option value="tcp">TCP</option>
@@ -156,28 +185,58 @@
                                         </div>
                                     </div>
                                     <div class="row mb-3">
-                                        <label for="mppt-id-2" class="col-sm-4 col-form-label">Port</label>
+                                        <label for="scc-id-2" class="col-sm-4 col-form-label">Port</label>
                                         <div class="col-sm-8">
                                             <input type="text" class="form-control" id="host-ip" placeholder="contoh: /dev/ttyS0 atau /dev/ttyUSB0">
                                         </div>
                                     </div>
                                     <div class="row mb-3">
-                                        <label for="mppt-id-2" class="col-sm-4 col-form-label">Host / IP</label>
+                                        <label for="scc-id-2" class="col-sm-4 col-form-label">Host / IP</label>
                                         <div class="col-sm-8">
                                             <input type="text" class="form-control" id="host-ip" placeholder="Host / IP">
                                         </div>
                                     </div>
-                                    <!-- button save -->
+                                    <!-- button -->
                                     <div class="row">
                                         <div class="col-sm-12 text-right">
-                                            <button type="submit" class="btn btn-primary">Save</button>
+                                            <button type="submit" class="btn btn-primary">Submit</button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
-                </form>
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title"><i class="fa fa-wrench"></i> SCC Setting ID</h4>
+                            </div>
+                            <form method="POST">
+                                <div class="card-content">
+                                    <div class="row mb-3">
+                                        <label for="scc-id-1" class="col-sm-4 col-form-label">SCC 1</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" id="scc-id-1" placeholder="SCC 1">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="scc-id-2" class="col-sm-4 col-form-label">SCC 2</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" id="scc-id-2" placeholder="SCC 2">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- button -->
+                                    <div class="row">
+                                        <div class="col-sm-12 text-right">
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Footer Main Content Include  -->
                 <footer class="footer">

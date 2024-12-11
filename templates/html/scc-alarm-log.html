@@ -28,8 +28,8 @@
                 </h3>
             </div>
             <ul class="list-unstyled components">
-                <li class="active">
-                    <a href="#" class="dashboard">
+                <li>
+                    <a href="index.html" class="dashboard">
                         <i class="material-icons fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -41,13 +41,16 @@
                         <span>Monitoring</span></a>
                         <ul class="collapse list-unstyled menu" id="homeSubmenu1">
                         <li>
-                            <a href="#">Solar Charge Controller</a>
+                            <a href="scc.html">Solar Charge Controller</a>
                         </li>
                         <li>
-                            <a href="#">Battery Monitoring</a>
+                            <a href="battery.html">Battery</a>
                         </li>
                         <li>
-                            <a href="#">Load Monitoring</a>
+                            <a href="load.html">Load</a>
+                        </li>
+                        <li>
+                            <a href="scc-alarm.html">SCC Alarm</a>
                         </li>
                     </ul>
                 </li>
@@ -58,20 +61,50 @@
                         <span>History</span></a>
                     <ul class="collapse list-unstyled menu" id="homeSubmenu2">
                         <li>
-                            <a href="#">Data Log</a>
+                            <a href="datalog.html">Data Log</a>
                         </li>
                         <li>
-                            <a href="#">Event</a>
+                            <a href="scc-alarm-log.html">SCC Alarm Log</a>
                         </li>
                     </ul>
                 </li>
         
                 <li class="">
-                    <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
+                    <a href="siteInfo.html"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
                 </li>
                 
-                <li class="">
-                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                <li class="dropdown">
+                    <a href="#homeSubmenu3" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gears"></i>
+                        <span>Setting</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu3">
+                        <li>
+                            <a href="setting-device.html">Setting Device</a>
+                        </li>
+                        <li>
+                            <a href="setting-scc.html">Setting SCC</a>
+                        </li>
+                        <li>
+                            <a href="config-value-scc.html">Config Value SCC</a>
+                        </li>
+                        <li>
+                            <a href="redis.html">Redis</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a href="#homeSubmenu4" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gavel"></i>
+                        <span>Technical</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu4">
+                        <li>
+                            <a href="#">Check EHUB</a>
+                        </li>
+                        <li>
+                            <a href="#">Check Service</a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </nav>
@@ -110,11 +143,12 @@
                 <div>
                     <div class="card card-stats page-nav-location">
                         <div class="card-header">
-                            <p class="category"><strong>MPPT Overview </strong></p>
+                            <p class="category"><strong>SCC Alarm log</strong></p>
                         </div>
                         <div class="card-content">
                             <p class="category"><strong>JSPro PowerDesk</strong></p>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -123,84 +157,47 @@
                 <!-- Top Main Content Include  -->
 
                 <!-- content row -->
-                <!-- SCC Overview -->
                 <div class="row">
-                    <!-- MPPT 1 -->
-                    <div class="col-lg-6">
+                    <div class="col-lg-12 col-md-12">
                         <div class="card">
-                            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
-                                <h4 class="card-title left-text">
-                                    <a href="#" style="text-decoration: none;">
-                                        <i class="fas fa-solar-panel"></i>
-                                        MPPT 1 | Site Name | 192.168.100.234
-                                    </a>
-                                </h4>
-                                <h4 class="card-title text-right">
-                                    <a href="#" style="text-decoration: none;">
-                                        <i class="fas fa-heart"></i>
-                                        Heartbeat: 11
-                                    </a>
-                                </h4>
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title left-text"><i class="fas fa-folder-open"></i> SCC Alarm log</h4>
                             </div>
-                            <!-- PV 1 -->
                             <div class="card-content">
                                 <div class="row">
                                     <div class="col">
                                         <div class="shadow card card-stats full-border">
                                             <div class="card-content">
-                                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
-                                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
+                                                <p class="category left-text"><strong>Check Data</strong></p>
+                                                <h5 id="scc1-status" class="card-title left-text">
+                                                    <button class="btn btn-primary btn-md" id="check-data" onclick="document.getElementById('check-data-modals').style.display='block'; checkData();">
+                                                        <b>Check</b>
+                                                    </button>
+                                                </h5>                                                
                                             </div>
                                         </div>
                                     </div>
-
                                     <div class="col">
                                         <div class="shadow card card-stats full-border">
                                             <div class="card-content">
-                                                <p class="category left-text"><strong>PV1 Current</strong></p>
-                                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
+                                                <p class="category left-text"><strong>Download Data</strong></p>
+                                                <h5 id="scc1-status" class="card-title left-text">
+                                                    <button class="btn btn-primary btn-md" id="download-data" onclick="downloadData();">
+                                                        <b>Download</b>
+                                                    </button>
+                                                </h5>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MPPT 2 -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
-                                <h4 class="card-title left-text">
-                                    <a href="#" style="text-decoration: none;">
-                                        <i class="fas fa-solar-panel"></i>
-                                        MPPT 2 | Site Name | 192.168.100.234
-                                    </a>
-                                </h4>
-                                <h4 class="card-title text-right">
-                                    <a href="#" style="text-decoration: none;">
-                                        <i class="fas fa-heart"></i>
-                                        Heartbeat: 11
-                                    </a>
-                                </h4>
-                            </div>
-                            <!-- PV 1 -->
-                            <div class="card-content">
-                                <div class="row">
                                     <div class="col">
                                         <div class="shadow card card-stats full-border">
                                             <div class="card-content">
-                                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
-                                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col">
-                                        <div class="shadow card card-stats full-border">
-                                            <div class="card-content">
-                                                <p class="category left-text"><strong>PV1 Current</strong></p>
-                                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
+                                                <p class="category left-text"><strong>Clear Data</strong></p>
+                                                <h5 id="scc2-status" class="card-title left-text">
+                                                    <button class="btn btn-warning btn-md" id="clear-data" onclick="clearLogger();">
+                                                        <b>Clear</b>
+                                                    </button>
+                                                </h5>
                                             </div>
                                         </div>
                                     </div>
@@ -209,7 +206,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Footer Main Content Include  -->
                 <footer class="footer">
                     <div class="container-fluid">
@@ -220,6 +217,7 @@
                         </div>
                     </div>
                 </footer>
+
             </div>
         </div>
     </div>

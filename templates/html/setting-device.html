@@ -28,8 +28,8 @@
                 </h3>
             </div>
             <ul class="list-unstyled components">
-                <li class="active">
-                    <a href="#" class="dashboard">
+                <li>
+                    <a href="index.html" class="dashboard">
                         <i class="material-icons fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -41,13 +41,13 @@
                         <span>Monitoring</span></a>
                         <ul class="collapse list-unstyled menu" id="homeSubmenu1">
                         <li>
-                            <a href="#">Solar Charge Controller</a>
+                            <a href="scc.html">Solar Charge Controller</a>
                         </li>
                         <li>
-                            <a href="#">Battery Monitoring</a>
+                            <a href="battery.html">Battery</a>
                         </li>
                         <li>
-                            <a href="#">Load Monitoring</a>
+                            <a href="load.html">Load</a>
                         </li>
                     </ul>
                 </li>
@@ -58,10 +58,10 @@
                         <span>History</span></a>
                     <ul class="collapse list-unstyled menu" id="homeSubmenu2">
                         <li>
-                            <a href="#">Data Log</a>
+                            <a href="datalog.html">Data Log</a>
                         </li>
                         <li>
-                            <a href="#">Event</a>
+                            <a href="scc-alarm.html">SCC Alarm</a>
                         </li>
                     </ul>
                 </li>
@@ -69,11 +69,40 @@
                 <li class="">
                     <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
                 </li>
-
-                <li class="">
-                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                
+                <li class="dropdown">
+                    <a href="#homeSubmenu3" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gears"></i>
+                        <span>Setting</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu3">
+                        <li>
+                            <a href="setting-device.html">Setting Device</a>
+                        </li>
+                        <li>
+                            <a href="setting-scc.html">Setting SCC</a>
+                        </li>
+                        <li>
+                            <a href="config-value-scc.html">Config Value SCC</a>
+                        </li>
+                        <li>
+                            <a href="redis.html">Redis</a>
+                        </li>
+                    </ul>
                 </li>
-        
+
+                <li class="dropdown">
+                    <a href="#homeSubmenu4" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gavel"></i>
+                        <span>Technical</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu4">
+                        <li>
+                            <a href="#">Check EHUB</a>
+                        </li>
+                        <li>
+                            <a href="#">Check Service</a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
 
@@ -123,15 +152,15 @@
             <div class="main-content">
                 <!-- Top Main Content Include  -->
                 
-                <form method="POST">
-                    <!-- content row -->
-                    <div class="row">
-                        <!--Site Location -->
-                        <div class="col-lg-6">
-                            <div class="card">
-                                <div class="card-header card-header-text titel-border">
-                                    <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
-                                </div>
+                <!-- content row -->
+                <div class="row">
+                    <!--Site Location -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
+                            </div>
+                            <form method="POST">
                                 <div class="card-content">
                                     <div class="row mb-3">
                                         <label for="site-id" class="col-sm-4 col-form-label">Site ID</label>
@@ -181,16 +210,24 @@
                                             <input type="text" class="form-control" id="gateway" placeholder="Gateway">
                                         </div>
                                     </div>
+                                    <!-- button -->
+                                    <div class="row">
+                                        <div class="col-sm-12 text-right">
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </form>
                         </div>
+                    </div>
     
-                        <!--Device Info -->
-                        <div class="col-lg-6">
-                            <div class="card">
-                                <div class="card-header card-header-text titel-border">
-                                    <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
-                                </div>
+                    <!--Device Info -->
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-header card-header-text titel-border">
+                                <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
+                            </div>
+                            <form method="POST">
                                 <div class="card-content">
                                     <div class="row mb-3">
                                         <label for="model" class="col-sm-4 col-form-label">Model</label>
@@ -226,28 +263,18 @@
                                             <input type="text" class="form-control" id="hardware-version" placeholder="Hard Version">
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            
-                        </div>
-                    </div>
-                    <!-- button -->
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="card">
-                                <div class="card-content">
+
+                                    <!-- button -->
                                     <div class="row">
-                                        <div class="col-lg-12">
-                                            <button type="submit" class="col-lg-12 btn btn-primary">Save</button>
+                                        <div class="col-sm-12 text-right">
+                                            <button type="submit" class="btn btn-primary">Submit</button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
-
-                </form>
+                </div>
 
                 <!-- Footer Main Content Include  -->
                 <footer class="footer">

@@ -28,8 +28,8 @@
                 </h3>
             </div>
             <ul class="list-unstyled components">
-                <li class="active">
-                    <a href="#" class="dashboard">
+                <li>
+                    <a href="index.html" class="dashboard">
                         <i class="material-icons fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -41,13 +41,13 @@
                         <span>Monitoring</span></a>
                         <ul class="collapse list-unstyled menu" id="homeSubmenu1">
                         <li>
-                            <a href="#">Solar Charge Controller</a>
+                            <a href="scc.html">Solar Charge Controller</a>
                         </li>
                         <li>
-                            <a href="#">Battery Monitoring</a>
+                            <a href="battery.html">Battery</a>
                         </li>
                         <li>
-                            <a href="#">Load Monitoring</a>
+                            <a href="load.html">Load</a>
                         </li>
                     </ul>
                 </li>
@@ -58,10 +58,10 @@
                         <span>History</span></a>
                     <ul class="collapse list-unstyled menu" id="homeSubmenu2">
                         <li>
-                            <a href="#">Data Log</a>
+                            <a href="datalog.html">Data Log</a>
                         </li>
                         <li>
-                            <a href="#">Event</a>
+                            <a href="scc-alarm.html">SCC Alarm</a>
                         </li>
                     </ul>
                 </li>
@@ -70,8 +70,38 @@
                     <a href="#"><i class="material-icons fas fa-info-circle"></i><span>Site Information</span></a>
                 </li>
                 
-                <li class="">
-                    <a href="#"><i class="material-icons fas fa-gears"></i><span>Setting</span></a>
+                <li class="dropdown">
+                    <a href="#homeSubmenu3" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gears"></i>
+                        <span>Setting</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu3">
+                        <li>
+                            <a href="setting-device.html">Setting Device</a>
+                        </li>
+                        <li>
+                            <a href="setting-scc.html">Setting SCC</a>
+                        </li>
+                        <li>
+                            <a href="config-value-scc.html">Config Value SCC</a>
+                        </li>
+                        <li>
+                            <a href="redis.html">Redis</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a href="#homeSubmenu4" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="material-icons fas fa-gavel"></i>
+                        <span>Technical</span></a>
+                    <ul class="collapse list-unstyled menu" id="homeSubmenu4">
+                        <li>
+                            <a href="#">Check EHUB</a>
+                        </li>
+                        <li>
+                            <a href="#">Check Service</a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </nav>
