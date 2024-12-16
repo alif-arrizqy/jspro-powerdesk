@@ -71,6 +71,6 @@ def config_value_scc():
     return render_template('config-value-scc.html')
 
 
-@app.route('/redis', methods=['GET'])
+@app.route('/reset-redis', methods=['GET'])
 def reset_redis():
-    return render_template('redis.html')
+    return render_template('reset-redis.html')
