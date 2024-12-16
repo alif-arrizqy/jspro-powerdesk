@@ -17,4 +17,6 @@ def verify_token(token):
 def verify_password(username, password):
     if username == 'teknisi' and password == 'Joulestore2020':
         return username
+    if username == 'apt' and password == 'apt2025':
+        return username
     return None
