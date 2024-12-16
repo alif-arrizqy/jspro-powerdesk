@@ -1,0 +1,277 @@
+{% extends 'layout.html' %}
+{% block content %}
+<!-- Device Information -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text">
+                    <a href="#" style="text-decoration: none;">
+                        <i class="fas fa-info"></i> Device Information
+                    </a>
+                </h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC Type</strong></p>
+                                <h6 id="system-voltage" class="card-title left-text">SCC-SRNE</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>disk usage</strong></p>
+                                <h6 id="system-voltage" class="card-title left-text">
+                                    <mark class="status-danger">used: 13.5 GB | free: 3.5 GB/16 GB</mark>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Data Loggers Length</strong></p>
+                                <h6 id="system-voltage" class="card-title left-text">
+                                    <mark class="status-danger">1157 data</mark>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Battery Overview -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text">
+                    <a href="#" style="text-decoration: none;">
+                        <i class="fas fa-battery-full"></i> Battery Overview
+                    </a>
+                </h4>
+            </div>
+            <div class="card-content">
+                <div class="row">                                    
+                    <!-- Battery Voltage -->
+                    <div class="col-lg-3">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Battery Voltage</strong></p>
+                                <h5 id="battVolt" class="card-title left-text">51.64 V
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Battery Current -->
+                    <div class="col-lg-3">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Battery Current</strong></p>
+                                <h5 id="battCurr" class="card-title left-text">0 A</h5>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Battery Power -->
+                    <div class="col-lg-3">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Battery Power</strong></p>
+                                <h5 id="battPower" class="card-title left-text">0 W</h5>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Battery SOC -->
+                    <div class="col-lg-3">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Battery SOC</strong></p>
+                                <h5 id="battSoc" class="card-title left-text">50.1 %</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Power/LVD Overview -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text">
+                    <a href="#" style="text-decoration: none;">
+                        <i class="fas fa-bolt"></i> Power Overview
+                    </a>
+                </h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <!-- System Voltage -->
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>System Voltage</strong></p>
+                                <h5 id="system-voltage" class="card-title left-text">2.92 V</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VSAT Lvd -->
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>VSAT LVD</strong></p>
+                                <h5 id="vsat-lvd" class="card-title left-text">
+                                    <mark class="status-inactive">Close</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BTS Lvd -->
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>BTS LVD</strong></p>
+                                <h5 id="bts-lvd" class="card-title left-text">
+                                    <mark class="status-active">Open</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Load 1 -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Load 1 Voltage</strong></p>
+                                <h5 id="load1-voltage" class="card-title left-text">87.34 V</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Load 1 Current</strong></p>
+                                <h5 id="load1-current" class="card-title left-text">56.3 A</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Load 2 -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Load 2 Voltage</strong></p>
+                                <h5 id="load2-voltage" class="card-title left-text">67.5 V</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Load 2 Current</strong></p>
+                                <h5 id="load2-current" class="card-title left-text">57.2 A</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCC Overview -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text">
+                    <a href="#" style="text-decoration: none;">
+                        <i class="fas fa-solar-panel"></i> SCC Overview
+                    </a>
+                </h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <!-- SCC Status -->
+                    <!-- jika ada 3 scc, col-lg-4 -->
+                    <!-- jika ada 2 scc, col-lg-6 -->
+                    
+                    <div class="col-lg-6">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 1 Status</strong></p>
+                                <h5 id="scc1-status" class="card-title left-text">
+                                    <mark class="status-active">is running</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 2 Status</strong></p>
+                                <h5 id="scc2-status" class="card-title left-text">
+                                    <mark class="status-inactive">is standby</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PV 1 -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
+                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV1 Current</strong></p>
+                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PV 2  -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV2 Voltage</strong></p>
+                                <h5 id="pv2-voltage" class="card-title left-text">65.2 V</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV2 Current</strong></p>
+                                <h5 id="pv2-current" class="card-title left-text">7.9 A</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
