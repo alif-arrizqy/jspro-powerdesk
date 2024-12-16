@@ -51,6 +51,11 @@ def scc_alarm_log():
     return render_template('scc-alarm-log.html')
 
 
+@app.route('/site-information', methods=['GET'])
+def site_information():
+    return render_template('site-information.html')
+
+
 @app.route('/setting-device', methods=['GET'])
 def setting_device():
     return render_template('setting-device.html')
