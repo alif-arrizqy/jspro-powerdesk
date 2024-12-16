@@ -1,0 +1,128 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} Setting Device {% endblock breadcrumbs %}
+
+{% block content %}
+<!-- content row -->
+<div class="row">
+    <!--Site Location -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
+            </div>
+            <form method="POST">
+                <div class="card-content">
+                    <div class="row mb-3">
+                        <label for="site-id" class="col-sm-4 col-form-label">Site ID</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="site-id" placeholder="Site ID">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="site-name" class="col-sm-4 col-form-label">Site Name</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="site-name" placeholder="Site Name">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="address" class="col-sm-4 col-form-label">Address</label>
+                        <div class="col-sm-8">
+                            <textarea type="text" class="form-control" id="address" placeholder="Address"></textarea>
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="ip-address-primary" class="col-sm-4 col-form-label">IP Address Primary</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="ip-address-primary" placeholder="IP Address Primary">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <label for="ip-address-secondary" class="col-sm-4 col-form-label">IP Address Secondary</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="ip-address-secondary" placeholder="IP Address Secondary">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="net-mask" class="col-sm-4 col-form-label">Net Mask</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="net-mask" placeholder="contoh: /24 atau /29">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="gateway" placeholder="Gateway">
+                        </div>
+                    </div>
+                    <!-- button -->
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!--Device Info -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
+            </div>
+            <form method="POST">
+                <div class="card-content">
+                    <div class="row mb-3">
+                        <label for="model" class="col-sm-4 col-form-label">Model</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="model" placeholder="Model">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="part-number" class="col-sm-4 col-form-label">Part Number</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="part-number" placeholder="Part Number">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="serial-number" class="col-sm-4 col-form-label">Serial Number</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="serial-number" placeholder="Serial Number">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="software-version" class="col-sm-4 col-form-label">Software Version</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="software-version" placeholder="Software Version">
+                        </div>
+                    </div>
+            
+                    <div class="row mb-3">
+                        <label for="hardware-version" class="col-sm-4 col-form-label">Hardware Version</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="hardware-version" placeholder="Hard Version">
+                        </div>
+                    </div>
+
+                    <!-- button -->
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

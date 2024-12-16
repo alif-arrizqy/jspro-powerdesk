@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} Reset Redis {% endblock breadcrumbs %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-folder-open"></i> Reset Redis</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Talis Pack Active</strong></p>
+                                <h5 id="scc2-status" class="card-title left-text">
+                                    <button class="btn btn-warning btn-md" id="clear-data" onclick="clearLogger();">
+                                        <b>Clear</b>
+                                    </button>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Talis Realtime</strong></p>
+                                <h5 id="scc2-status" class="card-title left-text">
+                                    <button class="btn btn-warning btn-md" id="clear-data" onclick="clearLogger();">
+                                    <b>Clear</b>
+                                    </button>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

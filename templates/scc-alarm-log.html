@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} SCC Alarm Log {% endblock breadcrumbs %}
+
+{% block content %}
+<!-- content row -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-folder-open"></i> SCC Alarm log</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Check Data</strong></p>
+                                <h5 id="scc1-status" class="card-title left-text">
+                                    <button class="btn btn-primary btn-md" id="check-data" onclick="document.getElementById('check-data-modals').style.display='block'; checkData();">
+                                        <b>Check</b>
+                                    </button>
+                                </h5>                                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Download Data</strong></p>
+                                <h5 id="scc1-status" class="card-title left-text">
+                                    <button class="btn btn-primary btn-md" id="download-data" onclick="downloadData();">
+                                        <b>Download</b>
+                                    </button>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Clear Data</strong></p>
+                                <h5 id="scc2-status" class="card-title left-text">
+                                    <button class="btn btn-warning btn-md" id="clear-data" onclick="clearLogger();">
+                                        <b>Clear</b>
+                                    </button>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

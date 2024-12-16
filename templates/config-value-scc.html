@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} Config Value SCC {% endblock breadcrumbs %}
+
+{% block content %}
+<!-- content row -->
+<div class="row">
+    <!--cut off / reconnect -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title"><i class="fas fa-plug"></i> Config Value Cut off / Reconnect</h4>
+            </div>
+            <form method="POST">
+                <div class="card-content">
+                    <div class="row mb-3">
+                        <label for="bts-reconnect" class="col-sm-4 col-form-label">BTS Reconnect</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" id="bts-reconnect" placeholder="Contoh: 4800">
+                        </div>
+                    </div>                                    
+                    <div class="row mb-3">
+                        <label for="site-id" class="col-sm-4 col-form-label">BTS Cutoff</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" id="site-id" placeholder="Contoh: 4700">
+                        </div>
+                    </div>
+                    <hr style="border: 3px solid #f0f0f0;">
+                    <div class="row mb-3">
+                        <label for="site-id" class="col-sm-4 col-form-label">VSAT Reconnect</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" id="site-id" placeholder="Contoh: 4700">
+                        </div>
+                    </div>                                    
+                    <div class="row mb-3">
+                        <label for="site-id" class="col-sm-4 col-form-label">VSAT Cutoff</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" id="site-id" placeholder="Contoh: 4600">
+                        </div>
+                    </div>
+                    <!-- button -->
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!--boost pv charging -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title"><i class="fas fa-battery-full"></i> Boost PV Charging</h4>
+            </div>
+            <form method="POST">
+                <div class="card-content">
+                    <div class="row mb-3">
+                        <label for="overvoltage-disconnect" class="col-sm-4 col-form-label">Overvoltage Disconnect</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="overvoltage-disconnect" placeholder="Contoh: 5800">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="chg-limit-overvoltage" class="col-sm-4 col-form-label">Chg Limit Overvoltage</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="chg-limit-overvoltage" placeholder="Contoh: 5770">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="overvoltage-reconnect" class="col-sm-4 col-form-label">Overvoltage Reconnect</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="overvoltage-reconnect" placeholder="Contoh: 5750">
+                        </div>
+                    </div>
+                    <!-- button -->
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

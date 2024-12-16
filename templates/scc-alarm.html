@@ -1,0 +1,120 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} SCC Alarm {% endblock breadcrumbs %}
+
+{% block content %}
+<!--SCC Alarm -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-battery-full"></i> Load Status</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 1 Status</strong></p>
+                                <h5 id="scc1-status" class="card-title left-text">
+                                    <mark class="status-active">is running</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 2 Status</strong></p>
+                                <h5 id="scc2-status" class="card-title left-text">
+                                    <mark class="status-inactive">is standby</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--temperature scc -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-thermometer-three-quarters"></i> Temperature SCC</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 1 Battery Temp</strong></p>
+                                <h5 id="scc-1-battery-temp" class="card-title left-text">56.78 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 1 Device Temp</strong></p>
+                                <h5 id="scc-1-device-temp" class="card-title left-text">5.66 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 2 Battery Temp</strong></p>
+                                <h5 id="scc-2-battery-temp" class="card-title left-text">56.78 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 2 Device Temp</strong></p>
+                                <h5 id="scc-2-device-temp" class="card-title left-text">5.66 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alarm Info -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-exclamation-triangle"></i> Alarm Info</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 1 Alarm</strong></p>
+                                <h5 id="scc1-alarm" class="card-title left-text">
+                                    <mark class="status-active">No Alarm</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC 2 Alarm</strong></p>
+                                <h5 id="scc2-alarm" class="card-title left-text">
+                                    <mark class="status-inactive">No Alarm</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

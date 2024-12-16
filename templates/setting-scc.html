@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} Setting SCC {% endblock breadcrumbs %}
+
+{% block content %}
+<!-- SCC Type and Source -->
+    <!-- content row -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header card-header-text titel-border">
+                    <h4 class="card-title"><i class="fa fa-wrench"></i> SCC Type and Source</h4>
+                </div>
+                <form method="POST">
+                    <div class="card-content">
+                        <div class="row mb-3">
+                            <label for="scc-id-1" class="col-sm-4 col-form-label">SCC Type</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" aria-label="Default select example">
+                                    <option selected>Choose SCC Type</option>
+                                    <option value="scc-srne">SCC Srne</option>
+                                    <option value="scc-epveper">SCC Epveper</option>
+                                    <option value="scc-tristar">SCC Trisar</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="scc-id-2" class="col-sm-4 col-form-label">SCC Source</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" aria-label="Default select example">
+                                    <option selected>Choose SCC Source</option>
+                                    <option value="serial">SERIAL</option>
+                                    <option value="usb">USB</option>
+                                    <option value="tcp">TCP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="scc-id-2" class="col-sm-4 col-form-label">Port</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="host-ip" placeholder="contoh: /dev/ttyS0 atau /dev/ttyUSB0">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="scc-id-2" class="col-sm-4 col-form-label">Host / IP</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="host-ip" placeholder="Host / IP">
+                            </div>
+                        </div>
+                        <!-- button -->
+                        <div class="row">
+                            <div class="col-sm-12 text-right">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header card-header-text titel-border">
+                    <h4 class="card-title"><i class="fa fa-wrench"></i> SCC Setting ID</h4>
+                </div>
+                <form method="POST">
+                    <div class="card-content">
+                        <div class="row mb-3">
+                            <label for="scc-id-1" class="col-sm-4 col-form-label">SCC 1</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="scc-id-1" placeholder="SCC 1">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="scc-id-2" class="col-sm-4 col-form-label">SCC 2</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="scc-id-2" placeholder="SCC 2">
+                            </div>
+                        </div>
+                        
+                        <!-- button -->
+                        <div class="row">
+                            <div class="col-sm-12 text-right">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

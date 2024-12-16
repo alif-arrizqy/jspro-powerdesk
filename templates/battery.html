@@ -1,0 +1,418 @@
+{% extends 'layout.html' %}
+{% block breadcrumbs %} Battery Monitoring {% endblock breadcrumbs %}
+
+{% block content %}
+<!--Battery Overview -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-battery-full"></i> Pack Information</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <!-- Status Pack -->
+                    <div class="col-12">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content text-center">
+                                <button class="btn btn-success btn-lg">Pack Online</button>
+                                <!-- <div class="btn-group" role="group" aria-label="Battery Status"> -->
+                                    <button class="btn btn-success btn-lg">1</button>
+                                    <button class="btn btn-success btn-lg">2</button>
+                                    <button class="btn btn-success btn-lg">3</button>
+                                    <button class="btn btn-dark btn-lg">4</button>
+                                    <button class="btn btn-dark btn-lg">5</button>
+                                    <button class="btn btn-dark btn-lg">6</button>
+                                    <button class="btn btn-success btn-lg">7</button>
+                                    <button class="btn btn-success btn-lg">8</button>
+                                    <button class="btn btn-success btn-lg">9</button>
+                                    <button class="btn btn-success btn-lg">10</button>
+                                <!-- </div> -->
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="shadow card card-stats full-border">
+                                    <div class="card-content">
+                                        <p class="category left-text"><strong>Pack Number</strong></p>
+                                        <h5 id="pack-number" class="card-title left-text">1</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="shadow card card-stats full-border">
+                                    <div class="card-content">
+                                        <p class="category left-text"><strong>Pack Status</strong></p>
+                                        <h5 id="system-voltage" class="card-title left-text">
+                                            <mark class="status-active">Online</mark>
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Pack Information Device -->
+                            <div class="col">
+                                <div class="shadow card card-stats full-border">
+                                    <div class="card-content">
+                                        <p class="category left-text"><strong>Port</strong></p>
+                                        <h5 id="system-voltage" class="card-title left-text">USB0</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="shadow card card-stats full-border">
+                                    <div class="card-content">
+                                        <p class="category left-text"><strong>PCB Code</strong></p>
+                                        <h5 id="system-voltage" class="card-title left-text">TBI24032703195</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="shadow card card-stats full-border">
+                                    <div class="card-content">
+                                        <p class="category left-text"><strong>SN Code</strong></p>
+                                        <h5 id="system-voltage" class="card-title left-text">AO2703195</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Power/LVD Overview -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-plug"></i> Cell Overview</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Heartbeat</strong></p>
+                                <h5 id="cell-counter" class="card-title left-text">5</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Voltage - Current -SOC -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Voltage</strong></p>
+                                <h5 id="cell-voltage" class="card-title left-text">56.78 V</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Current</strong></p>
+                                <h5 id="cell-current" class="card-title left-text">5.66 A</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SOC</strong></p>
+                                <h5 id="cell-current" class="card-title left-text">89 %</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- Battery Status -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Battery Status</strong></p>
+                                <h5 id="system-voltage" class="card-title left-text">
+                                    <mark class="status-danger">Battery Fault</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Cell Max</strong></p>
+                                <h5 id="system-voltage" class="card-title left-text">3397 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Cell Min</strong></p>
+                                <h5 id="system-voltage" class="card-title left-text">2999 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Cell Difference</strong></p>
+                                <h5 id="system-voltage" class="card-title left-text">
+                                    <mark class="status-danger">398 mV</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cell Overview -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card" style="min-height: 250px">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-solar-panel"></i> Cell Overview</h4>
+            </div>
+            <div class="card-content">
+                <!-- 1-8 -->
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 9-16 -->
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>cell 1</strong></p>
+                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mosfet Status -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card" style="min-height: 250px">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-plug"></i> Mosfet Status</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>CMOS status</strong></p>
+                                <h5 id="cmos-status" class="card-title left-text">
+                                    <mark class="status-active">ON</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>DMOS status</strong></p>
+                                <h5 id="dmos-status" class="card-title left-text">
+                                    <mark class="status-inactive">OFF</mark>
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Temperature Status -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card" style="min-height: 250px">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-thermometer-three-quarters"></i> Temperature Status</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>CMOS Temp</strong></p>
+                                <h5 id="cmos-temp" class="card-title left-text">31.8 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>DMOS Temp</strong></p>
+                                <h5 id="dmos-temp" class="card-title left-text">31.8 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Env Temp</strong></p>
+                                <h5 id="env-temp" class="card-title left-text">35.8 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Top Temp</strong></p>
+                                <h5 id="top-temp" class="card-title left-text">34.8 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Mid Temp</strong></p>
+                                <h5 id="mid-temp" class="card-title left-text">31.8 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Bot Temp</strong></p>
+                                <h5 id="bot-temp" class="card-title left-text">27.8 C</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock%}
