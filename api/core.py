@@ -1,10 +1,10 @@
 import time
 import json
 from ast import literal_eval
-from config import number_of_batt, number_of_mppt, slave_ids
 from flask import jsonify
-from .redisconnection import red
 from . import api
+from .redisconnection import red
+from config import number_of_batt, number_of_scc, slave_ids
 from auths import token_auth as auth
 from functions import get_ip_address, get_disk_detail, get_free_ram
 from redis.exceptions import RedisError
