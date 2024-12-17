@@ -505,72 +505,10 @@ def delete_logger_talis(timestamp):
 # ===================== End Talis 5 ===========================
 
 
-@api.route('/api/device-version/', methods=("GET",))
-@auth.login_required
-def device_version():
-    list_result = []
-    try:
-        data = red.hgetall('device_version')
-        for key, val in data.items():
-            result = {}
-            conv_val = literal_eval(str(val)[2:-1])
-            for k, v in conv_val.items():
-                result[k] = v
-            list_result.append(result)
-    except Exception as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-    return jsonify(list_result), 200
-
-
-@api.route('/api/status/system', methods=('GET',))
-@auth.login_required
-def system_status():
-    try:
-        disk = get_disk_detail()
-        free_ram = get_free_ram()
-        data = {
-            'disk': {
-                'total': f'{round(disk.total / 1000000000, 1)}',
-                'used': f'{round(disk.used / 1000000000, 1)}',
-                'free': f'{round(disk.free / 1000000000, 1)}'
-            },
-            "free_ram": f'{free_ram}'
-        }
-        return jsonify(data), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-
-
-@api.route('/api/dashboard/', methods=('GET',))
-def dashboard():
-    talis_log1 = red.hgetall("bms_usb0_log")
-    talis_log2 = red.hgetall("bms_usb1_log")
-    mppt_data = red.hgetall("energy_data")
-
-    datas = [talis_log1, talis_log2, mppt_data]
-
-    context = {
-        'ip_address': get_ip_address('eth0'),
-        'datalogger': len(datas)
-    }
-    return context
-
-
-@api.route('/api/mppt-alarm-realtime/', methods=('GET',))
-def mppt_alarm_realtime():
-    mppt_result = {"message": "success"}
+# ===================== SCC Alarm ===========================
+@api.route('/api/scc-alarm-realtime/', methods=('GET',))
+def scc_alarm_realtime():
+    scc_result = {"message": "success"}
     try:
         for slave in range(1, number_of_mppt + 1):
             # get load status from mppt
