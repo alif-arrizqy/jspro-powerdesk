@@ -128,121 +128,69 @@ def load_power():
             'status': 'error'
         }
         return jsonify(response), 500
+# ================== END Load Power ====================
 
 
-@api.route('/api/logger/', methods=("GET",))
-@auth.login_required
-def logger():
-    list_result = list()
+# ================== SCC Realtime ====================
+@api.route('/api/realtime/scc/', methods=("GET",))
+def scc_realtime():
     try:
-        data = red.hgetall('data')
-        if not data:
-            raise ValueError("Logger data not found")
+        pv_voltage = {}
+        pv_current = {}
+        load_status = {}
 
-        for key, val in data.items():
-            result = dict()
-            conv_val = literal_eval(str(val)[2:-1])
-            result['ts'] = str(key)[2:-1]
-            for k, v in conv_val.items():
-                result[k] = v
-
-            # tvd only
+        # pv voltage, pv current, scc status
+        for no in range(1, number_of_scc + 1):
             try:
-                bsp = result.get("bspwatt")
-                mcb_voltage = result.get("mcb_voltage")
-                rxlevel = result.get("rxlevel")
-                plpfill = result.get("plpfill")
-                sync = result.get("sync")
-                software_uptime = result.get("software_uptime")
-
-                if software_uptime in [b'', None]:
-                    result["software_uptime"] = 0
-                if bsp in [b'', None]:
-                    result["bspwatt"] = 0
-                if mcb_voltage in [b'', None]:
-                    result["mcb_voltage"] = 0
-                if rxlevel in [b'', None]:
-                    result["rxlevel"] = 0
-                if plpfill in [b'', None]:
-                    result["plpfill"] = 0
-                if sync in [b'', None]:
-                    result["sync"] = 0
+                pv_voltage[f"pv{no}_voltage"] = float(red.hget(f'scc{no}', 'pv_voltage') or -1)
             except Exception as e:
-                print(f"Error processing logger data: {e}")
-                pass
-            
-            list_result.append(result)
-        
+                print(f"Error retrieving pv{no}_voltage: {e}")
+                pv_voltage[f"pv{no}_voltage"] = 0
+
+            try:
+                pv_current[f"pv{no}_current"] = float(red.hget(f'scc{no}', 'pv_current') or -1)
+            except Exception as e:
+                print(f"Error retrieving pv{no}_current: {e}")
+                pv_current[f"pv{no}_current"] = 0
+
+            # get load status from scc
+            try:
+                load_status_value = red.hget(f"scc{no}", "load_status")
+
+                if load_status_value is None:
+                    load_status[f"load{no}_status"] = "data not found"
+                elif load_status_value == b'1':
+                    load_status[f"load{no}_status"] = "is running"
+                elif load_status_value == b'0':
+                    load_status[f"load{no}_status"] = "is standby"
+                elif load_status_value == b'-1':
+                    load_status[f"load{no}_status"] = "modbus error"
+                else:
+                    load_status[f"load{no}_status"] = "unknown status"
+            except Exception as e:
+                print(f"Error retrieving load_status for scc{no}: {e}")
+                load_status[f"load{no}_status"] = "error retrieving data"
+
         response = {
             'code': 200,
             'message': 'success',
-            'data': list_result
+            'data': {
+                'pv_voltage': pv_voltage,
+                'pv_current': pv_current,
+                'load_status': load_status
+            }
         }
         return jsonify(response), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-
-    except ValueError as e:
+    except Exception as e:
         print(f"Error: {e}")
         response = {
-            'code': 404,
-            'message': 'Data not found',
-            'data': []
-        }
-        return jsonify(response), 404
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'data': []
-        }
-        return jsonify(response), 500
-
-
-@api.route('/api/logger/<timestamp>', methods=('DELETE',))
-@auth.login_required
-def delete_logger(timestamp):
-    try:
-        result = red.hdel('data', str(timestamp))
-        if result == 0:
-            raise ValueError("Data not found")
-
-        response = {
-            'code': 200,
-            'message': 'Data deleted successfully',
-            'status': 'success'
-        }
-        return jsonify(response), 200
-
-    except (RedisError, ValueError) as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 404,
-            'message': 'data not found',
-            'status': 'error'
-        }
-        return jsonify(response), 404
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
             'code': 500,
             'message': 'Internal server error',
             'status': 'error'
         }
         return jsonify(response), 500
+# ================== END SCC Realtime ====================
 
-# END
-# ============== PMS ===============================
 
 # ============== Talis 5 ===========================
 @api.route('/api/bmsactive/', methods=("GET",))
