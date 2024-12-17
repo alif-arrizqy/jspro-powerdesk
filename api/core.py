@@ -45,10 +45,9 @@ def device_information():
             'code': 200,
             'message': 'success',
             'data': {
-                'battery_voltage': battery_voltage,
-                'mppt_data': mppt_result,
-                'pms_data': pms_result,
-                'load': load
+                'device_information': device_information,
+                'datalog_length': datalog_length,
+                'disk_ram': disk_ram
             }
         }
         return jsonify(response), 200
