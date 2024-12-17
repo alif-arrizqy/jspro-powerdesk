@@ -9,66 +9,38 @@ from auths import token_auth as auth
 from functions import get_ip_address, get_disk_detail, get_free_ram
 from redis.exceptions import RedisError
 
-# ============== PMS ===============================
-@api.route('/api/realtime/', methods=("GET",))
-@auth.login_required
-def realtime():
-    mppt_result = dict()
-    pms_result = dict()
+
+# ============== Device Information ===========================
+@api.route('/api/device-information/', methods=("GET",))
+def device_information():
     try:
-        dock_active = red.hgetall('dock_active')
-        if not dock_active:
-            raise ValueError("Dock active data not found")
+        device_information = {}
+        data = red.hgetall('device_version')
+        for key, val in data.items():
+            conv_val = literal_eval(str(val)[2:-1])
+            for k, v in conv_val.items():
+                device_information[k] = v
+        
+        # datalog length
+        talis_log1 = red.hgetall("bms_usb0_log")
+        talis_log2 = red.hgetall("bms_usb1_log")
+        scc_data = red.hgetall("energy_data")
 
-        dock_active_compare = dict()
-        for key, val in dock_active.items():
-            if key != b'pms0':
-                dock_active_compare[str(key)[2:-1]] = int(val)
-
-        mppt_data = [red.hgetall(f'mppt{device}')
-                    for device in range(1, number_of_mppt + 1)]
-        pms_data = [red.hgetall(f'pms{dock}')
-                    for dock in range(1, number_of_batt + 1)]
-
-        for counter, data in enumerate(mppt_data):
-            mppt_dict = dict()
-            for key, val in data.items():
-                mppt_dict[str(key)[2:-1]] = float(val)
-            mppt_result[f'mppt{counter + 1}'] = mppt_dict
-
-        for counter, data in enumerate(pms_data):
-            pms_dict = dict()
-            if data:
-                for key, val in data.items():
-                    try:
-                        pms_dict[str(key)[2:-1]] = int(val)
-                    except ValueError:
-                        pms_dict[str(key)[2:-1]] = str(val)[2:-1]
-                if dock_active_compare.get(f'pms{counter + 1}'):
-                    pms_result[f'pms{counter + 1}'] = pms_dict
-
-        vsat = red.hget('relay_status', 'vsat')
-        bts = red.hget('relay_status', 'bts')
-        obl = red.hget('relay_status', 'obl')
-
-        vsat_state = vsat == b'1'
-        bts_state = bts == b'1'
-        obl_state = obl == b'1'
-
-        load = {
-            'vsat_curr': round(float(red.hget('sensor_arus', 'load1')), 2),
-            'bts_curr': round(float(red.hget('sensor_arus', 'load2')), 2),
-            'obl': round(float(red.hget('sensor_arus', 'load3')), 2),
-            'relay_state': {
-                'vsat': vsat_state,
-                'bts': bts_state,
-                'obl': obl_state
-            }
+        datalog = [talis_log1, talis_log2, scc_data]
+        datalog_length = len(datalog)
+        
+        # disk usage and ram usage
+        disk = get_disk_detail()
+        free_ram = get_free_ram()
+        disk_ram = {
+            'disk': {
+                'total': f'{round(disk.total / 1000000000, 1)}',
+                'used': f'{round(disk.used / 1000000000, 1)}',
+                'free': f'{round(disk.free / 1000000000, 1)}'
+            },
+            "free_ram": f'{free_ram}'
         }
-
-        battery_voltage = int(float(red.hget("avg_volt", "voltage")))
-        battery_voltage = round((battery_voltage / 100), 2)
-
+        
         response = {
             'code': 200,
             'message': 'success',
