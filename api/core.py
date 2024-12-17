@@ -51,36 +51,12 @@ def device_information():
             }
         }
         return jsonify(response), 200
-
-    except (RedisError, ValueError) as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 404,
-            'message': 'data not found',
-            'data': {
-                'battery_voltage': 0,
-                'mppt_data': mppt_result,
-                'pms_data': pms_result,
-                'load': {
-                    'vsat_curr': -1,
-                    'bts_curr': -1,
-                    'obl': -1,
-                    'relay_state': {
-                        'vsat': True,
-                        'bts': False,
-                        'obl': True
-                    }
-                }
-            }
-        }
-        return jsonify(response), 404
-
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"Error: {e}")
         response = {
             'code': 500,
             'message': 'Internal server error',
-            'data': {}
+            'status': 'error'
         }
         return jsonify(response), 500
 
