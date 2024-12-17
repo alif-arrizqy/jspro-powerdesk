@@ -59,42 +59,73 @@ def device_information():
             'status': 'error'
         }
         return jsonify(response), 500
+# ================== END Device Information ====================
 
-
-@api.route('/api/dockactive/', methods=("GET",))
-def dockactive():
+# ================== Load Power Realtime ====================
+@api.route('/api/realtime/lvd/', methods=("GET",))
+def load_power():
     try:
-        dock_active = red.hgetall('dock_active')
-        if not dock_active:
-            raise ValueError("Dock active data not found")
+        # untuk data power overview
+        # relay / lvd status = 1 (on) / 0 (off)
+        # mcb status = 1 (on) / 0 (off)
+        
+        # lvd load voltage
+        lvd_result = {}
+        mcb_result = {}
+        load_current = {}
+        system_voltage = None
 
-        dock_active_compare = dict()
-        for key, val in dock_active.items():
-            if key != b'pms0':
-                dock_active_compare[str(key)[2:-1]] = int(val)
+        try:
+            lvd1 = float(red.hget('lvd', 'lvd1') or -1)
+            lvd2 = float(red.hget('lvd', 'lvd2') or -1)
+            lvd3 = float(red.hget('lvd', 'lvd3') or -1)
+            lvd_result = {
+                "lvd1": lvd1,
+                "lvd2": lvd2,
+                "lvd3": lvd3,
+            }
+            mcb_result = {
+                "mcb1": lvd1,
+                "mcb2": lvd2,
+                "mcb3": lvd3
+            }
+        except Exception as e:
+            print(f"Error retrieving LVD data: {e}")
+
+        try:
+            load1_current = float(red.hget('sensor_arus', 'load1') or -1)
+            load2_current = float(red.hget('sensor_arus', 'load2') or -1)
+            load3_current = float(red.hget('sensor_arus', 'load3') or -1)
+            load_current = {
+                "load1_current": load1_current,
+                "load2_current": load2_current,
+                "load3_current": load3_current
+            }
+        except Exception as e:
+            print(f"Error retrieving load current data: {e}")
+
+        try:
+            system_voltage = float(red.hget('lvd', 'system_voltage') or -1)
+        except Exception as e:
+            print(f"Error retrieving system voltage data: {e}")
 
         response = {
             'code': 200,
             'message': 'success',
-            'data': dock_active_compare
+            'data': {
+                'lvd': lvd_result,
+                'mcb': mcb_result,
+                'load_current': load_current,
+                'system_voltage': system_voltage
+            }
         }
         return jsonify(response), 200
-
-    except (RedisError, ValueError) as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 404,
-            'message': 'data not found',
-            'data': {}
-        }
-        return jsonify(response), 404
-
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"Error: {e}")
         response = {
             'code': 500,
             'message': 'Internal server error',
-            'data': {}
+            'status': 'error'
         }
         return jsonify(response), 500
 
