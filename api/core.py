@@ -256,7 +256,27 @@ def bms_active():
 def realtime_talis():
     talis_data_usb0 = []
     talis_data_usb1 = []
+    energy_data = dict()
+    scc_data = dict()
+    scc_list = []
     try:
+        # realtime energy mppt
+        energy_data['batt_volt'] = int(
+            red.hget('avg_volt', 'voltage').decode('utf-8'))
+
+        for no in range(1, number_of_scc + 1):
+            energy_data[f'load{no}'] = float(
+                red.hget('sensor_arus', f'load{no}'))
+            energy_data[f'pv{no}_volt'] = float(
+                red.hget(f'scc{no}', 'pv_voltage'))
+            energy_data[f'pv{no}_curr'] = float(
+                red.hget(f'scc{no}', 'pv_current'))
+        
+        
+        
+        # untuk data scc overview (scc 1 dan 2)
+        # pv voltage, pv current, scc status
+
         # logger data for usb0
         for slave_id in range(1, slave_ids + 1):
             bms_data_json = red.hget("bms_usb0", f"slave_id_{slave_id}")
@@ -292,7 +312,8 @@ def realtime_talis():
             'message': 'success',
             'data': {
                 'usb0': talis_data_usb0,
-                'usb1': talis_data_usb1
+                'usb1': talis_data_usb1,
+                'scc': scc_list
             }
         }
         return jsonify(response), 200
@@ -321,9 +342,9 @@ def realtime_talis():
 def logger_talis():
     result_talis_usb0 = []
     result_talis_usb1 = []
-    result_mppt = []
+    result_scc = []
     try:
-        # logger energy mppt
+        # logger energy scc
         data_energy = red.hgetall('energy_data')
         if not data_energy:
             print("Data not found for energy data")
@@ -334,7 +355,7 @@ def logger_talis():
                 conv_val = literal_eval(str(val)[2:-1])
                 ts = str(key)[2:-1]
                 conv_val['ts'] = ts
-                result_mppt.append(conv_val)
+                result_scc.append(conv_val)
             except (ValueError, SyntaxError) as e:
                 print(f"Error parsing data for key {key}: {e}")
                 continue
@@ -393,7 +414,7 @@ def logger_talis():
             'data': {
                 'usb0': result_talis_usb0,
                 'usb1': result_talis_usb1,
-                'mppt': result_mppt
+                'scc': result_scc
             }
         }
         return jsonify(response), 200
@@ -433,9 +454,9 @@ def delete_logger_talis(timestamp):
         # Check data in redis bms_usb0_log and bms_usb1_log
         bms_data_json_usb0 = red.hget('bms_usb0_log', str(timestamp))
         bms_data_json_usb1 = red.hget('bms_usb1_log', str(timestamp))
-        mppt_logs = red.hget('energy_data', str(timestamp)) 
+        scc_logs = red.hget('energy_data', str(timestamp)) 
 
-        if not bms_data_json_usb0 and not bms_data_json_usb1 and not mppt_logs:
+        if not bms_data_json_usb0 and not bms_data_json_usb1 and not scc_logs:
             response = {
                 'code': 404,
                 'message': 'Data not found',
@@ -444,7 +465,7 @@ def delete_logger_talis(timestamp):
             return jsonify(response), 404
 
         # Delete the data
-        if mppt_logs:
+        if scc_logs:
             red.hdel('energy_data', str(timestamp))
 
         if bms_data_json_usb0:
@@ -481,8 +502,7 @@ def delete_logger_talis(timestamp):
         }
         return jsonify(response), 500
 
-# END
-# ============== Talis 5 ===========================
+# ===================== End Talis 5 ===========================
 
 
 @api.route('/api/device-version/', methods=("GET",))
