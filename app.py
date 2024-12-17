@@ -88,6 +88,6 @@ def config_value_scc():
     return render_template('config-value-scc.html')
 
 
-@app.route('/reset-redis', methods=['GET'])
-def reset_redis():
-    return render_template('reset-redis.html')
+@app.route('/disk-storage', methods=['GET'])
+def disk_storage():
+    return render_template('disk-storage.html')
