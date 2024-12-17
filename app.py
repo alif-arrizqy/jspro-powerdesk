@@ -5,7 +5,7 @@ from config import *
 from api import core
 from api.redisconnection import red
 from auths import basic_auth as auth
-# from functions import change_ip, bash_command, get_ip_address, update_config_mppt, update_device_version
+from functions import change_ip, bash_command, get_ip_address, update_config_mppt, update_device_version
 # from validations import validate_setting_ip, validate_modbus_id
 from flask_cors import CORS
 
@@ -18,7 +18,24 @@ PATH = "/var/lib/sundaya/ehub-bakti"
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    try:
+        if red.get('site_name') is None:
+            site_name = str(red.get('site_name')[2:-1])
+        print(site_name)
+        context = {
+            'site_name': site_name,
+            # 'ip_address': get_ip_address(),
+            'ip_address': '192.168.1.1',
+            'number_of_scc': number_of_scc
+        }
+    except Exception as e:
+        context = {
+            'site_name': 'Ehub Talis',
+            # 'ip_address': get_ip_address(),
+            'ip_address': '192.168.1.1',
+            'number_of_scc': number_of_scc
+        }
+    return render_template('index.html', **context)
 
 
 @app.route('/scc', methods=['GET'])
