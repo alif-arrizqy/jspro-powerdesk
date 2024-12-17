@@ -6,22 +6,24 @@ except Exception:
     device = None
 
 if device is None:
-    number_of_mppt = 3
-    number_of_batt = 16
+    number_of_scc = 2
+    number_of_batt = 10
 else:
     device = device.decode('utf-8')
 
-    if eval(device)['mppt_type'] is None:
-        mppt_type = None
+    if eval(device)['scc_type'] is None:
+        scc_type = None
     else:
-        mppt_type = eval(device)['mppt_type']
+        scc_type = eval(device)['scc_type']
 
-    if mppt_type == "mppt-srne":
-        number_of_mppt = 3
-    elif mppt_type == "mppt-epveper":
-        number_of_mppt = 2
+    if scc_type == "scc-srne":
+        number_of_scc = 3
+    elif scc_type == "scc-epveper":
+        number_of_scc = 2
+    elif scc_type == "scc-tristar":
+        number_of_scc = 2
     else:
-        number_of_mppt = 2
-    number_of_batt = 16
+        number_of_scc = 2
+    number_of_batt = 10
 
 slave_ids = 10
