@@ -510,9 +510,9 @@ def delete_logger_talis(timestamp):
 def scc_alarm_realtime():
     scc_result = {"message": "success"}
     try:
-        for slave in range(1, number_of_mppt + 1):
-            # get load status from mppt
-            load_status = red.hget(f"mppt{slave}", "load_status")
+        for slave in range(1, number_of_scc + 1):
+            # get load status from scc
+            load_status = red.hget(f"scc{slave}", "load_status")
             if load_status is None:
                 status = "data not found"
             elif load_status == b'1':
@@ -526,7 +526,7 @@ def scc_alarm_realtime():
 
             # check battery temperature
             try:
-                _batt_temp = red.hget(f"mppt{slave}", "battery_temperature")
+                _batt_temp = red.hget(f"scc{slave}", "battery_temperature")
                 if _batt_temp is None:
                     batt_temp = "data not found"
                 elif _batt_temp == b'-1':
@@ -538,7 +538,7 @@ def scc_alarm_realtime():
 
             # check device temperature
             try:
-                _device_temp = red.hget(f"mppt{slave}", "device_temperature")
+                _device_temp = red.hget(f"scc{slave}", "device_temperature")
                 if _device_temp is None:
                     device_temp = "data not found"
                 elif _device_temp == b'-1':
@@ -548,9 +548,9 @@ def scc_alarm_realtime():
             except Exception:
                 device_temp = "modbus error"
 
-            # get alarm info from mppt
+            # get alarm info from scc
             try:
-                _alarm = red.hget(f"mppt{slave}_alarm", "alarm")
+                _alarm = red.hget(f"scc{slave}_alarm", "alarm")
                 if _alarm is None:
                     alarm = "data not found"
                 else:
@@ -561,14 +561,14 @@ def scc_alarm_realtime():
             except Exception:
                 alarm = "modbus error"
 
-            # add mppt data to dict
-            mppt_result[f"mppt{slave}"] = {
+            # add scc data to dict
+            scc_result[f"scc{slave}"] = {
                 "load_status": status,
                 "battery_temperature": batt_temp,
                 "device_temperature": device_temp,
                 "alarm": alarm
             }
-        return jsonify(mppt_result), 200
+        return jsonify(scc_result), 200
 
     except RedisError as e:
         print(f"Redis error: {e}")
@@ -589,12 +589,12 @@ def scc_alarm_realtime():
         return jsonify(response), 500
 
 
-@api.route('/api/mppt-alarm-loggers/', methods=('GET',))
-def mppt_alarm_loggers():
-    mppt_alarm_result = {"message": "success"}
+@api.route('/api/scc-alarm-loggers/', methods=('GET',))
+def scc_alarm_loggers():
+    scc_alarm_result = {"message": "success"}
     alarm_lists = []
     try:
-        data = red.hgetall('mppt_logs')
+        data = red.hgetall('scc_logs')
         if not data:
             response = {
                 "code": 404,
@@ -617,8 +617,8 @@ def mppt_alarm_loggers():
         # sort alarm_lists in descending order based on 'time'
         alarm_lists = sorted(
             alarm_lists, key=lambda x: x['time'], reverse=True)
-        mppt_alarm_result["data"] = alarm_lists
-        return jsonify(mppt_alarm_result), 200
+        scc_alarm_result["data"] = alarm_lists
+        return jsonify(scc_alarm_result), 200
 
     except RedisError as e:
         print(f"Redis error: {e}")
@@ -639,10 +639,10 @@ def mppt_alarm_loggers():
         return jsonify(response), 500
 
 
-@api.route('/api/mppt-alarm-loggers/', methods=('DELETE',))
-def delete_mppt_alarm_loggers():
+@api.route('/api/scc-alarm-loggers/', methods=('DELETE',))
+def delete_scc_alarm_loggers():
     try:
-        red.delete('mppt_logs')
+        red.delete('scc_logs')
         response = {
             "code": 200,
             "message": "Data deleted successfully",
@@ -667,3 +667,6 @@ def delete_mppt_alarm_loggers():
             "status": "error"
         }
         return jsonify(response), 500
+
+
+# ===================== End SCC Alarm ===========================
