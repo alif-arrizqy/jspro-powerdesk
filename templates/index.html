@@ -19,17 +19,15 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>SCC Type</strong></p>
-                                <h6 id="system-voltage" class="card-title left-text">SCC-SRNE</h6>
+                                <h6 class="card-title left-text" id="scc-type" aria-label="SCC Type">Getting Data...</h6>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>disk usage</strong></p>
-                                <h6 id="system-voltage" class="card-title left-text">
-                                    <mark class="status-danger">used: 13.5 GB | free: 3.5 GB/16 GB</mark>
-                                </h6>
+                                <p class="category left-text"><strong>Disk Usage</strong></p>
+                                <h6 class="card-title left-text" id="disk-usage">used: | free: / GB</h6>
                             </div>
                         </div>
                     </div>
@@ -37,68 +35,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Data Loggers Length</strong></p>
-                                <h6 id="system-voltage" class="card-title left-text">
-                                    <mark class="status-danger">1157 data</mark>
-                                </h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!--Battery Overview -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text">
-                    <a href="#" style="text-decoration: none;">
-                        <i class="fas fa-battery-full"></i> Battery Overview
-                    </a>
-                </h4>
-            </div>
-            <div class="card-content">
-                <div class="row">                                    
-                    <!-- Battery Voltage -->
-                    <div class="col-lg-3">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Battery Voltage</strong></p>
-                                <h5 id="battVolt" class="card-title left-text">51.64 V
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <!-- Battery Current -->
-                    <div class="col-lg-3">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Battery Current</strong></p>
-                                <h5 id="battCurr" class="card-title left-text">0 A</h5>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <!-- Battery Power -->
-                    <div class="col-lg-3">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Battery Power</strong></p>
-                                <h5 id="battPower" class="card-title left-text">0 W</h5>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <!-- Battery SOC -->
-                    <div class="col-lg-3">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Battery SOC</strong></p>
-                                <h5 id="battSoc" class="card-title left-text">50.1 %</h5>
+                                <h6 class="card-title left-text" id="datalog-length" arial-label="Datalog Length">Getting Data...</h6>
                             </div>
                         </div>
                     </div>
@@ -126,7 +63,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>System Voltage</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">2.92 V</h5>
+                                <h5 id="system-voltage" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -136,9 +73,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>VSAT LVD</strong></p>
-                                <h5 id="vsat-lvd" class="card-title left-text">
-                                    <mark class="status-inactive">Close</mark>
-                                </h5>
+                                <h5 id="vsat-lvd" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -148,48 +83,39 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>BTS LVD</strong></p>
-                                <h5 id="bts-lvd" class="card-title left-text">
-                                    <mark class="status-active">Open</mark>
-                                </h5>
+                                <h5 id="bts-lvd" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Load 1 -->
+                    {% for i in range(1, number_of_scc+1) %}
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>Load 1 Voltage</strong></p>
-                                <h5 id="load1-voltage" class="card-title left-text">87.34 V</h5>
+                                <p class="category left-text"><strong>Load {{i}} Voltage</strong></p>
+                                <h5 id="load{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
+
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>Load 1 Current</strong></p>
-                                <h5 id="load1-current" class="card-title left-text">56.3 A</h5>
+                                <p class="category left-text"><strong>Load {{i}} Current</strong></p>
+                                <h5 id="load{{i}}-current" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Load 2 -->
+
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>Load 2 Voltage</strong></p>
-                                <h5 id="load2-voltage" class="card-title left-text">67.5 V</h5>
+                                <p class="category left-text"><strong>MCB {{i}} Voltage</strong></p>
+                                <h5 id="mcb{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Load 2 Current</strong></p>
-                                <h5 id="load2-current" class="card-title left-text">57.2 A</h5>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -212,68 +138,243 @@
                     <!-- SCC Status -->
                     <!-- jika ada 3 scc, col-lg-4 -->
                     <!-- jika ada 2 scc, col-lg-6 -->
-                    
+
+                    {% if number_of_scc == 2 %}
+                    {% for i in range(1, number_of_scc+1) %}
+                    <!-- SCC Status -->
                     <div class="col-lg-6">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>SCC 1 Status</strong></p>
-                                <h5 id="scc1-status" class="card-title left-text">
-                                    <mark class="status-active">is running</mark>
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>SCC 2 Status</strong></p>
-                                <h5 id="scc2-status" class="card-title left-text">
-                                    <mark class="status-inactive">is standby</mark>
-                                </h5>
+                                <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
+                                <h5 id="scc{{i}}-status" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
 
-                    <!-- PV 1 -->
+                    <!-- PV Voltage -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
-                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
-                            </div>
-                        </div>
-                    </div>
-        
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>PV1 Current</strong></p>
-                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- PV 2  -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>PV2 Voltage</strong></p>
-                                <h5 id="pv2-voltage" class="card-title left-text">65.2 V</h5>
+                                <p class="category left-text"><strong>PV{{i}} Voltage</strong></p>
+                                <h5 id="pv{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
 
+                    <!-- PV Current -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>PV2 Current</strong></p>
-                                <h5 id="pv2-current" class="card-title left-text">7.9 A</h5>
+                                <p class="category left-text"><strong>PV{{i}} Current</strong></p>
+                                <h5 id="pv{{i}}-current" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if number_of_scc == 3 %}
+                    {% for i in range(1, number_of_scc+1) %}
+                    <!-- SCC Status -->
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
+                                <h5 id="scc{{i}}-status" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PV Voltage -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV{{i}} Voltage</strong></p>
+                                <h5 id="pv{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PV Current -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV{{i}} Current</strong></p>
+                                <h5 id="pv{{i}}-current" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+{% block js %}
+<script> 
+const deviceInformation = async () => {
+    const response = await fetch('/api/device-information/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    const data = await response.json();
+    
+    // SCC Type
+    document.getElementById('scc-type').innerHTML = data.data.device_information.scc_type.toUpperCase();
+    
+    // Disk Usage
+    if (data.data.disk_ram.disk.used > 11) {
+        document.getElementById('disk-usage').innerHTML = `<mark class="status-danger">used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB</mark>`;
+    }
+    document.getElementById('disk-usage').innerHTML = `used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB`;
+    
+    // datalog length
+    if (data.data.datalog_length > 500) {
+        document.getElementById('datalog-length').innerHTML = `<mark class="status-danger">${data.data.datalog_length}</mark>`;
+    }
+    document.getElementById('datalog-length').innerHTML = data.data.datalog_length;
+};
+
+const powerOverview = async () => {
+    const response = await fetch('/api/realtime/load/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    const data = await response.json();
+
+    // System Voltage
+    // document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
+    if (data.data.system_voltage === -1){
+        document.getElementById('system-voltage').innerHTML = `<mark class="status-danger">${data.data.system_voltage}</mark>`;
+    } else {
+        document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
+    }
+
+    // VSAT LVD
+    document.getElementById('vsat-lvd').innerHTML = `${data.data.vsat_lvd} V`;
+
+    // BTS LVD
+    document.getElementById('bts-lvd').innerHTML = `${data.data.bts_lvd} V`;
+
+    // Load Voltage
+    {% if number_of_scc == 2 %}
+    {% for i in range(1, number_of_scc+1) %}
+        if (data.data.lvd.lvd{{i}} === -1){
+            document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.lvd.lvd{{i}}}</mark>`;
+        } else {
+            document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
+        }
+
+        if (data.data.load_current.load{{i}}_current === -1){
+            document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.load_current.load{{i}}_current}</mark>`;
+        } else {
+            document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
+        }
+
+        if (data.data.mcb.mcb{{i}} === -1){
+            document.getElementById('mcb{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.mcb.mcb{{i}}}</mark>`;
+        } else {
+            document.getElementById('mcb{{i}}-voltage').innerHTML = `${data.data.mcb.mcb{{i}}} V`;
+        }
+    {% endfor %}
+    {% endif %}
+
+    {% if number_of_scc == 3 %}
+    {% for i in range(1, number_of_scc+1) %}
+        if (data.data.lvd.lvd{{i}} === -1){
+            document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.lvd.lvd{{i}}}</mark>`;
+        } else {
+            document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
+        }
+
+        if (data.data.load_current.load{{i}}_current === -1){
+            document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.load_current.load{{i}}_current}</mark>`;
+        } else {
+            document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
+        }
+
+        if (data.data.mcb.mcb{{i}} === -1){
+            document.getElementById('mcb{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.mcb.mcb{{i}}}</mark>`;
+        } else {
+            document.getElementById('mcb{{i}}-voltage').innerHTML = `${data.data.mcb.mcb{{i}}} V`;
+        }
+    {% endfor %}
+    {% endif %}
+};
+
+const sccOverview = async () => {
+    const response = await fetch('/api/realtime/scc/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    const data = await response.json();
+    {% if number_of_scc == 2 %}
+    // SCC Status
+    {% for i in range(1, number_of_scc+1) %}
+        // SCC Status
+        if (data.data.load_status.load{{i}}_status != 'is running') {
+            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.load_status.load{{i}}_status}</mark>`;
+        } else {
+            document.getElementById('scc{{i}}-status').innerHTML = `${data.data.load_status.load{{i}}_status}`;
+        }
+
+        // PV Voltage
+        if (data.data.pv_voltage.pv{{i}}_voltage === -1){
+            document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.pv_voltage.pv{{i}}_voltage}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.pv_voltage.pv{{i}}_voltage} V`;
+        }
+
+        // PV Current
+        if (data.data.pv_current.pv{{i}}_current === -1){
+            document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.pv_current.pv{{i}}_current}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-current').innerHTML = `${data.data.pv_current.pv{{i}}_current} A`;
+        }
+    {% endfor %}
+    {% endif %}
+
+    {% if number_of_scc == 3 %}
+    {% for i in range(1, number_of_scc+1) %}
+        // SCC Status
+        if (data.data.load_status.load{{i}}_status != 'is running') {
+            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.load_status.load{{i}}_status}</mark>`;
+        } else {
+            document.getElementById('scc{{i}}-status').innerHTML = `${data.data.load_status.load{{i}}_status}`;
+        }
+
+        // PV Voltage
+        if (data.data.pv_voltage.pv{{i}}_voltage === -1){
+            document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.pv_voltage.pv{{i}}_voltage}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.pv_voltage.pv{{i}}_voltage} V`;
+        }
+
+        // PV Current
+        if (data.data.pv_current.pv{{i}}_current === -1){
+            document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.pv_current.pv{{i}}_current}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-current').innerHTML = `${data.data.pv_current.pv{{i}}_current} A`;
+        }
+    {% endfor %}
+    {% endif %}
+
+
+}
+
+setInterval(() => {
+    deviceInformation();
+    powerOverview();
+    sccOverview();
+}, 1000);
+</script>
+{% endblock js %}
