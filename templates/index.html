@@ -245,7 +245,7 @@ const deviceInformation = async () => {
 };
 
 const powerOverview = async () => {
-    const response = await fetch('/api/realtime/load/', {
+    const response = await fetch('/api/realtime/lvd/', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -254,18 +254,35 @@ const powerOverview = async () => {
     const data = await response.json();
 
     // System Voltage
-    // document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
     if (data.data.system_voltage === -1){
         document.getElementById('system-voltage').innerHTML = `<mark class="status-danger">${data.data.system_voltage}</mark>`;
     } else {
         document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
     }
 
-    // VSAT LVD
-    document.getElementById('vsat-lvd').innerHTML = `${data.data.vsat_lvd} V`;
+    // Relay and MCB Status
+    // MCB Status
+    {% for i in range(1, 4) %}
+        if (data.data.relay_status.relay{{i}} === "CLOSED") {
+            document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-active">${data.data.relay_status.relay{{i}}}</mark>`;
+        } else {
+            document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay{{i}}}</mark>`;
+        }
+    {% endfor %}
 
+    // VSAT LVD
+    if (data.data.relay_status.relay1 === "CLOSED") {
+        document.getElementById('vsat-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay1}</mark>`;
+    } else {
+        document.getElementById('vsat-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay1}</mark>`;
+    }
+    
     // BTS LVD
-    document.getElementById('bts-lvd').innerHTML = `${data.data.bts_lvd} V`;
+    if (data.data.relay_status.relay2 === "CLOSED") {
+        document.getElementById('bts-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay2}</mark>`;
+    } else {
+        document.getElementById('bts-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay2}</mark>`;
+    }
 
     // Load Voltage
     {% if number_of_scc == 2 %}
@@ -280,12 +297,6 @@ const powerOverview = async () => {
             document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.load_current.load{{i}}_current}</mark>`;
         } else {
             document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
-        }
-
-        if (data.data.mcb.mcb{{i}} === -1){
-            document.getElementById('mcb{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.mcb.mcb{{i}}}</mark>`;
-        } else {
-            document.getElementById('mcb{{i}}-voltage').innerHTML = `${data.data.mcb.mcb{{i}}} V`;
         }
     {% endfor %}
     {% endif %}
@@ -302,12 +313,6 @@ const powerOverview = async () => {
             document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.load_current.load{{i}}_current}</mark>`;
         } else {
             document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
-        }
-
-        if (data.data.mcb.mcb{{i}} === -1){
-            document.getElementById('mcb{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.mcb.mcb{{i}}}</mark>`;
-        } else {
-            document.getElementById('mcb{{i}}-voltage').innerHTML = `${data.data.mcb.mcb{{i}}} V`;
         }
     {% endfor %}
     {% endif %}
