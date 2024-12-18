@@ -58,18 +58,8 @@
             </div>
             <div class="card-content">
                 <div class="row">
-                    <!-- System Voltage -->
-                    <div class="col-lg-4">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>System Voltage</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- VSAT Lvd -->
-                    <div class="col-lg-4">
+                    <div class="col-lg-6">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>VSAT LVD</strong></p>
@@ -79,7 +69,7 @@
                     </div>
 
                     <!-- BTS Lvd -->
-                    <div class="col-lg-4">
+                    <div class="col-lg-6">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>BTS LVD</strong></p>
@@ -87,6 +77,29 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- MCB -->
+                    {% for i in range(1, 4) %}
+                    <div class="col-lg-4">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>MCB {{i}} Status</strong></p>
+                                <h5 id="mcb{{i}}" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- System Voltage -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>System Voltage</strong></p>
+                                <h5 id="system-voltage" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+
                     
                     {% for i in range(1, number_of_scc+1) %}
                     <div class="col">
@@ -103,15 +116,6 @@
                             <div class="card-content">
                                 <p class="category left-text"><strong>Load {{i}} Current</strong></p>
                                 <h5 id="load{{i}}-current" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>MCB {{i}} Voltage</strong></p>
-                                <h5 id="mcb{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
