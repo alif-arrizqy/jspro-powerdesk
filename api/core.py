@@ -73,6 +73,7 @@ def load_power():
         lvd_result = {}
         mcb_result = {}
         load_current = {}
+        relay_status = {}
         system_voltage = None
 
         try:
@@ -84,13 +85,42 @@ def load_power():
                 "lvd2": lvd2,
                 "lvd3": lvd3,
             }
-            mcb_result = {
-                "mcb1": lvd1,
-                "mcb2": lvd2,
-                "mcb3": lvd3
-            }
         except Exception as e:
             print(f"Error retrieving LVD data: {e}")
+            
+        try:
+            feedback_status = literal_eval(red.hget('lvd', 'mcb_status').decode())
+            if feedback_status is None:
+                mcb_result = "data not found"
+            
+            mcb_result = {
+                "mcb1": "CLOSED" if "ON" in feedback_status[0] else "OPEN",
+                "mcb2": "CLOSED" if "ON" in feedback_status[1] else "OPEN",
+                "mcb3": "CLOSED" if "ON" in feedback_status[2] else "OPEN",
+            }
+
+            relay_status = {
+                "relay1": "CLOSED" if "ON" in feedback_status[3] else "OPEN",
+                "relay2": "CLOSED" if "ON" in feedback_status[4] else "OPEN",
+                "relay3": "CLOSED" if "ON" in feedback_status[5] else "OPEN",
+            }
+            # mcb status
+            mcb_result = {
+                "mcb1": "CLOSED" if "ON" in feedback_status[0] else "OPEN",
+                "mcb2": "CLOSED" if "ON" in feedback_status[1] else "OPEN",
+                "mcb3": "CLOSED" if "ON" in feedback_status[2] else "OPEN",
+            }
+            
+            # relay status
+            relay_status = {
+                "relay1": "CLOSED" if "ON" in feedback_status[3] else "OPEN",
+                "relay2": "CLOSED" if "ON" in feedback_status[4] else "OPEN",
+                "relay3": "CLOSED" if "ON" in feedback_status[5] else "OPEN",
+            }
+            
+            
+        except Exception as e:
+            print(f"Error retrieving MCB data: {e}")
 
         try:
             load1_current = float(red.hget('sensor_arus', 'load1') or -1)
@@ -114,7 +144,8 @@ def load_power():
             'message': 'success',
             'data': {
                 'lvd': lvd_result,
-                'mcb': mcb_result,
+                'relay_status': relay_status,
+                'mcb_status': mcb_result,
                 'load_current': load_current,
                 'system_voltage': system_voltage
             }
