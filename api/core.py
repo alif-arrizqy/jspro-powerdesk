@@ -65,10 +65,6 @@ def device_information():
 @api.route('/api/realtime/lvd/', methods=("GET",))
 def load_power():
     try:
-        # untuk data power overview
-        # relay / lvd status = 1 (on) / 0 (off)
-        # mcb status = 1 (on) / 0 (off)
-        
         # lvd load voltage
         lvd_result = {}
         mcb_result = {}
