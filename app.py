@@ -62,17 +62,23 @@ def scc():
 
 @app.route('/battery', methods=['GET'])
 def battery():
-    return render_template('battery.html')
-
-
-@app.route('/load', methods=['GET'])
-def load():
-    return render_template('load.html')
-
-
-@app.route('/scc-alarm', methods=['GET'])
-def scc_alarm():
-    return render_template('scc-alarm.html')
+    try:
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        context = {
+            'site_name': site_name,
+            # 'ip_address': get_ip_address(),
+            'ip_address': '192.168.1.1',
+            'number_of_battery': number_of_batt
+        }
+    except Exception as e:
+        context = {
+            'site_name': 'Ehub Talis',
+            # 'ip_address': get_ip_address(),
+            'ip_address': '192.168.1.1',
+            'number_of_battery': number_of_batt
+        }
+    return render_template('battery.html', **context)
 
 
 @app.route('/datalog', methods=['GET'])
