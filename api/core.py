@@ -61,16 +61,17 @@ def device_information():
         return jsonify(response), 500
 # ================== END Device Information ====================
 
-# ================== Load Power Realtime ====================
+# ================== API Realtime ====================
 @api.route('/api/realtime/lvd/', methods=("GET",))
-def load_power():
+def lvd_realtime():
     try:
         # lvd load voltage
         lvd_result = {}
         mcb_result = {}
         load_current = {}
         relay_status = {}
-        system_voltage = None
+        system_voltage = -1
+        counter_heartbeat = -1
 
         try:
             lvd1 = float(red.hget('lvd', 'lvd1') or -1)
@@ -134,11 +135,17 @@ def load_power():
             system_voltage = float(red.hget('lvd', 'system_voltage') or -1)
         except Exception as e:
             print(f"Error retrieving system voltage data: {e}")
+            
+        try:
+            counter_heartbeat = int(red.hget('lvd', 'counter') or -1)
+        except Exception as e:
+            print(f"Error retrieving heartbeat counter: {e}")
 
         response = {
             'code': 200,
             'message': 'success',
             'data': {
+                'counter_heartbeat': counter_heartbeat,
                 'lvd': lvd_result,
                 'relay_status': relay_status,
                 'mcb_status': mcb_result,
@@ -155,57 +162,84 @@ def load_power():
             'status': 'error'
         }
         return jsonify(response), 500
-# ================== END Load Power ====================
 
 
-# ================== SCC Realtime ====================
 @api.route('/api/realtime/scc/', methods=("GET",))
 def scc_realtime():
     try:
-        pv_voltage = {}
-        pv_current = {}
-        load_status = {}
+        scc_data = {}
 
         # pv voltage, pv current, scc status
         for no in range(1, number_of_scc + 1):
-            try:
-                pv_voltage[f"pv{no}_voltage"] = float(red.hget(f'scc{no}', 'pv_voltage') or -1)
-            except Exception as e:
-                print(f"Error retrieving pv{no}_voltage: {e}")
-                pv_voltage[f"pv{no}_voltage"] = 0
+            scc_key = f"scc{no}"
+            scc_data[scc_key] = {}
 
             try:
-                pv_current[f"pv{no}_current"] = float(red.hget(f'scc{no}', 'pv_current') or -1)
+                scc_data[scc_key]['counter_heartbeat'] = int(red.hget(scc_key, 'counter') or -1)
             except Exception as e:
-                print(f"Error retrieving pv{no}_current: {e}")
-                pv_current[f"pv{no}_current"] = 0
+                print(f"Error retrieving {scc_key}_counter: {e}")
+                scc_data[scc_key]['counter_heartbeat'] = -1
+
+            try:
+                scc_data[scc_key]['pv_voltage'] = float(red.hget(scc_key, 'pv_voltage') or -1)
+            except Exception as e:
+                print(f"Error retrieving {scc_key}_voltage: {e}")
+                scc_data[scc_key]['pv_voltage'] = -1
+
+            try:
+                scc_data[scc_key]['pv_current'] = float(red.hget(scc_key, 'pv_current') or -1)
+            except Exception as e:
+                print(f"Error retrieving {scc_key}_current: {e}")
+                scc_data[scc_key]['pv_current'] = -1
 
             # get load status from scc
             try:
-                load_status_value = red.hget(f"scc{no}", "load_status")
+                load_status_value = red.hget(scc_key, "load_status")
 
                 if load_status_value is None:
-                    load_status[f"load{no}_status"] = "data not found"
+                    scc_data[scc_key]['load_status'] = "data not found"
                 elif load_status_value == b'1':
-                    load_status[f"load{no}_status"] = "is running"
+                    scc_data[scc_key]['load_status'] = "is running"
                 elif load_status_value == b'0':
-                    load_status[f"load{no}_status"] = "is standby"
+                    scc_data[scc_key]['load_status'] = "is standby"
                 elif load_status_value == b'-1':
-                    load_status[f"load{no}_status"] = "modbus error"
+                    scc_data[scc_key]['load_status'] = "modbus error"
                 else:
-                    load_status[f"load{no}_status"] = "unknown status"
+                    scc_data[scc_key]['load_status'] = "unknown status"
             except Exception as e:
-                print(f"Error retrieving load_status for scc{no}: {e}")
-                load_status[f"load{no}_status"] = "error retrieving data"
+                print(f"Error retrieving load_status for {scc_key}: {e}")
+                scc_data[scc_key]['load_status'] = "error retrieving data"
+
+            # battery temperature
+            try:
+                _batt_temp = red.hget(scc_key, "battery_temperature")
+                if _batt_temp is None:
+                    scc_data[scc_key]['battery_temperature'] = -1
+                elif _batt_temp == b'-1':
+                    scc_data[scc_key]['battery_temperature'] = "modbus error"
+                else:
+                    scc_data[scc_key]['battery_temperature'] = literal_eval(str(_batt_temp)[2:-1])
+            except Exception as e:
+                print(f"Error retrieving battery_temperature for {scc_key}: {e}")
+                scc_data[scc_key]['battery_temperature'] = "modbus error"
+
+            # device temperature
+            try:
+                _device_temp = red.hget(scc_key, "device_temperature")
+                if _device_temp is None:
+                    scc_data[scc_key]['device_temperature'] = -1
+                elif _device_temp == b'-1':
+                    scc_data[scc_key]['device_temperature'] = "modbus error"
+                else:
+                    scc_data[scc_key]['device_temperature'] = literal_eval(str(_device_temp)[2:-1])
+            except Exception as e:
+                print(f"Error retrieving device temperature for {scc_key}: {e}")
+                scc_data[scc_key]['device_temperature'] = "modbus error"
 
         response = {
             'code': 200,
             'message': 'success',
-            'data': {
-                'pv_voltage': pv_voltage,
-                'pv_current': pv_current,
-                'load_status': load_status
-            }
+            'data': scc_data
         }
         return jsonify(response), 200
     except Exception as e:
@@ -216,7 +250,55 @@ def scc_realtime():
             'status': 'error'
         }
         return jsonify(response), 500
-# ================== END SCC Realtime ====================
+
+
+@api.route('/api/realtime/scc-alarm/', methods=('GET',))
+def scc_alarm_realtime():
+    scc_data = {}
+    
+    try:
+        for slave in range(1, number_of_scc + 1):
+            # get alarm info from scc
+            try:
+                _alarm = red.hget(f"scc{slave}_alarm", "alarm")
+                if _alarm is None:
+                    alarm = -1
+                else:
+                    # convert bytes to string
+                    str_alarm = _alarm.decode("utf-8")
+                    # evaluate string to dict
+                    alarm = literal_eval(str_alarm)
+            except Exception:
+                alarm = "modbus error"
+            
+            scc_data[f"scc{slave}"] = alarm
+            # response
+            response = {
+                'code': 200,
+                'message': 'success',
+                'data': scc_data
+            }
+        return jsonify(response), 200
+
+    except RedisError as e:
+        print(f"Redis error: {e}")
+        response = {
+            "code": 500,
+            "message": "Internal server error",
+            "status": "error"
+        }
+        return jsonify(response), 500
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        response = {
+            "code": 500,
+            "message": "Internal server error",
+            "status": "error"
+        }
+        return jsonify(response), 500
+
+# ================== END API Realtime ====================
 
 
 # ============== Talis 5 ===========================
@@ -533,87 +615,6 @@ def delete_logger_talis(timestamp):
 
 
 # ===================== SCC Alarm ===========================
-@api.route('/api/scc-alarm-realtime/', methods=('GET',))
-def scc_alarm_realtime():
-    scc_result = {"message": "success"}
-    try:
-        for slave in range(1, number_of_scc + 1):
-            # get load status from scc
-            load_status = red.hget(f"scc{slave}", "load_status")
-            if load_status is None:
-                status = "data not found"
-            elif load_status == b'1':
-                status = "is running"
-            elif load_status == b'0':
-                status = "is standby"
-            elif load_status == b'-1':
-                status = "modbus error"
-            else:
-                status = "unknown status"
-
-            # check battery temperature
-            try:
-                _batt_temp = red.hget(f"scc{slave}", "battery_temperature")
-                if _batt_temp is None:
-                    batt_temp = "data not found"
-                elif _batt_temp == b'-1':
-                    batt_temp = "modbus error"
-                else:
-                    batt_temp = literal_eval(str(_batt_temp)[2:-1])
-            except Exception:
-                batt_temp = "modbus error"
-
-            # check device temperature
-            try:
-                _device_temp = red.hget(f"scc{slave}", "device_temperature")
-                if _device_temp is None:
-                    device_temp = "data not found"
-                elif _device_temp == b'-1':
-                    device_temp = "modbus error"
-                else:
-                    device_temp = literal_eval(str(_device_temp)[2:-1])
-            except Exception:
-                device_temp = "modbus error"
-
-            # get alarm info from scc
-            try:
-                _alarm = red.hget(f"scc{slave}_alarm", "alarm")
-                if _alarm is None:
-                    alarm = "data not found"
-                else:
-                    # convert bytes to string
-                    str_alarm = _alarm.decode("utf-8")
-                    # evaluate string to dict
-                    alarm = literal_eval(str_alarm)
-            except Exception:
-                alarm = "modbus error"
-
-            # add scc data to dict
-            scc_result[f"scc{slave}"] = {
-                "load_status": status,
-                "battery_temperature": batt_temp,
-                "device_temperature": device_temp,
-                "alarm": alarm
-            }
-        return jsonify(scc_result), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            "code": 500,
-            "message": "Internal server error",
-            "status": "error"
-        }
-        return jsonify(response), 500
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
-            "code": 500,
-            "message": "Internal server error",
-            "status": "error"
-        }
-        return jsonify(response), 500
 
 
 @api.route('/api/scc-alarm-loggers/', methods=('GET',))
