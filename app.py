@@ -19,9 +19,8 @@ PATH = "/var/lib/sundaya/ehub-bakti"
 @app.route('/', methods=['GET'])
 def index():
     try:
-        if red.get('site_name') is None:
-            site_name = str(red.get('site_name')[2:-1])
-        print(site_name)
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
         context = {
             'site_name': site_name,
             # 'ip_address': get_ip_address(),
@@ -40,7 +39,25 @@ def index():
 
 @app.route('/scc', methods=['GET'])
 def scc():
-    return render_template('scc.html')
+    try:
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        context = {
+            'site_name': site_name,
+            # 'ip_address': get_ip_address(),
+            'ip_address': '192.168.1.1',
+            'scc_type': scc_type,
+            'number_of_scc': number_of_scc
+        }
+    except Exception as e:
+        context = {
+            'site_name': 'Ehub Talis',
+            # 'ip_address': get_ip_address(),
+            'ip_address': '192.168.1.1',
+            'scc_type': scc_type,
+            'number_of_scc': number_of_scc
+        }
+    return render_template('scc.html', **context)
 
 
 @app.route('/battery', methods=['GET'])
