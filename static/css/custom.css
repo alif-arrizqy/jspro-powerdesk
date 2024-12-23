@@ -89,6 +89,12 @@ a:focus {
     color: whitesmoke;
 }
 
+.status-primary {
+    background-color: rgb(48, 89, 156);
+    font-family: Arial, Helvetica, sans-serif;
+    color: whitesmoke;
+}
+
 /* form select */
 .form-select {
     width: 100%;
