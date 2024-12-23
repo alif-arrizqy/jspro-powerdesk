@@ -2,32 +2,59 @@
 {% block breadcrumbs %} SCC Monitoring {% endblock breadcrumbs %}
 
 {% block content %}
+<!-- SCC Overview -->
 <div class="row">
-    <!-- SCC 1 -->
-    <div class="col-lg-6">
+    <!-- SCC 2 -->
+    {% if number_of_scc == 2 %}
+    {% for i in range(1, number_of_scc+1) %}
+    <div class="col-lg-12 col-md-12">
         <div class="card">
             <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
                 <h4 class="card-title left-text">
                     <a href="#" style="text-decoration: none;">
                         <i class="fas fa-solar-panel"></i>
-                        SCC 1 | Site Name | 192.168.100.234
+                        SCC {{i}} | {{site_name}} | {{ip_address}}
                     </a>
                 </h4>
                 <h4 class="card-title text-right">
                     <a href="#" style="text-decoration: none;">
                         <i class="fas fa-heart"></i>
-                        Heartbeat: 11
+                        <span id="scc{{i}}-counter-heartbeat">Heartbeat: Getting Data...</span>
                     </a>
                 </h4>
             </div>
-            <!-- PV 1 -->
             <div class="card-content">
                 <div class="row">
+                    <!-- SCC Status -->
+                    <!-- jika ada 3 scc, col-lg-4 -->
+                    <!-- jika ada 2 scc, col-lg-6 -->
+                    
+                    <!-- SCC Status -->
+                    <div class="col-lg-5">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
+                                <h5 id="scc{{i}}-status" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PV Voltage -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
-                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
+                                <p class="category left-text"><strong>PV{{i}} Voltage</strong></p>
+                                <h5 id="pv{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PV Current -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV{{i}} Current</strong></p>
+                                <h5 id="pv{{i}}-current" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -35,8 +62,16 @@
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>PV1 Current</strong></p>
-                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
+                                <p class="category left-text"><strong>Battery Temp</strong></p>
+                                <h5 id="scc-{{i}}-battery-temp" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Device Temp</strong></p>
+                                <h5 id="scc-{{i}}-device-temp" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -44,32 +79,60 @@
             </div>
         </div>
     </div>
-
-    <!-- SCC 2 -->
-    <div class="col-lg-6">
+    {% endfor %}
+    {% endif %}
+    
+    <!-- SCC 3 -->
+    {% if number_of_scc == 3 %}
+    {% for i in range(1, number_of_scc+1) %}
+    <div class="col-lg-12 col-md-12">
         <div class="card">
             <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
                 <h4 class="card-title left-text">
                     <a href="#" style="text-decoration: none;">
                         <i class="fas fa-solar-panel"></i>
-                        SCC 2 | Site Name | 192.168.100.234
+                        SCC {{i}} | {{site_name}} | {{ip_address}}
                     </a>
                 </h4>
                 <h4 class="card-title text-right">
                     <a href="#" style="text-decoration: none;">
                         <i class="fas fa-heart"></i>
-                        Heartbeat: 11
+                        <span id="scc{{i}}-counter-heartbeat">Heartbeat: Getting Data...</span>
                     </a>
                 </h4>
             </div>
-            <!-- PV 1 -->
             <div class="card-content">
                 <div class="row">
+                    <!-- SCC Status -->
+                    <!-- jika ada 3 scc, col-lg-4 -->
+                    <!-- jika ada 2 scc, col-lg-6 -->
+                    
+                    <!-- SCC Status -->
+                    <div class="col-lg-5">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
+                                <h5 id="scc{{i}}-status" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PV Voltage -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>PV1 Voltage</strong></p>
-                                <h5 id="pv1-voltage" class="card-title left-text">76.5 V</h5>
+                                <p class="category left-text"><strong>PV{{i}} Voltage</strong></p>
+                                <h5 id="pv{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PV Current -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>PV{{i}} Current</strong></p>
+                                <h5 id="pv{{i}}-current" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -77,14 +140,312 @@
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>PV1 Current</strong></p>
-                                <h5 id="pv1-current" class="card-title left-text">7.8 A</h5>
+                                <p class="category left-text"><strong>Battery Temp</strong></p>
+                                <h5 id="scc-{{i}}-battery-temp" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>Device Temp</strong></p>
+                                <h5 id="scc-{{i}}-device-temp" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+</div>
+
+{% if scc_type != 'scc-tristar' %}
+<!-- Alarm Info -->
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="card">
+            <div class="card-header card-header-text titel-border">
+                <h4 class="card-title left-text"><i class="fas fa-exclamation-triangle"></i> Alarm Info</h4>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    {% if number_of_scc == 2 %}
+                    {% for i in range(1, number_of_scc+1) %}
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Alarm</strong></p>
+                                <div class="row">
+                                    <div class="col">
+                                        <p class="category left-text"><strong><mark class="status-primary">Battery Status</mark></strong></p>
+                                        <h5 id="scc{{i}}-batt-status" class="card-title left-text">Getting Data...</h5>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <p class="category left-text"><strong><mark class="status-primary">Charging Status</mark></strong></p>
+                                        <h5 id="scc{{i}}-chg-status" class="card-title left-text">Getting Data...</h5>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <p class="category left-text"><strong><mark class="status-primary">Discharging Status</mark></strong></p>
+                                        <h5 id="scc{{i}}-dischg-status" class="card-title left-text">Getting Data...</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if number_of_scc == 3 %}
+                    {% for i in range(1, number_of_scc+1) %}
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Alarm</strong></p>
+                                <div class="row">
+                                    <div class="col">
+                                        <h5 id="scc{{i}}-alarm" class="card-title left-text">Getting Data...</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
+{% endif %}
+
+{% endblock content %}
+
+{% block js %}
+<script> 
+const sccOverview = async () => {
+    try {
+    const response = await fetch('/api/realtime/scc/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.code == 500) {
+        console.log(`Error: ${data.status}`);
+        return;
+    }
+
+    {% if number_of_scc == 2 %}
+    // SCC Status
+    {% for i in range(1, number_of_scc+1) %}
+        // SCC Status
+        if (data.data.scc{{i}}.load_status == 'is standby') {
+            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.load_status}</mark>`;
+        } else if (data.data.scc{{i}}.load_status == 'modbus error' || data.data.scc{{i}}.load_status == 'unknown status') {
+            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.load_status}</mark>`; 
+        } else {
+            document.getElementById('scc{{i}}-status').innerHTML = `${data.data.scc{{i}}.load_status}`;
+        }
+
+        // PV Voltage
+        if (data.data.scc{{i}}.pv_voltage === -1){
+            document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_voltage}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.scc{{i}}.pv_voltage} V`;
+        }
+
+        // PV Current
+        if (data.data.scc{{i}}.pv_current === -1){
+            document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_current}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-current').innerHTML = `${data.data.scc{{i}}.pv_current} A`;
+        }
+
+        // SCC Counter Heartbeat
+        if (data.data.scc{{i}}.counter_heartbeat == -1) {
+            document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `<mark class="status-inactive">Heartbeat:${data.data.scc{{i}}.counter_heartbeat}</mark>`;
+        } else {
+            document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `Heartbeat: ${data.data.scc{{i}}.counter_heartbeat}`;
+        }
+
+        // battery temperature
+        if (data.data.scc{{i}}.battery_temperature == -1) {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.battery_temperature}</mark>`;
+        } else if (data.data.scc{{i}}.battery_temperature == 'modbus error' || data.data.scc{{i}}.battery_temperature > 50) {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.battery_temperature} °C</mark>`;
+        } else {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `${data.data.scc{{i}}.battery_temperature} °C`;
+        }
+
+        // device temperature
+        if (data.data.scc{{i}}.device_temperature == -1){
+            document.getElementById('scc-{{i}}-device-temp').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.device_temperature}</mark>`;
+        } else if (data.data.scc{{i}}.device_temperature == 'modbus error' || data.data.scc{{i}}.device_temperature > 50) {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.device_temperature} °C</mark>`;
+        } else {
+            document.getElementById('scc-{{i}}-device-temp').innerHTML = `${data.data.scc{{i}}.device_temperature} °C`;
+        }
+    {% endfor %}
+    {% endif %}
+
+    {% if number_of_scc == 3 %}
+    {% for i in range(1, number_of_scc+1) %}
+        // SCC Status
+        if (data.data.scc{{i}}.load_status != 'is running') {
+            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.load_status}</mark>`;
+        } else {
+            document.getElementById('scc{{i}}-status').innerHTML = `${data.data.scc{{i}}.load_status}`;
+        }
+
+        // PV Voltage
+        if (data.data.scc{{i}}.pv_voltage === -1){
+            document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_voltage}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.scc{{i}}.pv_voltage} V`;
+        }
+
+        // PV Current
+        if (data.data.scc{{i}}.pv_current === -1){
+            document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_current}</mark>`;
+        } else {
+            document.getElementById('pv{{i}}-current').innerHTML = `${data.data.scc{{i}}.pv_current} A`;
+        }
+
+        // SCC Counter Heartbeat
+        if (data.data.scc{{i}}.counter_heartbeat == -1) {
+            document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.counter_heartbeat}</mark>`;
+        } else {
+            document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `${data.data.scc{{i}}.counter_heartbeat}`;
+        }
+
+        // battery temperature
+        if (data.data.scc{{i}}.battery_temperature == -1) {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.battery_temperature}</mark>`;
+        } else if (data.data.scc{{i}}.battery_temperature == 'modbus error' || data.data.scc{{i}}.battery_temperature > 50) {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.battery_temperature} °C</mark>`;
+        } else {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `${data.data.scc{{i}}.battery_temperature} °C`;
+        }
+
+        // device temperature
+        if (data.data.scc{{i}}.device_temperature == -1){
+            document.getElementById('scc-{{i}}-device-temp').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.device_temperature}</mark>`;
+        } else if (data.data.scc{{i}}.device_temperature == 'modbus error' || data.data.scc{{i}}.device_temperature > 50) {
+            document.getElementById('scc-{{i}}-battery-temp').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.device_temperature} °C</mark>`;
+        } else {
+            document.getElementById('scc-{{i}}-device-temp').innerHTML = `${data.data.scc{{i}}.device_temperature} °C`;
+        }
+    {% endfor %}
+    {% endif %}
+    } catch {
+        console.error(`Failed to fetch data: ${error.message}`);
+    }
+}
+
+const sccAlarm = async () => {
+    try {
+        const response = await fetch('/api/realtime/scc-alarm/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.code == 500) {
+            console.log(`Error: ${data.message}`);
+            return;
+        }
+
+        {% if number_of_scc == 2 %}
+        {% for i in range(1, number_of_scc+1) %}
+            // battery status
+            document.getElementById('scc{{i}}-batt-status').innerHTML = '';
+
+            if (data.data.scc{{i}} == 'modbus error' || data.data.scc{{i}} == -1) {
+                document.getElementById('scc{{i}}-batt-status').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}}</mark>`;
+            } else {
+                for (const [key, value] of Object.entries(data.data.scc{{i}}.battery_status)) {
+                    if (value != 'normal') {
+                        document.getElementById('scc{{i}}-batt-status').innerHTML += `<mark class="status-danger">${key} : ${value}</mark><br>`;
+                    } else {
+                        document.getElementById('scc{{i}}-batt-status').innerHTML += `${key} : ${value}<br>`;
+                    }
+                }
+            }
+
+            // charging status
+            document.getElementById('scc{{i}}-chg-status').innerHTML = '';
+
+            if (data.data.scc{{i}} == 'modbus error' || data.data.scc{{i}} == -1) {
+                document.getElementById('scc{{i}}-chg-status').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}}</mark>`;
+            } else {
+                for (const [key, value] of Object.entries(data.data.scc{{i}}.charging_status)) {
+                    if (value !== 'normal' && value !== 'running' && value !== 'no_charging' && value !== 'float' && value !== 'boost' && value !== 'equalization') {
+                        document.getElementById('scc{{i}}-chg-status').innerHTML += `<mark class="status-danger">${key} : ${value}</mark><br>`;
+                    } else {
+                        document.getElementById('scc{{i}}-chg-status').innerHTML += `${key} : ${value}<br>`;
+                    }
+                }
+            }
+
+            // discharging status
+            document.getElementById('scc{{i}}-dischg-status').innerHTML = '';
+
+            if (data.data.scc{{i}} == 'modbus error' || data.data.scc{{i}} == -1) {
+                document.getElementById('scc{{i}}-dischg-status').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}}</mark>`;
+            } else {
+                for (const [key, value] of Object.entries(data.data.scc{{i}}.discharging_status)) {
+                    if (value !== 'normal' && value !== 'running' && value !== 'light_load' && value !== 'moderate' && value !== 'rated') {
+                        document.getElementById('scc{{i}}-dischg-status').innerHTML += `<mark class="status-danger">${key} : ${value}</mark><br>`;
+                    } else {
+                        document.getElementById('scc{{i}}-dischg-status').innerHTML += `${key} : ${value}<br>`;
+                    }
+                }
+            }
+        {% endfor %}
+        {% endif %}
+
+        {% if number_of_scc == 3 %}
+        {% for i in range(1, number_of_scc+1) %}
+            document.getElementById('scc{{i}}-alarm').innerHTML = '';
+
+            for (const [key, value] of Object.entries(data.data.scc{{i}}.fault)) {
+                if (value == -1 || value == 'modbus error' || value == 1) {
+                    document.getElementById('scc{{i}}-alarm').innerHTML += `<mark class="status-danger">${key} : ${value}</mark><br>`;
+                } else {
+                    document.getElementById('scc{{i}}-alarm').innerHTML += `${key} : ${value}<br>`;
+                }
+            }
+        {% endfor %}
+        {% endif %}
+    } catch (error) {
+        console.error(`Failed to fetch data: ${error.message}`);
+    }
+}
+
+setInterval(() => {
+    sccOverview();
+    sccAlarm();
+}, 1000);
+</script>
+{% endblock js %}

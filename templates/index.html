@@ -49,10 +49,16 @@
 <div class="row">
     <div class="col-lg-12 col-md-12">
         <div class="card">
-            <div class="card-header card-header-text titel-border">
+            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
                 <h4 class="card-title left-text">
                     <a href="#" style="text-decoration: none;">
                         <i class="fas fa-bolt"></i> Power Overview
+                    </a>
+                </h4>
+                <h4 class="card-title text-right">
+                    <a href="#" style="text-decoration: none;">
+                        <i class="fas fa-heart"></i>
+                        <span id="lvd-counter-heartbeat">Heartbeat: Getting Data...</span>
                     </a>
                 </h4>
             </div>
@@ -130,7 +136,7 @@
 <div class="row">
     <div class="col-lg-12 col-md-12">
         <div class="card">
-            <div class="card-header card-header-text titel-border">
+            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
                 <h4 class="card-title left-text">
                     <a href="#" style="text-decoration: none;">
                         <i class="fas fa-solar-panel"></i> SCC Overview
@@ -142,11 +148,12 @@
                     <!-- SCC Status -->
                     <!-- jika ada 3 scc, col-lg-4 -->
                     <!-- jika ada 2 scc, col-lg-6 -->
-
+                    
+                    <!-- SCC 2 -->
                     {% if number_of_scc == 2 %}
                     {% for i in range(1, number_of_scc+1) %}
                     <!-- SCC Status -->
-                    <div class="col-lg-6">
+                    <div class="col-lg-5">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
@@ -155,6 +162,16 @@
                         </div>
                     </div>
 
+                    <!-- SCC Counter Heartbeat -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Heartbeat</strong></p>
+                                <h5 id="scc{{i}}-counter-heartbeat" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- PV Voltage -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
@@ -164,7 +181,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- PV Current -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
@@ -177,10 +194,11 @@
                     {% endfor %}
                     {% endif %}
 
+                    <!-- SCC 3 -->
                     {% if number_of_scc == 3 %}
                     {% for i in range(1, number_of_scc+1) %}
                     <!-- SCC Status -->
-                    <div class="col-lg-4">
+                    <div class="col-lg-5">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
@@ -189,6 +207,16 @@
                         </div>
                     </div>
 
+                    <!-- SCC Counter Heartbeat -->
+                    <div class="col">
+                        <div class="shadow card card-stats full-border">
+                            <div class="card-content">
+                                <p class="category left-text"><strong>SCC {{i}} Heartbeat</strong></p>
+                                <h5 id="scc{{i}}-counter-heartbeat" class="card-title left-text">Getting Data...</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- PV Voltage -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
@@ -198,7 +226,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- PV Current -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
@@ -220,164 +248,227 @@
 {% block js %}
 <script> 
 const deviceInformation = async () => {
-    const response = await fetch('/api/device-information/', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    const data = await response.json();
-    
-    // SCC Type
-    document.getElementById('scc-type').innerHTML = data.data.device_information.scc_type.toUpperCase();
-    
-    // Disk Usage
-    if (data.data.disk_ram.disk.used > 11) {
-        document.getElementById('disk-usage').innerHTML = `<mark class="status-danger">used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB</mark>`;
+    try {
+        const response = await fetch('/api/device-information/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.code == 500) {
+            console.log(`Error: ${data.status}`);
+            return;
+        }
+
+        // SCC Type
+        document.getElementById('scc-type').innerHTML = data.data.device_information.scc_type.toUpperCase();
+        
+        // Disk Usage
+        if (data.data.disk_ram.disk.used > 11) {
+            document.getElementById('disk-usage').innerHTML = `<mark class="status-danger">used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB</mark>`;
+        }
+        document.getElementById('disk-usage').innerHTML = `used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB`;
+        
+        // datalog length
+        if (data.data.datalog_length > 500) {
+            document.getElementById('datalog-length').innerHTML = `<mark class="status-danger">${data.data.datalog_length}</mark>`;
+        }
+        document.getElementById('datalog-length').innerHTML = data.data.datalog_length;
+    } catch (error) {
+        console.error(`Failed to fetch data: ${error.message}`);
     }
-    document.getElementById('disk-usage').innerHTML = `used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB`;
-    
-    // datalog length
-    if (data.data.datalog_length > 500) {
-        document.getElementById('datalog-length').innerHTML = `<mark class="status-danger">${data.data.datalog_length}</mark>`;
-    }
-    document.getElementById('datalog-length').innerHTML = data.data.datalog_length;
 };
 
 const powerOverview = async () => {
-    const response = await fetch('/api/realtime/lvd/', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    const data = await response.json();
-
-    // System Voltage
-    if (data.data.system_voltage === -1){
-        document.getElementById('system-voltage').innerHTML = `<mark class="status-danger">${data.data.system_voltage}</mark>`;
-    } else {
-        document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
-    }
-
-    // Relay and MCB Status
-    // MCB Status
-    {% for i in range(1, 4) %}
-        if (data.data.relay_status.relay{{i}} === "CLOSED") {
-            document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-active">${data.data.relay_status.relay{{i}}}</mark>`;
-        } else {
-            document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay{{i}}}</mark>`;
+    try {
+        const response = await fetch('/api/realtime/lvd/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    {% endfor %}
 
-    // VSAT LVD
-    if (data.data.relay_status.relay1 === "CLOSED") {
-        document.getElementById('vsat-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay1}</mark>`;
-    } else {
-        document.getElementById('vsat-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay1}</mark>`;
+        const data = await response.json();
+
+        if (data.code == 500) {
+            console.log(`Error: ${data.status}`);
+            return;
+        }
+    
+        // Counter Heartbeat
+        if (data.data.counter_heartbeat == -1) {
+            document.getElementById('lvd-counter-heartbeat').innerHTML = `<mark class="status-inactive">Heartbeat: ${data.data.counter_heartbeat}</mark>`;
+        } else {
+            document.getElementById('lvd-counter-heartbeat').innerHTML = `Heartbeat: ${data.data.counter_heartbeat}`;
+        }
+    
+        // System Voltage
+        if (data.data.system_voltage === -1){
+            document.getElementById('system-voltage').innerHTML = `<mark class="status-inactive">${data.data.system_voltage}</mark>`;
+        } else {
+            document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
+        }
+    
+        // Relay and MCB Status
+        // MCB Status
+        {% for i in range(1, 4) %}
+            if (data.data.relay_status.relay{{i}} === "CLOSED") {
+                document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-active">${data.data.relay_status.relay{{i}}}</mark>`;
+            } else {
+                document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay{{i}}}</mark>`;
+            }
+        {% endfor %}
+    
+        // VSAT LVD
+        if (data.data.relay_status.relay1 === "CLOSED") {
+            document.getElementById('vsat-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay1}</mark>`;
+        } else {
+            document.getElementById('vsat-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay1}</mark>`;
+        }
+        
+        // BTS LVD
+        if (data.data.relay_status.relay2 === "CLOSED") {
+            document.getElementById('bts-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay2}</mark>`;
+        } else {
+            document.getElementById('bts-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay2}</mark>`;
+        }
+    
+        // Load Voltage
+        {% if number_of_scc == 2 %}
+        {% for i in range(1, number_of_scc+1) %}
+            if (data.data.lvd.lvd{{i}} === -1){
+                document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.lvd.lvd{{i}}}</mark>`;
+            } else {
+                document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
+            }
+    
+            if (data.data.load_current.load{{i}}_current === -1){
+                document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.load_current.load{{i}}_current}</mark>`;
+            } else {
+                document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
+            }
+        {% endfor %}
+        {% endif %}
+    
+        {% if number_of_scc == 3 %}
+        {% for i in range(1, number_of_scc+1) %}
+            if (data.data.lvd.lvd{{i}} === -1){
+                document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.lvd.lvd{{i}}}</mark>`;
+            } else {
+                document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
+            }
+    
+            if (data.data.load_current.load{{i}}_current === -1){
+                document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.load_current.load{{i}}_current}</mark>`;
+            } else {
+                document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
+            }
+        {% endfor %}
+        {% endif %}
+
+    } catch {
+        console.error(`Failed to fetch data: ${error.message}`);
     }
     
-    // BTS LVD
-    if (data.data.relay_status.relay2 === "CLOSED") {
-        document.getElementById('bts-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay2}</mark>`;
-    } else {
-        document.getElementById('bts-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay2}</mark>`;
-    }
-
-    // Load Voltage
-    {% if number_of_scc == 2 %}
-    {% for i in range(1, number_of_scc+1) %}
-        if (data.data.lvd.lvd{{i}} === -1){
-            document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.lvd.lvd{{i}}}</mark>`;
-        } else {
-            document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
-        }
-
-        if (data.data.load_current.load{{i}}_current === -1){
-            document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.load_current.load{{i}}_current}</mark>`;
-        } else {
-            document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
-        }
-    {% endfor %}
-    {% endif %}
-
-    {% if number_of_scc == 3 %}
-    {% for i in range(1, number_of_scc+1) %}
-        if (data.data.lvd.lvd{{i}} === -1){
-            document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.lvd.lvd{{i}}}</mark>`;
-        } else {
-            document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
-        }
-
-        if (data.data.load_current.load{{i}}_current === -1){
-            document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.load_current.load{{i}}_current}</mark>`;
-        } else {
-            document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
-        }
-    {% endfor %}
-    {% endif %}
 };
 
 const sccOverview = async () => {
-    const response = await fetch('/api/realtime/scc/', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    const data = await response.json();
-    {% if number_of_scc == 2 %}
-    // SCC Status
-    {% for i in range(1, number_of_scc+1) %}
+    try {
+        const response = await fetch('/api/realtime/scc/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.code == 500) {
+            console.log(`Error: ${data.status}`);
+            return;
+        }
+
+        {% if number_of_scc == 2 %}
         // SCC Status
-        if (data.data.load_status.load{{i}}_status != 'is running') {
-            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.load_status.load{{i}}_status}</mark>`;
-        } else {
-            document.getElementById('scc{{i}}-status').innerHTML = `${data.data.load_status.load{{i}}_status}`;
-        }
+        {% for i in range(1, number_of_scc+1) %}
+            // SCC Status
+            if (data.data.scc{{i}}.load_status == 'is standby') {
+                document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.load_status}</mark>`;
+            } else if (data.data.scc{{i}}.load_status == 'modbus error' || data.data.scc{{i}}.load_status == 'unknown status') {
+                document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.load_status}</mark>`; 
+            } else {
+                document.getElementById('scc{{i}}-status').innerHTML = `${data.data.scc{{i}}.load_status}`;
+            }
 
-        // PV Voltage
-        if (data.data.pv_voltage.pv{{i}}_voltage === -1){
-            document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.pv_voltage.pv{{i}}_voltage}</mark>`;
-        } else {
-            document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.pv_voltage.pv{{i}}_voltage} V`;
-        }
+            // PV Voltage
+            if (data.data.scc{{i}}.pv_voltage === -1){
+                document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_voltage}</mark>`;
+            } else {
+                document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.scc{{i}}.pv_voltage} V`;
+            }
 
-        // PV Current
-        if (data.data.pv_current.pv{{i}}_current === -1){
-            document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.pv_current.pv{{i}}_current}</mark>`;
-        } else {
-            document.getElementById('pv{{i}}-current').innerHTML = `${data.data.pv_current.pv{{i}}_current} A`;
-        }
-    {% endfor %}
-    {% endif %}
+            // PV Current
+            if (data.data.scc{{i}}.pv_current === -1){
+                document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_current}</mark>`;
+            } else {
+                document.getElementById('pv{{i}}-current').innerHTML = `${data.data.scc{{i}}.pv_current} A`;
+            }
 
-    {% if number_of_scc == 3 %}
-    {% for i in range(1, number_of_scc+1) %}
-        // SCC Status
-        if (data.data.load_status.load{{i}}_status != 'is running') {
-            document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.load_status.load{{i}}_status}</mark>`;
-        } else {
-            document.getElementById('scc{{i}}-status').innerHTML = `${data.data.load_status.load{{i}}_status}`;
-        }
+            // SCC Counter Heartbeat
+            if (data.data.scc{{i}}.counter_heartbeat == -1) {
+                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `<mark class="status-inactive">Heartbeat:${data.data.scc{{i}}.counter_heartbeat}</mark>`;
+            } else {
+                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `Heartbeat: ${data.data.scc{{i}}.counter_heartbeat}`;
+            }
+        {% endfor %}
+        {% endif %}
 
-        // PV Voltage
-        if (data.data.pv_voltage.pv{{i}}_voltage === -1){
-            document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-danger">${data.data.pv_voltage.pv{{i}}_voltage}</mark>`;
-        } else {
-            document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.pv_voltage.pv{{i}}_voltage} V`;
-        }
+        {% if number_of_scc == 3 %}
+        {% for i in range(1, number_of_scc+1) %}
+            // SCC Status
+            if (data.data.scc{{i}}.load_status != 'is running') {
+                document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.load_status}</mark>`;
+            } else {
+                document.getElementById('scc{{i}}-status').innerHTML = `${data.data.scc{{i}}.load_status}`;
+            }
 
-        // PV Current
-        if (data.data.pv_current.pv{{i}}_current === -1){
-            document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-danger">${data.data.pv_current.pv{{i}}_current}</mark>`;
-        } else {
-            document.getElementById('pv{{i}}-current').innerHTML = `${data.data.pv_current.pv{{i}}_current} A`;
-        }
-    {% endfor %}
-    {% endif %}
+            // PV Voltage
+            if (data.data.scc{{i}}.pv_voltage === -1){
+                document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_voltage}</mark>`;
+            } else {
+                document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.scc{{i}}.pv_voltage} V`;
+            }
 
+            // PV Current
+            if (data.data.scc{{i}}.pv_current === -1){
+                document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_current}</mark>`;
+            } else {
+                document.getElementById('pv{{i}}-current').innerHTML = `${data.data.scc{{i}}.pv_current} A`;
+            }
 
+            // SCC Counter Heartbeat
+            if (data.data.scc{{i}}.counter_heartbeat == -1) {
+                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.counter_heartbeat}</mark>`;
+            } else {
+                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `${data.data.scc{{i}}.counter_heartbeat}`;
+            }
+        {% endfor %}
+        {% endif %}
+    } catch {
+        console.error(`Failed to fetch data: ${error.message}`);
+    }
 }
 
 setInterval(() => {
