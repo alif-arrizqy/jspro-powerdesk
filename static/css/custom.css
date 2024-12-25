@@ -5,7 +5,7 @@ html {
     line-height: 1.8;
     font-family: 'Roboto', sans-serif;
     color: #555e58;
-    text-transform: capitalize;
+    /* text-transform: capitalize; */
     text-rendering: optimizeLegibility !important;
     -webkit-font-smoothing: antialiased !important;
     font-weight: 400;
