@@ -13,49 +13,49 @@
                 <div class="row mb-3">
                     <label for="site-id" class="col-sm-4 col-form-label">Site ID</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="site-id" placeholder="Site ID" disabled>
+                        <input type="text" class="form-control" id="site-id" placeholder="Site ID" value={{site_location.site_id}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="site-name" class="col-sm-4 col-form-label">Site Name</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="site-name" placeholder="Site Name" disabled>
+                        <input type="text" class="form-control" id="site-name" placeholder="Site Name" value={{site_location.site_name}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="address" class="col-sm-4 col-form-label">Address</label>
                     <div class="col-sm-8">
-                        <textarea type="text" class="form-control" id="address" placeholder="Address" disabled></textarea>
+                        <textarea class="form-control" id="address" placeholder="Address" readonly>{{site_location.address}}</textarea>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
-                    <label for="ip-address-rasp1" class="col-sm-4 col-form-label">IP Address Rasp 1</label>
+                    <label for="ip-address-primary" class="col-sm-4 col-form-label">IP Address Primary</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="ip-address-rasp1" placeholder="IP Address" disabled>
+                        <input type="text" class="form-control" id="ip-address-primary" placeholder="IP Address Primary" value={{ip_address_primary}} readonly>
                     </div>
                 </div>
 
                 <div class="row mb-3">
-                    <label for="ip-address-rasp2" class="col-sm-4 col-form-label">IP Address Rasp 2</label>
+                    <label for="ip-address-secondary" class="col-sm-4 col-form-label">IP Address Secondary</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="ip-address-rasp2" placeholder="IP Address" disabled>
+                        <input type="text" class="form-control" id="ip-address-secondary" placeholder="IP Address" value={{ip_address_secondary}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="net-mask" class="col-sm-4 col-form-label">Net Mask</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="net-mask" placeholder="Net Mask" disabled>
+                        <input type="text" class="form-control" id="net-mask" placeholder="Net Mask" value={{subnet_mask}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="gateway" placeholder="Gateway" disabled>
+                        <input type="text" class="form-control" id="gateway" placeholder="Gateway" value={{gateway}} readonly>
                     </div>
                 </div>
             </div>
@@ -73,35 +73,35 @@
                 <div class="row mb-3">
                     <label for="model" class="col-sm-4 col-form-label">Model</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="model" placeholder="Model" disabled>
+                        <input type="text" class="form-control" id="model" placeholder="Model" value={{device_info.model}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="part-number" class="col-sm-4 col-form-label">Part Number</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="part-number" placeholder="Part Number" disabled>
+                        <input type="text" class="form-control" id="part-number" placeholder="Part Number" value={{device_info.part_number}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="serial-number" class="col-sm-4 col-form-label">Serial Number</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="serial-number" placeholder="Serial Number" disabled>
+                        <input type="text" class="form-control" id="serial-number" placeholder="Serial Number" value={{device_info.serial_number}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="software-version" class="col-sm-4 col-form-label">Software Version</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="software-version" placeholder="Software Version" disabled>
+                        <input type="text" class="form-control" id="software-version" placeholder="Software Version" value={{device_info.software_version}} readonly>
                     </div>
                 </div>
-        
+                
                 <div class="row mb-3">
                     <label for="hardware-version" class="col-sm-4 col-form-label">Hardware Version</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="hardware-version" placeholder="Hard Version" disabled>
+                        <input type="text" class="form-control" id="hardware-version" placeholder="Hard Version" value={{device_info.hardware_version}} readonly>
                     </div>
                 </div>
             </div>
