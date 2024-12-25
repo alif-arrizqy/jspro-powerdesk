@@ -23,14 +23,14 @@ def index():
             site_name = str(red.get('site_name'))[2:-1]
         context = {
             'site_name': site_name,
-            # 'ip_address': get_ip_address(),
+            # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
         }
-    except Exception as e:
+    except Exception:
         context = {
             'site_name': 'Ehub Talis',
-            # 'ip_address': get_ip_address(),
+            # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
         }
@@ -44,15 +44,15 @@ def scc():
             site_name = str(red.get('site_name'))[2:-1]
         context = {
             'site_name': site_name,
-            # 'ip_address': get_ip_address(),
+            # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'scc_type': scc_type,
             'number_of_scc': number_of_scc
         }
-    except Exception as e:
+    except Exception:
         context = {
             'site_name': 'Ehub Talis',
-            # 'ip_address': get_ip_address(),
+            # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'scc_type': scc_type,
             'number_of_scc': number_of_scc
@@ -67,15 +67,15 @@ def battery():
             site_name = str(red.get('site_name'))[2:-1]
         context = {
             'site_name': site_name,
-            # 'ip_address': get_ip_address(),
+            # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }
-    except Exception as e:
+    except Exception:
         context = {
             'site_name': 'Ehub Talis',
-            # 'ip_address': get_ip_address(),
+            # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
@@ -95,7 +95,49 @@ def scc_alarm_log():
 
 @app.route('/site-information', methods=['GET'])
 def site_information():
-    return render_template('site-information.html')
+    path = f'{PATH}/config_device.json'
+    try:
+        with open(path, 'r') as file:
+            data = json.load(file)
+        
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        
+        context = {
+            'site_name': site_name,
+            'site_location': data.get('site_location'),
+            'device_info': data.get('device_model'),
+            # 'ip_address': get_ip_address('eth0'),
+            # 'ip_address_primary': get_ip_address('eth0'),
+            # 'ip_address_secondary': get_ip_address('eth1'),
+            # 'subnet_mask': get_subnet_mask('eth0'),
+            # 'gateway': get_gateway('eth0'),
+            'ip_address': '192.168.1.1',
+            'ip_address_primary': '192.168.1.1',
+            'ip_address_secondary': '192.168.1.2',
+            'subnet_mask': '29',
+            'gateway': '192.168.1.1'
+        }
+    except Exception:
+        with open(path, 'r') as file:
+            data = json.load(file)
+        
+        context = {
+            'site_name': 'Ehub Talis',
+            'site_location': data.get('site_location'),
+            'device_info': data.get('device_model'),
+            # 'ip_address': get_ip_address('eth0'),
+            # 'ip_address_primary': get_ip_address('eth0'),
+            # 'ip_address_secondary': get_ip_address('eth1'),
+            # 'subnet_mask': get_subnet_mask('eth0'),
+            # 'gateway': get_gateway('eth0'),
+            'ip_address': '192.168.1.1',
+            'ip_address_primary': '192.168.1.1',
+            'ip_address_secondary': '192.168.1.2',
+            'subnet_mask': '29',
+            'gateway': '192.168.1.1'
+        }
+    return render_template('site-information.html', **context)
 
 
 @app.route('/setting-device', methods=['GET'])
