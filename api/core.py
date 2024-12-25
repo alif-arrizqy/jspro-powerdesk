@@ -298,12 +298,9 @@ def scc_alarm_realtime():
         }
         return jsonify(response), 500
 
-# ================== END API Realtime ====================
 
-
-# ============== Talis 5 ===========================
-@api.route('/api/bmsactive/', methods=("GET",))
-def bms_active():
+@api.route('/api/realtime/talis-active/', methods=("GET",))
+def talis_active():
     try:
         # bms active in usb0
         bms_active = red.hgetall('bms_active_usb0')
@@ -360,33 +357,13 @@ def bms_active():
         return jsonify(response), 500
 
 
-@api.route('/api/realtime/talis', methods=("GET",))
-@auth.login_required
+@api.route('/api/realtime/talis/', methods=("GET",))
 def realtime_talis():
     talis_data_usb0 = []
     talis_data_usb1 = []
-    energy_data = dict()
-    scc_data = dict()
-    scc_list = []
+
     try:
-        # realtime energy mppt
-        energy_data['batt_volt'] = int(
-            red.hget('avg_volt', 'voltage').decode('utf-8'))
-
-        for no in range(1, number_of_scc + 1):
-            energy_data[f'load{no}'] = float(
-                red.hget('sensor_arus', f'load{no}'))
-            energy_data[f'pv{no}_volt'] = float(
-                red.hget(f'scc{no}', 'pv_voltage'))
-            energy_data[f'pv{no}_curr'] = float(
-                red.hget(f'scc{no}', 'pv_current'))
-        
-        
-        
-        # untuk data scc overview (scc 1 dan 2)
-        # pv voltage, pv current, scc status
-
-        # logger data for usb0
+        # data for usb0
         for slave_id in range(1, slave_ids + 1):
             bms_data_json = red.hget("bms_usb0", f"slave_id_{slave_id}")
             if bms_data_json:
@@ -397,7 +374,7 @@ def realtime_talis():
             else:
                 print(f"No data found for slave_id_{slave_id} in usb0")
 
-        # logger data for usb1
+        # data for usb1
         for slave_id in range(1, slave_ids + 1):
             bms_data_json = red.hget("bms_usb1", f"slave_id_{slave_id}")
             if bms_data_json:
@@ -421,8 +398,7 @@ def realtime_talis():
             'message': 'success',
             'data': {
                 'usb0': talis_data_usb0,
-                'usb1': talis_data_usb1,
-                'scc': scc_list
+                'usb1': talis_data_usb1
             }
         }
         return jsonify(response), 200
@@ -444,8 +420,10 @@ def realtime_talis():
             'data': []
         }
         return jsonify(response), 500
+# ================== END API Realtime ====================
 
 
+# ============== Talis 5 ===========================
 @api.route('/api/logger/talis/', methods=("GET",))
 @auth.login_required
 def logger_talis():
