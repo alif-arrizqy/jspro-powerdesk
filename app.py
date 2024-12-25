@@ -69,14 +69,16 @@ def battery():
             'site_name': site_name,
             # 'ip_address': get_ip_address(),
             'ip_address': '192.168.1.1',
-            'number_of_battery': number_of_batt
+            'number_of_battery': number_of_batt,
+            'number_of_cell': number_of_cell
         }
     except Exception as e:
         context = {
             'site_name': 'Ehub Talis',
             # 'ip_address': get_ip_address(),
             'ip_address': '192.168.1.1',
-            'number_of_battery': number_of_batt
+            'number_of_battery': number_of_batt,
+            'number_of_cell': number_of_cell
         }
     return render_template('battery.html', **context)
 

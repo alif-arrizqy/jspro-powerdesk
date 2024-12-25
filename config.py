@@ -8,6 +8,7 @@ except Exception:
 if device is None:
     number_of_scc = 2
     number_of_batt = 10
+    number_of_cell = 16
 else:
     device = device.decode('utf-8')
 
@@ -25,5 +26,6 @@ else:
     else:
         number_of_scc = 2
     number_of_batt = 10
+    number_of_cell = 16
 
 slave_ids = 10
