@@ -15,66 +15,60 @@
                     <div class="col-12">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content text-center">
-                                <button class="btn btn-success btn-lg">Pack Online</button>
-                                <!-- <div class="btn-group" role="group" aria-label="Battery Status"> -->
-                                    <button class="btn btn-success btn-lg">1</button>
-                                    <button class="btn btn-success btn-lg">2</button>
-                                    <button class="btn btn-success btn-lg">3</button>
-                                    <button class="btn btn-dark btn-lg">4</button>
-                                    <button class="btn btn-dark btn-lg">5</button>
-                                    <button class="btn btn-dark btn-lg">6</button>
-                                    <button class="btn btn-success btn-lg">7</button>
-                                    <button class="btn btn-success btn-lg">8</button>
-                                    <button class="btn btn-success btn-lg">9</button>
-                                    <button class="btn btn-success btn-lg">10</button>
-                                <!-- </div> -->
+                                {% for i in range(1, number_of_battery+1) %}
+                                <button class="btn btn-dark btn-lg" id="pack{{i}}-button">{{ i }}</button>
+                                {% endfor %}
                             </div>
                         </div>
-                        <div class="row">
+                        {% for i in range(1, number_of_battery+1) %}
+                        <div class="row pack" id="pack-information-{{i}}" style="display: none;">
+                            <!-- pack number -->
                             <div class="col">
                                 <div class="shadow card card-stats full-border">
                                     <div class="card-content">
                                         <p class="category left-text"><strong>Pack Number</strong></p>
-                                        <h5 id="pack-number" class="card-title left-text">1</h5>
+                                        <h5 id="pack{{i}}-number" class="card-title left-text">Getting Data...</h5>
                                     </div>
                                 </div>
                             </div>
+                            <!-- pack status -->
                             <div class="col">
                                 <div class="shadow card card-stats full-border">
                                     <div class="card-content">
                                         <p class="category left-text"><strong>Pack Status</strong></p>
-                                        <h5 id="system-voltage" class="card-title left-text">
-                                            <mark class="status-active">Online</mark>
-                                        </h5>
+                                        <h5 id="pack-status-{{i}}" class="card-title left-text">Getting Data...</h5>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Pack Information Device -->
+                            <!-- Port -->
                             <div class="col">
                                 <div class="shadow card card-stats full-border">
                                     <div class="card-content">
                                         <p class="category left-text"><strong>Port</strong></p>
-                                        <h5 id="system-voltage" class="card-title left-text">USB0</h5>
+                                        <h5 id="port-{{i}}" class="card-title left-text">Getting Data...</h5>
                                     </div>
                                 </div>
                             </div>
+                            <!-- pcb code -->
                             <div class="col">
                                 <div class="shadow card card-stats full-border">
                                     <div class="card-content">
                                         <p class="category left-text"><strong>PCB Code</strong></p>
-                                        <h5 id="system-voltage" class="card-title left-text">TBI24032703195</h5>
+                                        <h5 id="pcb-code-{{i}}" class="card-title left-text">Getting Data...</h5>
                                     </div>
                                 </div>
                             </div>
+                            <!-- sn code -->
                             <div class="col">
                                 <div class="shadow card card-stats full-border">
                                     <div class="card-content">
                                         <p class="category left-text"><strong>SN Code</strong></p>
-                                        <h5 id="system-voltage" class="card-title left-text">AO2703195</h5>
+                                        <h5 id="sn-code-{{i}}" class="card-title left-text">Getting Data...</h5>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -82,31 +76,31 @@
     </div>
 </div>
 
-<!--Power/LVD Overview -->
+<!-- Pack Overview -->
 <div class="row">
     <div class="col-lg-12 col-md-12">
         <div class="card">
             <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-plug"></i> Cell Overview</h4>
+                <h4 class="card-title left-text"><i class="fas fa-plug"></i> Pack Overview</h4>
             </div>
             <div class="card-content">
-                <div class="row">
-                    
+                {% for i in range(1, number_of_battery+1) %}
+                <div class="row pack" id="pack-1-overview-{{i}}" style="display: none;">
+                    <!-- Heartbeat -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Heartbeat</strong></p>
-                                <h5 id="cell-counter" class="card-title left-text">5</h5>
+                                <h5 id="heartbeat-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Voltage - Current -SOC -->
+                    <!-- Voltage - Current - SOC -->
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Voltage</strong></p>
-                                <h5 id="cell-voltage" class="card-title left-text">56.78 V</h5>
+                                <h5 id="voltage-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -114,7 +108,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Current</strong></p>
-                                <h5 id="cell-current" class="card-title left-text">5.66 A</h5>
+                                <h5 id="current-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -122,20 +116,18 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>SOC</strong></p>
-                                <h5 id="cell-current" class="card-title left-text">89 %</h5>
+                                <h5 id="soc-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <!-- Battery Status -->
+                <!-- Battery Status Cell Max Cell Min Cell Diff -->
+                <div class="row pack" id="pack-2-overview-{{i}}" style="display: none;">
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Battery Status</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">
-                                    <mark class="status-danger">Battery Fault</mark>
-                                </h5>
+                                <h5 id="battery-status-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -143,7 +135,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Cell Max</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">3397 mV</h5>
+                                <h5 id="cell-max-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -151,7 +143,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Cell Min</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">2999 mV</h5>
+                                <h5 id="cell-min-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -159,13 +151,12 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Cell Difference</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">
-                                    <mark class="status-danger">398 mV</mark>
-                                </h5>
+                                <h5 id="cell-diff-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -174,145 +165,25 @@
 <!-- Cell Overview -->
 <div class="row">
     <div class="col-lg-12 col-md-12">
-        <div class="card" style="min-height: 250px">
+        <div class="card">
             <div class="card-header card-header-text titel-border">
                 <h4 class="card-title left-text"><i class="fas fa-solar-panel"></i> Cell Overview</h4>
             </div>
             <div class="card-content">
-                <!-- 1-8 -->
-                <div class="row">
-                    <div class="col">
+                {% for i in range(1, number_of_battery+1) %}
+                <div class="row pack" id="cell-overview-{{i}}" style="display: none;">
+                    {% for num in range(1, number_of_cell+1) %}
+                    <div class="col-sm-3">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
+                                <p class="category left-text"><strong>cell {{num}}</strong></p>
+                                <h6 id="cell{{num}}-voltage-{{i}}" class="card-title left-text">Getting Data...</h6>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
-                <!-- 9-16 -->
-                <div class="row">
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>cell 1</strong></p>
-                                <h5 id="cell1-voltage" class="card-title left-text">3355 mV</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -326,14 +197,13 @@
                 <h4 class="card-title left-text"><i class="fas fa-plug"></i> Mosfet Status</h4>
             </div>
             <div class="card-content">
-                <div class="row">
+                {% for i in range(1, number_of_battery+1) %}
+                <div class="row pack" id="mosfet-status-{{i}}" style="display: none;">
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>CMOS status</strong></p>
-                                <h5 id="cmos-status" class="card-title left-text">
-                                    <mark class="status-active">ON</mark>
-                                </h5>
+                                <h5 id="cmos-status-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -341,13 +211,12 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>DMOS status</strong></p>
-                                <h5 id="dmos-status" class="card-title left-text">
-                                    <mark class="status-inactive">OFF</mark>
-                                </h5>
+                                <h5 id="dmos-status-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -361,12 +230,13 @@
                 <h4 class="card-title left-text"><i class="fas fa-thermometer-three-quarters"></i> Temperature Status</h4>
             </div>
             <div class="card-content">
-                <div class="row">
+                {% for i in range(1, number_of_battery+1) %}
+                <div class="row pack" id="temperature-status-{{i}}" style="display: none;">
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>CMOS Temp</strong></p>
-                                <h5 id="cmos-temp" class="card-title left-text">31.8 C</h5>
+                                <h5 id="cmos-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -374,7 +244,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>DMOS Temp</strong></p>
-                                <h5 id="dmos-temp" class="card-title left-text">31.8 C</h5>
+                                <h5 id="dmos-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -382,7 +252,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Env Temp</strong></p>
-                                <h5 id="env-temp" class="card-title left-text">35.8 C</h5>
+                                <h5 id="env-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -390,7 +260,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Top Temp</strong></p>
-                                <h5 id="top-temp" class="card-title left-text">34.8 C</h5>
+                                <h5 id="top-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -398,7 +268,7 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Mid Temp</strong></p>
-                                <h5 id="mid-temp" class="card-title left-text">31.8 C</h5>
+                                <h5 id="mid-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
@@ -406,13 +276,153 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Bot Temp</strong></p>
-                                <h5 id="bot-temp" class="card-title left-text">27.8 C</h5>
+                                <h5 id="bot-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
-{% endblock%}
+{% endblock content %}
+
+{% block js %}
+
+<script>
+    const number_of_battery = {{ number_of_battery }};
+    const number_of_cell = {{ number_of_cell }};
+
+    function openPackInformation(packNumber) {
+        let i;
+        let packClassElements = document.getElementsByClassName('pack');
+        for (i = 0; i < packClassElements.length; i++) {
+            packClassElements[i].style.display = 'none';
+        }
+        document.getElementById(`pack-information-${packNumber}`).style.display = 'flex';
+        document.getElementById(`pack-1-overview-${packNumber}`).style.display = 'flex';
+        document.getElementById(`pack-2-overview-${packNumber}`).style.display = 'flex';
+        document.getElementById(`cell-overview-${packNumber}`).style.display = 'flex';
+        document.getElementById(`mosfet-status-${packNumber}`).style.display = 'flex';
+        document.getElementById(`temperature-status-${packNumber}`).style.display = 'flex';
+    }
+
+    const talisActive = async () => {
+        try {
+            // Display pack 1 information by default
+            openPackInformation(1);
+
+            const response = await fetch(`/api/realtime/talis-active/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+            
+            for (let i = 1; i <= number_of_battery; i++) {
+                const talisActiveButton = document.getElementById(`pack${i}-button`);
+                const packNumber = document.getElementById(`pack${i}-number`);
+                const packStatus = document.getElementById(`pack-status-${i}`);
+
+                if (data.data.usb0[`slave_id_${i}`] == 1 || data.data.usb1[`slave_id_${i}`] == 1) {
+                    talisActiveButton.classList.remove('btn-dark');
+                    talisActiveButton.classList.add('btn-success');
+                    talisActiveButton.addEventListener('click', () => openPackInformation(i));
+                    packNumber.innerText = `${i}`;
+                    packStatus.innerHTML = `<mark class="status-active" id="pack-${i}">Online</mark>`;
+                } else {
+                    talisActiveButton.classList.remove('btn-success');
+                    talisActiveButton.classList.add('btn-dark');
+                    packNumber.innerText = `${i}`;
+                    talisActiveButton.addEventListener('click', () => openPackInformation(i));
+                    packStatus.innerHTML = `<mark class="status-inactive" id="pack-${i}">Offline</mark>`;
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+        }
+    };
+
+    const talisData = async () => {
+        try {
+            const response = await fetch(`/api/realtime/talis/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+            
+            for (let i = 1; i <= number_of_battery; i++) {
+                const packStatus = document.getElementById(`pack-${i}`).innerHTML;
+                if (packStatus == 'Online') {
+                    const port = document.getElementById(`port-${i}`);
+                    const pcbCode = document.getElementById(`pcb-code-${i}`);
+                    const snCode = document.getElementById(`sn-code-${i}`);
+                    const heartbeat = document.getElementById(`heartbeat-${i}`);
+                    const voltage = document.getElementById(`voltage-${i}`);
+                    const current = document.getElementById(`current-${i}`);
+                    const soc = document.getElementById(`soc-${i}`);
+                    const batteryStatus = document.getElementById(`battery-status-${i}`);
+                    const cellMax = document.getElementById(`cell-max-${i}`);
+                    const cellMin = document.getElementById(`cell-min-${i}`);
+                    const cellDiff = document.getElementById(`cell-diff-${i}`);
+                    const cmosStatus = document.getElementById(`cmos-status-${i}`);
+                    const dmosStatus = document.getElementById(`dmos-status-${i}`);
+                    const cmosTemp = document.getElementById(`cmos-temp-${i}`);
+                    const dmosTemp = document.getElementById(`dmos-temp-${i}`);
+                    const envTemp = document.getElementById(`env-temp-${i}`);
+                    const topTemp = document.getElementById(`top-temp-${i}`);
+                    const midTemp = document.getElementById(`mid-temp-${i}`);
+                    const botTemp = document.getElementById(`bot-temp-${i}`);
+
+                    const packData = data.data.usb0.find(pack => pack.slave_id == i) || data.data.usb1.find(pack => pack.slave_id == i);
+                    if (packData) {
+                        port.innerText = packData.port.toUpperCase();
+                        pcbCode.innerText = packData.pcb_code;
+                        snCode.innerText = packData.sn1_code;
+                        heartbeat.innerText = packData.counter;
+                        voltage.innerText = (packData.pack_voltage / 1000).toFixed(2) + ' V';
+                        current.innerText = (packData.pack_current / 1000).toFixed(2) + ' A';
+                        soc.innerText = (packData.soc / 100) + ' %';
+                        cellMax.innerText = packData.max_cell_voltage + ' mV';
+                        cellMin.innerText = packData.min_cell_voltage + ' mV';
+                        cellDiff.innerText = packData.cell_difference + ' mV';
+                        
+                        if (packData.cell_difference > 500) {
+                            batteryStatus.innerHTML = `<mark class="status-danger">Battery Fault</mark>`;
+                        } else {
+                            batteryStatus.innerHTML = `Battery Normal`;
+                        }
+
+                        for (let j = 1; j <= number_of_cell; j++) {
+                            const cellVoltage = document.getElementById(`cell${j}-voltage-${i}`);
+                            cellVoltage.innerText = packData.cell_voltage[j - 1] + ' mV';
+                        }
+
+                        cmosTemp.innerText = (packData.fet_temperature / 100).toFixed(2) + ' °C';
+                        dmosTemp.innerText = (packData.fet_temperature / 100).toFixed(2) + ' °C';
+                        envTemp.innerText = (packData.environment_temperature / 100).toFixed(2) + ' °C';
+                        topTemp.innerText = (packData.cell_temperature[0] / 100).toFixed(2) + ' °C';
+                        midTemp.innerText = (packData.cell_temperature[1] / 100).toFixed(2) + ' °C';
+                        botTemp.innerText = (packData.cell_temperature[2] / 100).toFixed(2) + ' °C';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+        }
+    };
+
+    talisActive();
+    talisData();
+</script>
+{% endblock %}
