@@ -176,7 +176,7 @@
                     <div class="col-sm-3">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>cell {{num}}</strong></p>
+                                <p class="category left-text"><strong>Cell {{num}}</strong></p>
                                 <h6 id="cell{{num}}-voltage-{{i}}" class="card-title left-text">Getting Data...</h6>
                             </div>
                         </div>
@@ -390,8 +390,8 @@
                         pcbCode.innerText = packData.pcb_code;
                         snCode.innerText = packData.sn1_code;
                         heartbeat.innerText = packData.counter;
-                        voltage.innerText = (packData.pack_voltage / 1000).toFixed(2) + ' V';
-                        current.innerText = (packData.pack_current / 1000).toFixed(2) + ' A';
+                        voltage.innerText = (packData.pack_voltage / 100).toFixed(2) + ' V';
+                        current.innerText = (packData.pack_current / 100).toFixed(2) + ' A';
                         soc.innerText = (packData.soc / 100) + ' %';
                         cellMax.innerText = packData.max_cell_voltage + ' mV';
                         cellMin.innerText = packData.min_cell_voltage + ' mV';
@@ -408,12 +408,12 @@
                             cellVoltage.innerText = packData.cell_voltage[j - 1] + ' mV';
                         }
 
-                        cmosTemp.innerText = (packData.fet_temperature / 100).toFixed(2) + ' °C';
-                        dmosTemp.innerText = (packData.fet_temperature / 100).toFixed(2) + ' °C';
-                        envTemp.innerText = (packData.environment_temperature / 100).toFixed(2) + ' °C';
-                        topTemp.innerText = (packData.cell_temperature[0] / 100).toFixed(2) + ' °C';
-                        midTemp.innerText = (packData.cell_temperature[1] / 100).toFixed(2) + ' °C';
-                        botTemp.innerText = (packData.cell_temperature[2] / 100).toFixed(2) + ' °C';
+                        cmosTemp.innerText = (packData.fet_temperature / 10).toFixed(1) + ' °C';
+                        dmosTemp.innerText = (packData.fet_temperature / 10).toFixed(1) + ' °C';
+                        envTemp.innerText = (packData.environment_temperature / 10).toFixed(1) + ' °C';
+                        topTemp.innerText = (packData.cell_temperature[0] / 10).toFixed(1) + ' °C';
+                        midTemp.innerText = (packData.cell_temperature[1] / 10).toFixed(1) + ' °C';
+                        botTemp.innerText = (packData.cell_temperature[2] / 10).toFixed(1) + ' °C';
                     }
                 }
             }
