@@ -5,7 +5,7 @@ from config import *
 from api import core
 from api.redisconnection import red
 from auths import basic_auth as auth
-from functions import change_ip, bash_command, get_ip_address, update_config_mppt, update_device_version
+from functions import change_ip, bash_command, get_ip_address, get_subnet_mask, get_gateway
 # from validations import validate_setting_ip, validate_modbus_id
 from flask_cors import CORS
 
