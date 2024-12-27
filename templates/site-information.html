@@ -4,7 +4,7 @@
 {% block content %}
 <div class="row">
     <!--Site Location -->
-    <div class="col-lg-6 col-md-12">
+    <div class="col-lg-12">
         <div class="card">
             <div class="card-header card-header-text titel-border">
                 <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
@@ -63,7 +63,7 @@
     </div>
 
     <!--Device Info -->
-    <div class="col-lg-6 col-md-12">
+    <div class="col-lg-12">
         <div class="card">
             <div class="card-header card-header-text titel-border">
                 <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
@@ -102,6 +102,45 @@
                     <label for="hardware-version" class="col-sm-4 col-form-label">Hardware Version</label>
                     <div class="col-sm-8">
                         <input type="text" class="form-control" id="hardware-version" placeholder="Hard Version" value={{device_info.hardware_version}} readonly>
+                    </div>
+                </div>
+                <hr/>
+
+                <!-- device version -->
+                <div class="row mb-3">
+                    <label for="ehub-version" class="col-sm-4 col-form-label">EHUB Version</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="ehub-version" placeholder="EHUB Version" value={{device_version.ehub_version}} readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="panel2-type" class="col-sm-4 col-form-label">Panel2 Type</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="panel2-type" placeholder="Panel 2 Type" value={{device_version.panel2_type}} readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="Site Type" class="col-sm-4 col-form-label">Site Type</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="Site Type" placeholder="Site Type" value={{device_version.site_type}} readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="scc-type" class="col-sm-4 col-form-label">SCC Type</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="scc-type" placeholder="SCC Type" value={{device_version.scc_type}} readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="scc-source" class="col-sm-4 col-form-label">SCC Source</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="scc-source" placeholder="SCC Source" value={{device_version.scc_source}} readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="battery_type" class="col-sm-4 col-form-label">Battery Type</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" id="battery_type" placeholder="Battery Type" value={{device_version.battery_type}} readonly>
                     </div>
                 </div>
             </div>
