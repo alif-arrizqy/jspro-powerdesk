@@ -6,15 +6,16 @@ from config import *
 from api import core
 from api.redisconnection import red
 from auths import basic_auth as auth
-from functions import change_ip, bash_command, get_ip_address, get_subnet_mask, get_gateway
-# from validations import validate_setting_ip, validate_modbus_id
-from flask_cors import CORS
+from functions import *
+from validations import validate_setting_ip, validate_modbus_id
 
 app = Flask(__name__)
 cors = CORS(app)
 app.secret_key = '83dcdc455025cedcfe64b21e620564fb'
 app.register_blueprint(core.api)
-PATH = "/var/lib/sundaya/ehub-bakti"
+
+# PATH = "/var/lib/sundaya/ehub-bakti"
+PATH = "E:/sundaya/developments/EhubTalis/ehub-talis"
 
 
 @app.route('/', methods=['GET'])
@@ -143,9 +144,111 @@ def site_information():
     return render_template('site-information.html', **context)
 
 
-@app.route('/setting-device', methods=['GET'])
+@app.route('/setting-device', methods=['GET', 'POST'])
+# @auth.login_required
 def setting_device():
-    return render_template('setting-device.html')
+    path = f'{PATH}/config_device.json'
+    if request.method == 'POST':
+        data = request.form.to_dict()
+        response = update_site_location(path, data)
+        if response:
+            flash('Site Location has been updated successfully', 'success')
+        else:
+            flash('Failed to update Site Location', 'danger')
+        return redirect(url_for('setting_device'))
+    try:
+        with open(path, 'r') as file:
+            data = json.load(file)
+
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+
+        context = {
+            'site_name': site_name,
+            'site_location': data.get('site_location'),
+            'device_info': data.get('device_model'),
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.1.1',
+        }
+    except Exception:
+        with open(path, 'r') as file:
+            data = json.load(file)
+
+        context = {
+            'site_name': 'Site Name',
+            'site_location': data.get('site_location'),
+            'device_info': data.get('device_model'),
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.1.1',
+        }
+    return render_template('setting-device.html', **context)
+
+
+@app.route('/setting-ip', methods=['GET', 'POST'])
+def setting_ip():
+    if request.method == 'POST':
+        path = './commands/change_ip.py'
+        
+        data = request.form.to_dict()        
+        is_valid = validate_setting_ip(request.form)
+        if is_valid:
+            type_ip_address = data.get('type-ip-address')
+            ip_address_primary = data.get('ip-address-primary')
+            ip_address_secondary = data.get('ip-address-secondary')
+            subnet_mask = data.get('net-mask')
+            gateway = data.get('gateway')
+            
+            if type_ip_address == 'ip-primary':
+                status = change_ip(path, ip_address_primary, gateway, subnet_mask)
+            if type_ip_address == 'ip-secondary':
+                status = change_ip(path, ip_address_secondary, gateway, subnet_mask)
+            
+            if status:
+                flash('IP Address has been changed successfully', 'success')
+            else:
+                flash('Failed to change IP Address', 'danger')
+            return redirect(url_for('setting_ip'))
+        else:
+            flash('Invalid IP Address', 'danger')
+            return redirect(url_for('setting_ip'))
+    try:
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        
+        # open data site
+        with open('./data_site.json', 'r') as f:
+            data_ip = json.load(f)
+        
+        context = {
+            'site_name': site_name,
+            'data_ip': data_ip,
+            # 'ip_address': get_ip_address('eth0'),
+            # 'ip_address_primary': get_ip_address('eth0'),
+            # 'ip_address_secondary': get_ip_address('eth1'),
+            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
+            # 'gateway': get_gateway('eth0'),
+            'ip_address': '192.168.1.1',
+            'ip_address_primary': '192.168.1.1',
+            'ip_address_secondary': '192.168.1.2',
+            'subnet_mask': '/29',
+            'gateway': '192.168.1.1'
+        }
+    except Exception:
+        context = {
+            'site_name': 'Site Name',
+            'data_ip': data_ip,
+            # 'ip_address': get_ip_address('eth0'),
+            # 'ip_address_primary': get_ip_address('eth0'),
+            # 'ip_address_secondary': get_ip_address('eth1'),
+            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
+            # 'gateway': get_gateway('eth0'),
+            'ip_address': '192.168.1.1',
+            'ip_address_primary': '192.168.1.1',
+            'ip_address_secondary': '192.168.1.2',
+            'subnet_mask': '/29',
+            'gateway': '192.168.1.1'
+        }
+    return render_template('setting-ip.html', **context)
 
 
 @app.route('/setting-scc', methods=['GET'])
