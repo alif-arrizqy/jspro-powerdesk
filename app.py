@@ -1,6 +1,7 @@
 import os
 import json
 from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for
+from flask_cors import CORS
 from config import *
 from api import core
 from api.redisconnection import red
@@ -29,7 +30,7 @@ def index():
         }
     except Exception:
         context = {
-            'site_name': 'Ehub Talis',
+            'site_name': 'Site Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
@@ -51,7 +52,7 @@ def scc():
         }
     except Exception:
         context = {
-            'site_name': 'Ehub Talis',
+            'site_name': 'Site Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'scc_type': scc_type,
@@ -74,7 +75,7 @@ def battery():
         }
     except Exception:
         context = {
-            'site_name': 'Ehub Talis',
+            'site_name': 'Site Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
@@ -107,15 +108,16 @@ def site_information():
             'site_name': site_name,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
+            'device_version': data.get('device_version'),
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
             # 'ip_address_secondary': get_ip_address('eth1'),
-            # 'subnet_mask': get_subnet_mask('eth0'),
+            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
             # 'gateway': get_gateway('eth0'),
             'ip_address': '192.168.1.1',
             'ip_address_primary': '192.168.1.1',
             'ip_address_secondary': '192.168.1.2',
-            'subnet_mask': '29',
+            'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
     except Exception:
@@ -123,18 +125,19 @@ def site_information():
             data = json.load(file)
         
         context = {
-            'site_name': 'Ehub Talis',
+            'site_name': 'Site Name',
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
+            'device_version': data.get('device_version'),
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
             # 'ip_address_secondary': get_ip_address('eth1'),
-            # 'subnet_mask': get_subnet_mask('eth0'),
+            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
             # 'gateway': get_gateway('eth0'),
             'ip_address': '192.168.1.1',
             'ip_address_primary': '192.168.1.1',
             'ip_address_secondary': '192.168.1.2',
-            'subnet_mask': '29',
+            'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
     return render_template('site-information.html', **context)
