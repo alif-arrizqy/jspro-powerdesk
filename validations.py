@@ -1,5 +1,5 @@
 import re
-from config import number_of_mppt
+from config import number_of_scc
 
 def validate_ip_address(ip_address):
     pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
@@ -9,28 +9,31 @@ def validate_subnet_mask(subnet):
     pat = re.compile('^\A/\d{1,2}$')
     return True if pat.match(subnet) else False
 
-def validate_setting_ip(form):
-    if form.get('ip_address') is not None:
-        ip_address = validate_ip_address(form.get('ip_address'))
-        subnet_mask = validate_subnet_mask(form.get('subnet_mask'))
+def validate_setting_ip(form):    
+    # ip primary
+    if form.get('type-ip-address') == 'ip-primary':
+        ip_address = validate_ip_address(form.get('ip-address-primary'))
+        subnet_mask = validate_subnet_mask(form.get('net-mask'))
         gateway = validate_ip_address(form.get('gateway'))
-    else:
-        ip_address = validate_ip_address(form.get('ip_address_custom'))
-        subnet_mask = validate_subnet_mask(form.get('subnet_mask_custom'))
-        gateway = validate_ip_address(form.get('gateway_custom'))
+    
+    # ip secondary
+    if form.get('type-ip-address') == 'ip-secondary':
+        ip_address = validate_ip_address(form.get('ip-address-secondary'))
+        subnet_mask = validate_subnet_mask(form.get('net-mask'))
+        gateway = validate_ip_address(form.get('gateway'))
 
     if ip_address:
         if subnet_mask:
             if gateway:
                 return True, 'Success'
-            return False, 'gateway salah'
+            return False, 'Gateway Salah'
         else:
-            return False, 'subnet salah'
+            return False, 'Subnet Salah'
     else:
-        return False, 'ip_address salah'
+        return False, 'IP Address salah'
 
 def validate_modbus_id(form):
-    if number_of_mppt == 3:
+    if number_of_scc == 3:
         mppt1_id = int(form.get('mppt1_id'))
         mppt2_id = int(form.get('mppt2_id'))
         mppt3_id = int(form.get('mppt3_id'))
@@ -50,7 +53,7 @@ def validate_modbus_id(form):
                 return False, 'id tdk boleh sama'
         else:
             return False, 'id tdk boleh sama'
-    if number_of_mppt == 2:
+    if number_of_scc == 2:
         mppt1_id = int(form.get('mppt1_id'))
         mppt2_id = int(form.get('mppt2_id'))
         if mppt1_id != mppt2_id:
