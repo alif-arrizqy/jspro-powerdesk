@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import timedelta
 from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for
 from flask_cors import CORS
 from config import *
@@ -145,17 +146,36 @@ def site_information():
 
 
 @app.route('/setting-device', methods=['GET', 'POST'])
-# @auth.login_required
+@auth.login_required
 def setting_device():
+    # username login
+    username = auth.username()
+
+    # path config device
     path = f'{PATH}/config_device.json'
+    
+    form_site_location = request.form.get('site-location-form')
+    form_device_model = request.form.get('device-info-form')
+
     if request.method == 'POST':
         data = request.form.to_dict()
-        response = update_site_location(path, data)
-        if response:
-            flash('Site Location has been updated successfully', 'success')
-        else:
-            flash('Failed to update Site Location', 'danger')
-        return redirect(url_for('setting_device'))
+        
+        if form_site_location:
+            response = update_site_location(path, data)
+            if response:
+                flash('Site Location has been updated successfully', 'success')
+            else:
+                flash('Failed to update Site Location', 'danger')
+            return redirect(url_for('setting_device'))
+        
+        if form_device_model:
+            response = update_device_model(path, data)
+            if response:
+                flash('Device Info has been updated successfully', 'success')
+            else:
+                flash('Failed to update Device Info', 'danger')
+            return redirect(url_for('setting_device'))
+    
     try:
         with open(path, 'r') as file:
             data = json.load(file)
@@ -164,6 +184,7 @@ def setting_device():
             site_name = str(red.get('site_name'))[2:-1]
 
         context = {
+            'username': username,
             'site_name': site_name,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
@@ -175,6 +196,7 @@ def setting_device():
             data = json.load(file)
 
         context = {
+            'username': username,
             'site_name': 'Site Name',
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
@@ -185,7 +207,11 @@ def setting_device():
 
 
 @app.route('/setting-ip', methods=['GET', 'POST'])
+# @auth.login_required
 def setting_ip():
+    # username login
+    username = auth.username()
+    
     if request.method == 'POST':
         path = './commands/change_ip.py'
         
@@ -220,6 +246,7 @@ def setting_ip():
             data_ip = json.load(f)
         
         context = {
+            'username': username,
             'site_name': site_name,
             'data_ip': data_ip,
             # 'ip_address': get_ip_address('eth0'),
@@ -235,6 +262,7 @@ def setting_ip():
         }
     except Exception:
         context = {
+            'username': username,
             'site_name': 'Site Name',
             'data_ip': data_ip,
             # 'ip_address': get_ip_address('eth0'),
@@ -251,10 +279,101 @@ def setting_ip():
     return render_template('setting-ip.html', **context)
 
 
-@app.route('/setting-scc', methods=['GET'])
+@app.route('/setting-scc', methods=['GET', 'POST'])
+# @auth.login_required
 def setting_scc():
-    return render_template('setting-scc.html')
-
+    # username login
+    username = auth.username()
+    
+    # path config device
+    path = f'{PATH}/config_device.json'
+    
+    # open config device
+    with open(path, 'r') as file:
+        data = json.load(file)
+    
+    if request.method == 'POST':
+        data = request.form.to_dict()
+        scc_type_form = request.form.get('scc-type-form')
+        scc_setting_id_form = request.form.get('scc-setting-id-form')
+        
+        if scc_type_form == 'scc-type-form':
+            response = update_scc_type(path, data)
+            if response:
+                flash('SCC Type has been updated successfully', 'success')
+                # bash_command('sudo systemctl restart mppt device_version.service webapp.service')
+            else:
+                flash('Failed to update SCC Type', 'danger')
+            return redirect(url_for('setting_scc'))
+        if scc_setting_id_form == 'scc-setting-id-form':
+            is_valid, msg = validate_modbus_id(request.form)
+            if is_valid:
+                if number_of_scc == 3:
+                    for i in range(1, 4):
+                        red.set(f'scc:{i}:id', request.form.get(f'scc-id-{i}'))
+                if number_of_scc == 2:
+                    for i in range(1, 3):
+                        red.set(f'scc:{i}:id', request.form.get(f'scc-id-{i}'))
+                # bash_command('sudo systemctl restart mppt device_version.service webapp.service')
+                # bash_command('sudo systemctl daemon-reload')
+                flash('SCC ID has been updated successfully', 'success')
+            else:
+                flash('Failed to update SCC ID', 'danger')
+            return redirect(url_for('setting_scc'))
+    
+    # get site name
+    if red.get('site_name') is not None:
+        site_name = str(red.get('site_name'))[2:-1]
+    
+    # get scc type
+    scc_type = data.get('device_version').get('scc_type')
+    # replace - to _
+    scc_type = scc_type.replace('-', '_')
+    
+    # get scc id from redis
+    if number_of_scc == 2:
+        try:
+            scc_id_1 = int(red.get('scc:1:id'))
+            scc_id_2 = int(red.get('scc:2:id'))
+        except Exception:
+            scc_id_1 = 1
+            scc_id_2 = 2
+        context = {
+            'username': username,
+            'site_name': site_name,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.3.4',
+            'scc_ids': {1: scc_id_1, 2: scc_id_2},
+            'number_of_scc': number_of_scc,
+            'scc_type': data.get('device_version').get('scc_type'),
+            'scc_source': data.get(f'{'device_version'}').get('scc_source'),
+            'host': data.get(f'{scc_type}').get('host'),
+            'port': data.get(f'{scc_type}').get('port'),
+            'scc_scan': data.get(f'{scc_type}').get('scan'),
+        }
+    if number_of_scc == 3:
+        try:
+            scc_id_1 = int(red.get('scc:1:id'))
+            scc_id_2 = int(red.get('scc:2:id'))
+            scc_id_3 = int(red.get('scc:3:id'))
+        except Exception:
+            scc_id_1 = 1
+            scc_id_2 = 2
+            scc_id_3 = 3
+        context = {
+            'username': username,
+            'site_name': site_name,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.3.4',
+            'scc_ids': {1: scc_id_1, 2: scc_id_2, 3: scc_id_3},
+            'number_of_scc': number_of_scc,
+            'scc_type': data.get('device_version').get('scc_type'),
+            'scc_source': data.get(f'{'device_version'}').get('scc_source'),
+            'host': data.get(f'{scc_type}').get('host'),
+            'port': data.get(f'{scc_type}').get('port'),
+            'scc_scan': data.get(f'{scc_type}').get('scan'),
+        }
+    return render_template('setting-scc.html', **context)
 
 @app.route('/config-value-scc', methods=['GET'])
 def config_value_scc():
@@ -264,3 +383,11 @@ def config_value_scc():
 @app.route('/disk-storage', methods=['GET'])
 def disk_storage():
     return render_template('disk-storage.html')
+
+
+@app.route('/logout')
+@auth.login_required
+def logout():
+    session.pop('username', None)
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('index'))
