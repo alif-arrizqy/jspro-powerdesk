@@ -86,11 +86,11 @@ def update_device_model(path, form):
     for key, value in form.items():
         data[key] = value
 
-    model = data.get('device_model')
-    part_number = data.get('part_number')
-    serial_number = data.get('serial_number')
-    software_version = data.get('software_version')
-    hardware_version = data.get('hardware_version')
+    model = data.get('model')
+    part_number = data.get('part-number')
+    serial_number = data.get('serial-number')
+    software_version = data.get('software-version')
+    hardware_version = data.get('hardware-version')
 
     # open json file
     with open(path, 'r') as f:
@@ -112,7 +112,7 @@ def update_scc_type(path, form):
     data = {}
     for key, value in form.items():
         # validate value
-        if key == 'scc_type':
+        if key == 'scc-type':
             if value == 'scc-srne':
                 data[key] = value
             elif value == 'scc-epveper':
@@ -121,7 +121,7 @@ def update_scc_type(path, form):
                 data[key] = value
             else:
                 return False
-        elif key == 'scc_source':
+        elif key == 'scc-source':
             if value == 'tcp':
                 data[key] = value
             elif value == 'serial':
@@ -130,18 +130,19 @@ def update_scc_type(path, form):
                 data[key] = value
             else:
                 return False
-        elif key == 'port':
+        elif key == 'scc-port':
             data[key] = value
-        elif key == 'host':
+        elif key == 'scc-host':
             data[key] = value
-        elif key == 'scan':
+        elif key == 'scc-scan':
             data[key] = value
 
-    scc_type = data.get('scc_type')
-    scc_source = data.get('scc_source')
-    port = data.get('port')
-    host = data.get('host')
-    scan = data.get('scan')
+    scc_type = data.get('scc-type')
+    scc_source = data.get('scc-source')
+    print(scc_type, scc_source)
+    port = data.get('scc-port')
+    host = data.get('scc-host')
+    scan = data.get('scc-scan')
 
     # open json file
     with open(path, 'r') as f:
