@@ -2,6 +2,20 @@
 {% block breadcrumbs %} Setting SCC {% endblock breadcrumbs %}
 
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="container mt-3">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
 <!-- SCC Type and Source -->
     <!-- content row -->
     <div class="row">
@@ -11,39 +25,56 @@
                     <h4 class="card-title"><i class="fa fa-wrench"></i> SCC Type and Source</h4>
                 </div>
                 <form method="POST">
+                    <input type="hidden" name="scc-type-form" value="scc-type-form">
                     <div class="card-content">
                         <div class="row mb-3">
-                            <label for="scc-id-1" class="col-sm-4 col-form-label">SCC Type</label>
+                            <label for="scc-type" class="col-sm-4 col-form-label">SCC Type</label>
                             <div class="col-sm-8">
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Choose SCC Type</option>
-                                    <option value="scc-srne">SCC Srne</option>
-                                    <option value="scc-epveper">SCC Epveper</option>
-                                    <option value="scc-tristar">SCC Trisar</option>
-                                </select>
+                            {% if scc_type == 'scc-srne' or scc_type == 'scc-epveper' %}
+                            <select class="form-select" name="scc-type" aria-label="Default select example">
+                                <option value="" disabled {% if not scc_type %}selected{% endif %}>Choose SCC Type</option>
+                                <option value="scc-srne" {% if scc_type == 'scc-srne' %}selected{% endif %}>SCC Srne</option>
+                                <option value="scc-epveper" {% if scc_type == 'scc-epveper' %}selected{% endif %}>SCC Epveper</option>
+                            </select>
+                            {% else %}
+                            <select class="form-select" name="scc-type" aria-label="Default select example">
+                                <option value="" disabled {% if not scc_type %}selected{% endif %}>Choose SCC Type</option>
+                                <option value="scc-tristar" {% if scc_type == 'scc-tristar' %}selected{% endif %}>SCC Tristar</option>
+                            </select>
+                            {% endif %}
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="scc-id-2" class="col-sm-4 col-form-label">SCC Source</label>
+                            <label for="scc-source" class="col-sm-4 col-form-label">SCC Source</label>
                             <div class="col-sm-8">
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Choose SCC Source</option>
-                                    <option value="serial">SERIAL</option>
-                                    <option value="usb">USB</option>
-                                    <option value="tcp">TCP</option>
-                                </select>
+                            <select class="form-select" name="scc-source" aria-label="Default select example">
+                                <option value="" disabled {% if not scc_source %}selected{% endif %}>Choose SCC Source</option>
+                                <option value="serial" {% if scc_source == 'serial' %}selected{% endif %}>SERIAL</option>
+                                <option value="usb" {% if scc_source == 'usb' %}selected{% endif %}>USB</option>
+                                <option value="tcp" {% if scc_source == 'tcp' %}selected{% endif %}>TCP</option>
+                            </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="scc-id-2" class="col-sm-4 col-form-label">Port</label>
+                            <label for="scc-scan" class="col-sm-4 col-form-label">SCC Scan ID</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" id="host-ip" placeholder="contoh: /dev/ttyS0 atau /dev/ttyUSB0">
+                            <select class="form-select" name="scc-scan" aria-label="Default select example">
+                                <option value="" disabled {% if not scc_scan %}selected{% endif %}>Choose SCC Scan</option>
+                                <option value="true" {% if scc_scan == 'true' %}selected{% endif %}>True</option>
+                                <option value="false" {% if scc_scan == 'false' %}selected{% endif %}>False</option>
+                            </select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="scc-id-2" class="col-sm-4 col-form-label">Host / IP</label>
+                            <label for="scc-port" class="col-sm-4 col-form-label">Port</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" id="host-ip" placeholder="Host / IP">
+                                <input type="text" class="form-control" name="scc-port" placeholder="contoh: /dev/ttyS0 atau /dev/ttyUSB0" value={{port}}>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="scc-host" class="col-sm-4 col-form-label">Host / IP</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="scc-host" placeholder="Host / IP" value={{host}}>
                             </div>
                         </div>
                         <!-- button -->
@@ -62,20 +93,16 @@
                     <h4 class="card-title"><i class="fa fa-wrench"></i> SCC Setting ID</h4>
                 </div>
                 <form method="POST">
+                    <input type="hidden" name="scc-setting-id-form" value="scc-setting-id-form">
                     <div class="card-content">
+                        {% for key, val in scc_ids.items() %}
                         <div class="row mb-3">
-                            <label for="scc-id-1" class="col-sm-4 col-form-label">SCC 1</label>
+                            <label for="scc-id-{{key}}" class="col-sm-4 col-form-label">SCC {{key}}</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" id="scc-id-1" placeholder="SCC 1">
+                                <input type="number" class="form-control" name="scc-id-{{key}}" placeholder="SCC {{key}}" value={{val}}>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <label for="scc-id-2" class="col-sm-4 col-form-label">SCC 2</label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" id="scc-id-2" placeholder="SCC 2">
-                            </div>
-                        </div>
-                        
+                        {% endfor %}
                         <!-- button -->
                         <div class="row">
                             <div class="col-sm-12 text-right">
