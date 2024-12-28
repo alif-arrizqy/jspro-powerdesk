@@ -16,6 +16,15 @@
         </div>
     {% endif %}
 {% endwith %}
+<!-- login information -->
+<div class="container mt-3">
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>Info!</strong> Kamu Telah Login Sebagai <strong>{{ username.capitalize() }}</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+</div>
 <!-- content row -->
 <div class="row">
     <!--Site Location -->
@@ -25,6 +34,7 @@
                 <h4 class="card-title"><i class="fas fa-map-marker-alt"></i> Site Location</h4>
             </div>
             <form method="POST">
+                <input type="hidden" name="site-location-form" value="site-location-form">
                 <div class="card-content">
                     <div class="row mb-3">
                         <label for="site-id" class="col-sm-4 col-form-label">Site ID</label>
@@ -57,6 +67,7 @@
         </div>
     </div>
 
+    {% if username == 'teknisi' %}
     <!--Device Info -->
     <div class="col-lg-6">
         <div class="card">
@@ -64,39 +75,40 @@
                 <h4 class="card-title"><i class="fas fa-info-circle"></i> Device Info</h4>
             </div>
             <form method="POST">
+                <input type="hidden" name="device-info-form" value="device-info-form">
                 <div class="card-content">
                     <div class="row mb-3">
                         <label for="model" class="col-sm-4 col-form-label">Model</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" name="model" placeholder="Model">
+                            <input type="text" class="form-control" name="model" placeholder="Model" value={{device_info.model}}>
                         </div>
                     </div>
             
                     <div class="row mb-3">
                         <label for="part-number" class="col-sm-4 col-form-label">Part Number</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" name="part-number" placeholder="Part Number">
+                            <input type="text" class="form-control" name="part-number" placeholder="Part Number" value={{device_info.part_number}}>
                         </div>
                     </div>
             
                     <div class="row mb-3">
                         <label for="serial-number" class="col-sm-4 col-form-label">Serial Number</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" name="serial-number" placeholder="Serial Number">
+                            <input type="text" class="form-control" name="serial-number" placeholder="Serial Number" value={{device_info.serial_number}}>
                         </div>
                     </div>
             
                     <div class="row mb-3">
                         <label for="software-version" class="col-sm-4 col-form-label">Software Version</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" name="software-version" placeholder="Software Version">
+                            <input type="text" class="form-control" name="software-version" placeholder="Software Version" value={{device_info.software_version}}>
                         </div>
                     </div>
             
                     <div class="row mb-3">
                         <label for="hardware-version" class="col-sm-4 col-form-label">Hardware Version</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" name="hardware-version" placeholder="Hard Version">
+                            <input type="text" class="form-control" name="hardware-version" placeholder="Hardware Version" value={{device_info.hardware_version}}>
                         </div>
                     </div>
 
@@ -110,5 +122,6 @@
             </form>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
