@@ -280,7 +280,7 @@ def setting_ip():
 
 
 @app.route('/setting-scc', methods=['GET', 'POST'])
-# @auth.login_required
+@auth.login_required
 def setting_scc():
     # username login
     username = auth.username()
@@ -375,10 +375,59 @@ def setting_scc():
         }
     return render_template('setting-scc.html', **context)
 
-@app.route('/config-value-scc', methods=['GET'])
+@app.route('/config-value-scc', methods=['GET', 'POST'])
+# @auth.login_required
 def config_value_scc():
-    return render_template('config-value-scc.html')
+    # username login
+    username = auth.username()
 
+    # path config device
+    path = f'{PATH}/config_device.json'
+
+    # open config device
+    with open(path, 'r') as file:
+        data = json.load(file)
+
+    if request.method == 'POST':
+        data = request.form.to_dict()
+        config_relay = data.get('config-relay-form')
+        config_scc = data.get('config-scc-form')
+        
+        if config_relay == 'config-relay-form':
+            response = update_config_cutoff_reconnect(path, data)
+            if response:
+                flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
+            else:
+                flash('Failed to update Config Value Cut off / Reconnect', 'danger')
+            return redirect(url_for('config_value_scc'))
+        if config_scc == 'config-scc-form':
+            response = update_config_scc(path, data)
+            if response:
+                flash('Config Value SCC has been updated successfully', 'success')
+            else:
+                flash('Failed to update Config Value SCC', 'danger')
+            return redirect(url_for('config_value_scc'))
+
+    # get site name
+    if red.get('site_name') is not None:
+        site_name = str(red.get('site_name'))[2:-1]
+
+    # get scc type
+    scc_type = data.get('device_version').get('scc_type')
+    # replace - to _
+    scc_type = scc_type.replace('-', '_')
+    
+    context = {
+        'username': username,
+        'site_name': site_name,
+        # 'ip_address': get_ip_address('eth0'),
+        'ip_address': '192.168.3.4',
+        'scc_type': scc_type,
+        'config_scc': data.get(f'{scc_type}').get('parameter'),
+        'config_relay': data.get('handle_relay'),
+    }
+    
+    return render_template('config-value-scc.html', **context)
 
 @app.route('/disk-storage', methods=['GET'])
 def disk_storage():

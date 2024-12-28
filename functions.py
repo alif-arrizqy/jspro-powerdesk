@@ -169,9 +169,10 @@ def update_scc_type(path, form):
     return True
 
 
-def update_config_scc(path, form):
+def update_config_cutoff_reconnect(path, form):
     data = {}
     for key, value in form.items():
+        print(key, value)
         if key == 'submit':
             continue
         else:
@@ -185,98 +186,103 @@ def update_config_scc(path, form):
     # validate
     bts_reconnect = round(voltage_reconnect_bts / 40) + 1
     bts_undervoltage_warning_level = bts_reconnect - 1
-    # bts_overdischarge_voltage = bts_reconnect - 2
     bts_cutoff = round(voltage_cutoff_bts / 40)
     bts_discharging_limit_voltage = bts_cutoff - 2
 
     vsat_reconnect = round(voltage_reconnect_vsat / 40)
     vsat_undervoltage_warning_level = vsat_reconnect - 1
-    # vsat_overdischarge_voltage = vsat_reconnect - 2
     vsat_cutoff = round(voltage_cutoff_vsat / 40)
     vsat_discharging_limit_voltage = vsat_cutoff - 2
-
+    
     if vsat_reconnect > vsat_undervoltage_warning_level > vsat_cutoff > vsat_discharging_limit_voltage:
         if bts_reconnect > bts_undervoltage_warning_level > bts_cutoff > bts_discharging_limit_voltage:
-            # scc srne
-            if number_of_scc == 3:
-                host = data.get('host')
-                port = data.get('port')
-                battery_capacity = int(data.get('battery_capacity'))
-                system_voltage = int(data.get('system_voltage'))
-                battery_type = int(data.get('battery_type'))
-                overvoltage_threshold = int(data.get('overvoltage_threshold'))
-                charging_limit_voltage = int(
-                    data.get('charging_limit_voltage'))
-                equalizing_charge_voltage = int(
-                    data.get('equalizing_charge_voltage'))
-                boost_charging_voltage = int(
-                    data.get('boost_charging_voltage'))
-                floating_charging_voltage = int(
-                    data.get('floating_charging_voltage'))
-                boost_charging_recovery_voltage = int(
-                    data.get('boost_charging_recovery_voltage'))
-                overdischarge_time_delay = int(
-                    data.get('overdischarge_time_delay'))
-                equalizing_charging_time = int(
-                    data.get('equalizing_charging_time'))
-                boost_charging_time = int(data.get('boost_charging_time'))
-                equalizing_charging_interval = int(
-                    data.get('equalizing_charging_interval'))
-                temperature_comp = int(data.get('temperature_comp'))
+            # open json file
+            with open(path, 'r') as f:
+                data = json.load(f)
+            
+            data['handle_relay']['voltage_reconnect_bts'] = voltage_reconnect_bts
+            data['handle_relay']['voltage_cutoff_bts'] = voltage_cutoff_bts
+            data['handle_relay']['voltage_reconnect_vsat'] = voltage_reconnect_vsat
+            data['handle_relay']['voltage_cutoff_vsat'] = voltage_cutoff_vsat
 
-                # read json file
-                with open(path, 'r') as f:
-                    data = json.load(f)
-                data['handle_relay']['voltage_reconnect_bts'] = voltage_reconnect_bts
-                data['handle_relay']['voltage_cutoff_bts'] = voltage_cutoff_bts
-                data['handle_relay']['voltage_reconnect_vsat'] = voltage_reconnect_vsat
-                data['handle_relay']['voltage_cutoff_vsat'] = voltage_cutoff_vsat
-
-                data['scc_srne']['host'] = host
-                data['scc_srne']['port'] = port
-                data['scc_srne']['parameter']['battery_capacity'] = battery_capacity
-                data['scc_srne']['parameter']['system_voltage'] = system_voltage
-                data['scc_srne']['parameter']['battery_type'] = battery_type
-                data['scc_srne']['parameter']['overvoltage_threshold'] = overvoltage_threshold
-                data['scc_srne']['parameter']['charging_limit_voltage'] = charging_limit_voltage
-                data['scc_srne']['parameter']['equalizing_charge_voltage'] = equalizing_charge_voltage
-                data['scc_srne']['parameter']['boost_charging_voltage'] = boost_charging_voltage
-                data['scc_srne']['parameter']['floating_charging_voltage'] = floating_charging_voltage
-                data['scc_srne']['parameter']['boost_charging_recovery_voltage'] = boost_charging_recovery_voltage
-                data['scc_srne']['parameter']['overdischarge_time_delay'] = overdischarge_time_delay
-                data['scc_srne']['parameter']['equalizing_charging_time'] = equalizing_charging_time
-                data['scc_srne']['parameter']['boost_charging_time'] = boost_charging_time
-                data['scc_srne']['parameter']['equalizing_charging_interval'] = equalizing_charging_interval
-                data['scc_srne']['parameter']['temperature_comp'] = temperature_comp
-
-                # write json file
-                with open(path, 'w') as f:
-                    json.dump(data, f, indent=4)
-                return True
-            # scc epveper
-            if number_of_scc == 2:
-                host = data.get('host')
-                port = data.get('port')
-                overvoltage_disconnect = int(
-                    data.get('overvoltage_disconnect'))
-                overvoltage_reconnect = int(data.get('overvoltage_reconnect'))
-
-                # read json file
-                with open(path, 'r') as f:
-                    data = json.load(f)
-                data['handle_relay']['voltage_reconnect_bts'] = voltage_reconnect_bts
-                data['handle_relay']['voltage_cutoff_bts'] = voltage_cutoff_bts
-                data['handle_relay']['voltage_reconnect_vsat'] = voltage_reconnect_vsat
-                data['handle_relay']['voltage_cutoff_vsat'] = voltage_cutoff_vsat
-
-                data['scc_epveper']['host'] = host
-                data['scc_epveper']['port'] = port
-                data['scc_epveper']['parameter']['overvoltage_disconnect'] = overvoltage_disconnect
-                data['scc_epveper']['parameter']['overvoltage_reconnect'] = overvoltage_reconnect
-
-                # write json file
-                with open(path, 'w') as f:
-                    json.dump(data, f, indent=4)
-                return True
+            # write json file
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=4)
+            return True
+        
         return False
     return False
+
+def update_config_scc(path, form):
+    data = {}
+    for key, value in form.items():
+        if key == 'submit':
+            continue
+        else:
+            data[key] = value
+
+    # scc srne
+    if number_of_scc == 3:
+        battery_capacity = int(data.get('battery_capacity'))
+        system_voltage = int(data.get('system_voltage'))
+        battery_type = int(data.get('battery_type'))
+        overvoltage_threshold = int(data.get('overvoltage_threshold'))
+        charging_limit_voltage = int(data.get('charging_limit_voltage'))
+        equalizing_charge_voltage = int(data.get('equalizing_charge_voltage'))
+        boost_charging_voltage = int(data.get('boost_charging_voltage'))
+        floating_charging_voltage = int(data.get('floating_charging_voltage'))
+        boost_charging_recovery_voltage = int(data.get('boost_charging_recovery_voltage'))
+        overdischarge_time_delay = int(data.get('overdischarge_time_delay'))
+        equalizing_charging_time = int(data.get('equalizing_charging_time'))
+        boost_charging_time = int(data.get('boost_charging_time'))
+        equalizing_charging_interval = int(data.get('equalizing_charging_interval'))
+        temperature_comp = int(data.get('temperature_comp'))
+        
+        if overvoltage_threshold > charging_limit_voltage > equalizing_charge_voltage > boost_charging_voltage > floating_charging_voltage > boost_charging_recovery_voltage:
+            # read json file
+            with open(path, 'r') as f:
+                data = json.load(f)
+
+            data['scc_srne']['parameter']['battery_capacity'] = battery_capacity
+            data['scc_srne']['parameter']['system_voltage'] = system_voltage
+            data['scc_srne']['parameter']['battery_type'] = battery_type
+            data['scc_srne']['parameter']['overvoltage_threshold'] = overvoltage_threshold
+            data['scc_srne']['parameter']['charging_limit_voltage'] = charging_limit_voltage
+            data['scc_srne']['parameter']['equalizing_charge_voltage'] = equalizing_charge_voltage
+            data['scc_srne']['parameter']['boost_charging_voltage'] = boost_charging_voltage
+            data['scc_srne']['parameter']['floating_charging_voltage'] = floating_charging_voltage
+            data['scc_srne']['parameter']['boost_charging_recovery_voltage'] = boost_charging_recovery_voltage
+            data['scc_srne']['parameter']['overdischarge_time_delay'] = overdischarge_time_delay
+            data['scc_srne']['parameter']['equalizing_charging_time'] = equalizing_charging_time
+            data['scc_srne']['parameter']['boost_charging_time'] = boost_charging_time
+            data['scc_srne']['parameter']['equalizing_charging_interval'] = equalizing_charging_interval
+            data['scc_srne']['parameter']['temperature_comp'] = temperature_comp
+
+            # write json file
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=4)
+            return True
+        else:
+            return False
+    
+    # scc epveper
+    if number_of_scc == 2:
+        overvoltage_disconnect = int(data.get('overvoltage_disconnect'))
+        charging_limit_voltage = int(data.get('charging_limit_voltage'))
+        overvoltage_reconnect = int(data.get('overvoltage_reconnect'))
+
+        if overvoltage_disconnect > charging_limit_voltage > overvoltage_reconnect:
+            # read json file
+            with open(path, 'r') as f:
+                data = json.load(f)
+
+            data['scc_epveper']['parameter']['overvoltage_disconnect'] = overvoltage_disconnect
+            data['scc_epveper']['parameter']['charging_limit_voltage'] = charging_limit_voltage
+            data['scc_epveper']['parameter']['overvoltage_reconnect'] = overvoltage_reconnect
+
+            # write json file
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=4)
+            return True
+        else:
+            return False
