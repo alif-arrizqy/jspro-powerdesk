@@ -26,8 +26,11 @@ def device_information():
         talis_log2 = red.hgetall("bms_usb1_log")
         scc_data = red.hgetall("energy_data")
 
-        datalog = [talis_log1, talis_log2, scc_data]
-        datalog_length = len(datalog)
+        talis_log1_length = len(talis_log1) if talis_log1 else 0
+        talis_log2_length = len(talis_log2) if talis_log2 else 0
+        scc_data_length = len(scc_data) if scc_data else 0
+        # total datalog length
+        datalog_length = talis_log1_length + talis_log2_length + scc_data_length            
         
         # disk usage and ram usage
         disk = get_disk_detail()

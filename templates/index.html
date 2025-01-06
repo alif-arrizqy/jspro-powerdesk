@@ -273,12 +273,15 @@ const deviceInformation = async () => {
         // Disk Usage
         if (data.data.disk_ram.disk.used > 11) {
             document.getElementById('disk-usage').innerHTML = `<mark class="status-danger">used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB</mark>`;
+        } else {
+            document.getElementById('disk-usage').innerHTML = `used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB`;
         }
-        document.getElementById('disk-usage').innerHTML = `used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB`;
         
         // datalog length
         if (data.data.datalog_length > 500) {
             document.getElementById('datalog-length').innerHTML = `<mark class="status-danger">${data.data.datalog_length}</mark>`;
+        } else {
+            document.getElementById('datalog-length').innerHTML = data.data.datalog_length;
         }
         document.getElementById('datalog-length').innerHTML = data.data.datalog_length;
     } catch (error) {
