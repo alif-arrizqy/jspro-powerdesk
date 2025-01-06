@@ -20,11 +20,16 @@ PATH = "E:/sundaya/developments/EhubTalis/ehub-talis"
 
 
 @app.route('/', methods=['GET'])
+@auth.login_required
 def index():
     try:
+        # username login
+        username = auth.username()
+        
         if red.get('site_name') is not None:
             site_name = str(red.get('site_name'))[2:-1]
         context = {
+            'username': username,
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -32,6 +37,7 @@ def index():
         }
     except Exception:
         context = {
+            'username': 'Username',
             'site_name': 'Site Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -41,11 +47,16 @@ def index():
 
 
 @app.route('/scc', methods=['GET'])
+@auth.login_required
 def scc():
     try:
+        # username login
+        username = auth.username()
+        
         if red.get('site_name') is not None:
             site_name = str(red.get('site_name'))[2:-1]
         context = {
+            'username': username,
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -54,6 +65,7 @@ def scc():
         }
     except Exception:
         context = {
+            'username': username,
             'site_name': 'Site Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -64,11 +76,16 @@ def scc():
 
 
 @app.route('/battery', methods=['GET'])
+@auth.login_required
 def battery():
     try:
+        # username login
+        username = auth.username()
+        
         if red.get('site_name') is not None:
             site_name = str(red.get('site_name'))[2:-1]
         context = {
+            'username': username,
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -77,6 +94,7 @@ def battery():
         }
     except Exception:
         context = {
+            'username': username,
             'site_name': 'Site Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -87,19 +105,63 @@ def battery():
 
 
 @app.route('/datalog', methods=['GET'])
+@auth.login_required
 def datalog():
-    return render_template('datalog.html')
+    try:
+        # username login
+        username = auth.username()
+        
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        context = {
+            'username': username,
+            'site_name': site_name,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.4.44'
+        }
+    except Exception:
+        context = {
+            'username': username,
+            'site_name': 'Site Name',
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.4.3'
+        }
+    return render_template('datalog.html', **context)
 
 
 @app.route('/scc-alarm-log', methods=['GET'])
+@auth.login_required
 def scc_alarm_log():
-    return render_template('scc-alarm-log.html')
+    try:
+        # username login
+        username = auth.username()
+        
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        context = {
+            'username': username,
+            'site_name': site_name,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.3.4'
+        }
+    except Exception:
+        context = {
+            'username': username,
+            'site_name': 'Site Name',
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.3.4'
+        }
+    return render_template('scc-alarm-log.html', **context)
 
 
 @app.route('/site-information', methods=['GET'])
+@auth.login_required
 def site_information():
     path = f'{PATH}/config_device.json'
     try:
+        # username login
+        username = auth.username()
+        
         with open(path, 'r') as file:
             data = json.load(file)
         
@@ -107,6 +169,7 @@ def site_information():
             site_name = str(red.get('site_name'))[2:-1]
         
         context = {
+            'username': username,
             'site_name': site_name,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
@@ -127,6 +190,7 @@ def site_information():
             data = json.load(file)
         
         context = {
+            'username': username,
             'site_name': 'Site Name',
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
@@ -207,7 +271,7 @@ def setting_device():
 
 
 @app.route('/setting-ip', methods=['GET', 'POST'])
-# @auth.login_required
+@auth.login_required
 def setting_ip():
     # username login
     username = auth.username()
@@ -320,10 +384,12 @@ def setting_scc():
             else:
                 flash('Failed to update SCC ID', 'danger')
             return redirect(url_for('setting_scc'))
-    
-    # get site name
-    if red.get('site_name') is not None:
-        site_name = str(red.get('site_name'))[2:-1]
+    try:
+        # get site name
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+    except Exception:
+        site_name = 'Site Name'
     
     # get scc type
     scc_type = data.get('device_version').get('scc_type')
@@ -376,7 +442,7 @@ def setting_scc():
     return render_template('setting-scc.html', **context)
 
 @app.route('/config-value-scc', methods=['GET', 'POST'])
-# @auth.login_required
+@auth.login_required
 def config_value_scc():
     # username login
     username = auth.username()
@@ -397,6 +463,8 @@ def config_value_scc():
             response = update_config_cutoff_reconnect(path, data)
             if response:
                 flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
+                os.system(f'sudo python3 {PATH}/config_mppt.py')
+                bash_command('sudo systemctl restart mppt')
             else:
                 flash('Failed to update Config Value Cut off / Reconnect', 'danger')
             return redirect(url_for('config_value_scc'))
@@ -404,14 +472,18 @@ def config_value_scc():
             response = update_config_scc(path, data)
             if response:
                 flash('Config Value SCC has been updated successfully', 'success')
+                os.system(f'sudo python3 {PATH}/config_mppt.py')
+                bash_command('sudo systemctl restart mppt')
             else:
                 flash('Failed to update Config Value SCC', 'danger')
             return redirect(url_for('config_value_scc'))
-
-    # get site name
-    if red.get('site_name') is not None:
-        site_name = str(red.get('site_name'))[2:-1]
-
+    try:
+        # get site name
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+    except Exception:
+        site_name = 'Site Name'
+    
     # get scc type
     scc_type = data.get('device_version').get('scc_type')
     # replace - to _
@@ -430,13 +502,36 @@ def config_value_scc():
     return render_template('config-value-scc.html', **context)
 
 @app.route('/disk-storage', methods=['GET'])
+@auth.login_required
 def disk_storage():
-    return render_template('disk-storage.html')
+    try:
+        # username login
+        username = auth.username()
+        
+        # get site name
+        if red.get('site_name') is not None:
+            site_name = str(red.get('site_name'))[2:-1]
+        
+        context = {
+            'username': username,
+            'site_name': site_name,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.34.1'
+        }
+    except Exception:
+        context = {
+            'username': username,
+            'site_name': 'Site Name',
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.34.3'
+        }
+    return render_template('disk-storage.html', **context)
 
 
 @app.route('/logout')
 @auth.login_required
 def logout():
     session.pop('username', None)
+    session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
