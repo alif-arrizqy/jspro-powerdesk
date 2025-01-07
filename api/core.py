@@ -426,118 +426,165 @@ def realtime_talis():
 # ================== END API Realtime ====================
 
 
-# ============== Talis 5 ===========================
-@api.route('/api/logger/talis/', methods=("GET",))
+# =========================== Loggers ===========================
+@api.route('/api/loggers/data', methods=("GET",))
 @auth.login_required
-def logger_talis():
-    result_talis_usb0 = []
-    result_talis_usb1 = []
-    result_scc = []
+def data_loggers():
+    result = {}
     try:
-        # logger energy scc
+        # Get the cursor and page size from query parameters
+        cursor = request.args.get('cursor', default=None, type=str)
+        page_size = request.args.get('page_size', default=10, type=int)
+
+        # Fetch all data from Redis in one go
         data_energy = red.hgetall('energy_data')
-        if not data_energy:
-            print("Data not found for energy data")
-
-        for key, val in data_energy.items():
-            try:
-                # Convert dict bytes to dict
-                conv_val = literal_eval(str(val)[2:-1])
-                ts = str(key)[2:-1]
-                conv_val['ts'] = ts
-                result_scc.append(conv_val)
-            except (ValueError, SyntaxError) as e:
-                print(f"Error parsing data for key {key}: {e}")
-                continue
-
-        # logger data for usb0
         data_usb0 = red.hgetall('bms_usb0_log')
-        if not data_usb0:
-            print("Data not found for usb0")
-
-        for key, val in data_usb0.items():
-            try:
-                # Convert list bytes to list
-                conv_val = literal_eval(str(val)[2:-1])
-                ts = str(key)[2:-1]
-                for v in conv_val:
-                    # Add ts to dict
-                    v['ts'] = ts
-                    # Trim pcb_code
-                    v['pcb_code'] = v['pcb_code'].strip()
-                    result_talis_usb0.append(v)
-            except (ValueError, SyntaxError) as e:
-                print(f"Error parsing data for key {key}: {e}")
-                continue
-
-        # logger data for usb1
         data_usb1 = red.hgetall('bms_usb1_log')
-        if not data_usb1:
-            print("Data not found for usb1")
 
-        for key, val in data_usb1.items():
-            try:
-                # Convert list bytes to list
-                conv_val = literal_eval(str(val)[2:-1])
-                ts = str(key)[2:-1]
-                for v in conv_val:
-                    # Add ts to dict
-                    v['ts'] = ts
-                    # Trim pcb_code
-                    v['pcb_code'] = v['pcb_code'].strip()
-                    result_talis_usb1.append(v)
-            except (ValueError, SyntaxError) as e:
-                print(f"Error parsing data for key {key}: {e}")
-                continue
+        # Process energy data
+        if data_energy:
+            for key, val in data_energy.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    conv_val['ts'] = ts
+                    result.setdefault(ts, {'scc': conv_val, 'battery': []})
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
 
-        if result_talis_usb0 == [] and result_talis_usb1 == []:
-            response = {
-                'code': 404,
-                'message': 'Data not found',
-                'data': []
-            }
-            return jsonify(response), 404
+        # Process USB0 data
+        if data_usb0:
+            for key, val in data_usb0.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    for v in conv_val:
+                        v['ts'] = ts
+                        v['pcb_code'] = v['pcb_code'].strip()
+                        result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
 
+        # Process USB1 data
+        if data_usb1:
+            for key, val in data_usb1.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    for v in conv_val:
+                        v['ts'] = ts
+                        v['pcb_code'] = v['pcb_code'].strip()
+                        result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
+
+        if not result:
+            return jsonify({'code': 404, 'message': 'Data not found', 'data': {}}), 404
+
+        # Convert result to a sorted list of items based on timestamp
+        sorted_items = sorted(result.items(), key=lambda x: x[0])
+
+        # Find the starting point based on the cursor
+        if cursor:
+            index = next((i for i, (ts, _) in enumerate(sorted_items) if ts == cursor), None)
+            if index is not None:
+                sorted_items = sorted_items[index + 1:]  # Get items after the cursor
+
+        # Get the next set of results based on the page size
+        paginated_result = dict(sorted_items[:page_size])
+
+        # Calculate the next cursor
+        next_cursor = sorted_items[page_size - 1][0] if len(sorted_items) > page_size else None
+
+        # Prepare the response
         response = {
             'code': 200,
             'message': 'Success',
-            'data': {
-                'usb0': result_talis_usb0,
-                'usb1': result_talis_usb1,
-                'scc': result_scc
-            }
+            'next_cursor': next_cursor,
+            'page_size': page_size,
+            'data': paginated_result
         }
         return jsonify(response), 200
 
     except RedisError as e:
         print(f"Redis error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-    
+        return jsonify({'code': 500, 'message': 'Internal server error', 'status': 'error'}), 500
+
     except ValueError as e:
         print(f"Error: {e}")
-        response = {
-            'code': 404,
-            'message': 'Data not found',
-            'data': []
-        }
-        return jsonify(response), 404
+        return jsonify({'code': 404, 'message': 'Data not found', 'data': []}), 404
 
     except Exception as e:
         print(f"Unexpected error: {e}")
+        return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
+
+
+@api.route('/api/loggers/scc-alarm', methods=('GET',))
+def scc_alarm_loggers():
+    result = {}
+    try:        
+        # Get the cursor and page size from query parameters
+        cursor = request.args.get('cursor', default=None, type=str)
+        page_size = request.args.get('page_size', default=10, type=int)
+        
+        # Fetch all data from Redis in one go
+        scc_logs = red.hgetall('scc_logs')
+        
+        # Process scc logs
+        if scc_logs:
+            for key, val in scc_logs.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    result.setdefault(ts, conv_val)
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
+        
+        if not result:
+            return jsonify({'code': 404, 'message': 'Data not found', 'data': {}}), 404
+        
+        # Convert result to a sorted list of items based on timestamp
+        sorted_items = sorted(result.items(), key=lambda x: x[0])
+        
+        # Find the starting point based on the cursor
+        if cursor:
+            index = next((i for i, (ts, _) in enumerate(sorted_items) if ts == cursor), None)
+            if index is not None:
+                sorted_items = sorted_items[index + 1:]
+        
+        # Get the next set of results based on the page size
+        paginated_result = dict(sorted_items[:page_size])
+        
+        # Calculate the next cursor
+        next_cursor = sorted_items[page_size - 1][0] if len(sorted_items) > page_size else None
+        
+        # Prepare the response
         response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'data': []
+            'code': 200,
+            'message': 'Success',
+            'next_cursor': next_cursor,
+            'page_size': page_size,
+            'data': paginated_result
         }
-        return jsonify(response), 500
+        return jsonify(response), 200
+
+    except RedisError as e:
+        print(f"Redis error: {e}")
+        return jsonify({'code': 500, 'message': 'Internal server error', 'status': 'error'}), 500
+
+    except ValueError as e:
+        print(f"Error: {e}")
+        return jsonify({'code': 404, 'message': 'Data not found', 'data': []}), 404
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
+
+# =========================== End Loggers ===========================
 
 
-@api.route('/api/logger/talis/<timestamp>', methods=('DELETE',))
+# ===================== Delete Loggers ===========================
+@api.route('/api/loggers/data/<timestamp>', methods=('DELETE',))
 @auth.login_required
 def delete_logger_talis(timestamp):
     try:
