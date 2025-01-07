@@ -1,12 +1,11 @@
-import time
 import json
 from ast import literal_eval
-from flask import jsonify
+from flask import jsonify, request
 from . import api
 from .redisconnection import red
-from config import number_of_batt, number_of_scc, slave_ids
+from config import number_of_scc, slave_ids
 from auths import token_auth as auth
-from functions import get_ip_address, get_disk_detail, get_free_ram
+from functions import get_disk_detail, get_free_ram
 from redis.exceptions import RedisError
 
 
@@ -63,6 +62,7 @@ def device_information():
         }
         return jsonify(response), 500
 # ================== END Device Information ====================
+
 
 # ================== API Realtime ====================
 @api.route('/api/realtime/lvd/', methods=("GET",))
@@ -639,61 +639,6 @@ def delete_logger_talis(timestamp):
         }
         return jsonify(response), 500
 
-# ===================== End Talis 5 ===========================
-
-
-# ===================== SCC Alarm ===========================
-
-
-@api.route('/api/scc-alarm-loggers/', methods=('GET',))
-def scc_alarm_loggers():
-    scc_alarm_result = {"message": "success"}
-    alarm_lists = []
-    try:
-        data = red.hgetall('scc_logs')
-        if not data:
-            response = {
-                "code": 404,
-                "message": "Data not found",
-                "status": "error"
-            }
-            return jsonify(response), 404
-
-        for key, value in data.items():
-            dict_result = {}
-            conv = literal_eval(str(value)[2:-1])
-            # convert epoch time to human readable
-            epoch_time = literal_eval(str(key)[2:-1]) / 1000
-            dict_result['time'] = time.strftime(
-                '%Y-%m-%d %H:%M:%S', time.localtime(epoch_time))
-            for k, v in conv.items():
-                dict_result[k] = v
-            alarm_lists.append(dict_result)
-
-        # sort alarm_lists in descending order based on 'time'
-        alarm_lists = sorted(
-            alarm_lists, key=lambda x: x['time'], reverse=True)
-        scc_alarm_result["data"] = alarm_lists
-        return jsonify(scc_alarm_result), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            "code": 500,
-            "message": "Internal server error",
-            "status": "error"
-        }
-        return jsonify(response), 500
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
-            "code": 500,
-            "message": "Internal server error",
-            "status": "error"
-        }
-        return jsonify(response), 500
-
 
 @api.route('/api/scc-alarm-loggers/', methods=('DELETE',))
 def delete_scc_alarm_loggers():
@@ -724,5 +669,4 @@ def delete_scc_alarm_loggers():
         }
         return jsonify(response), 500
 
-
-# ===================== End SCC Alarm ===========================
+# ===================== End Delete Loggers ===========================
