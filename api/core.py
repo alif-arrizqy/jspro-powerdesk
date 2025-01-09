@@ -1,8 +1,9 @@
 import json
+import re
 from ast import literal_eval
 from flask import jsonify, request
 from . import api
-from .redisconnection import red
+from .redisconnection import connection as red
 from config import number_of_scc, slave_ids
 from auths import token_auth as auth
 from functions import get_disk_detail, get_free_ram
@@ -16,7 +17,8 @@ def device_information():
         device_information = {}
         data = red.hgetall('device_version')
         for key, val in data.items():
-            conv_val = literal_eval(str(val)[2:-1])
+            # conv_val = literal_eval(str(val)[2:-1])
+            conv_val = json.loads(val)
             for k, v in conv_val.items():
                 device_information[k] = v
         
@@ -89,7 +91,7 @@ def lvd_realtime():
             print(f"Error retrieving LVD data: {e}")
             
         try:
-            feedback_status = literal_eval(red.hget('lvd', 'mcb_status').decode())
+            feedback_status = literal_eval(red.hget('lvd', 'mcb_status'))
             if feedback_status is None:
                 mcb_result = "data not found"
             
@@ -197,15 +199,15 @@ def scc_realtime():
 
             # get load status from scc
             try:
-                load_status_value = red.hget(scc_key, "load_status")
-
+                load_status_value = int(red.hget(scc_key, "load_status"))
+                
                 if load_status_value is None:
                     scc_data[scc_key]['load_status'] = "data not found"
-                elif load_status_value == b'1':
+                elif load_status_value == 1:
                     scc_data[scc_key]['load_status'] = "is running"
-                elif load_status_value == b'0':
+                elif load_status_value == 0:
                     scc_data[scc_key]['load_status'] = "is standby"
-                elif load_status_value == b'-1':
+                elif load_status_value == -1:
                     scc_data[scc_key]['load_status'] = "modbus error"
                 else:
                     scc_data[scc_key]['load_status'] = "unknown status"
@@ -215,26 +217,26 @@ def scc_realtime():
 
             # battery temperature
             try:
-                _batt_temp = red.hget(scc_key, "battery_temperature")
+                _batt_temp = int(red.hget(scc_key, "battery_temperature"))
                 if _batt_temp is None:
                     scc_data[scc_key]['battery_temperature'] = -1
                 elif _batt_temp == b'-1':
                     scc_data[scc_key]['battery_temperature'] = "modbus error"
                 else:
-                    scc_data[scc_key]['battery_temperature'] = literal_eval(str(_batt_temp)[2:-1])
+                    scc_data[scc_key]['battery_temperature'] = _batt_temp
             except Exception as e:
                 print(f"Error retrieving battery_temperature for {scc_key}: {e}")
                 scc_data[scc_key]['battery_temperature'] = "modbus error"
 
             # device temperature
             try:
-                _device_temp = red.hget(scc_key, "device_temperature")
+                _device_temp = int(red.hget(scc_key, "device_temperature"))
                 if _device_temp is None:
                     scc_data[scc_key]['device_temperature'] = -1
-                elif _device_temp == b'-1':
+                elif _device_temp == -1:
                     scc_data[scc_key]['device_temperature'] = "modbus error"
                 else:
-                    scc_data[scc_key]['device_temperature'] = literal_eval(str(_device_temp)[2:-1])
+                    scc_data[scc_key]['device_temperature'] = _device_temp
             except Exception as e:
                 print(f"Error retrieving device temperature for {scc_key}: {e}")
                 scc_data[scc_key]['device_temperature'] = "modbus error"
@@ -267,10 +269,7 @@ def scc_alarm_realtime():
                 if _alarm is None:
                     alarm = -1
                 else:
-                    # convert bytes to string
-                    str_alarm = _alarm.decode("utf-8")
-                    # evaluate string to dict
-                    alarm = literal_eval(str_alarm)
+                    alarm = literal_eval(_alarm)
             except Exception:
                 alarm = "modbus error"
             
@@ -312,7 +311,7 @@ def talis_active():
 
         bms_active_compare = dict()
         for key, val in bms_active.items():
-            bms_active_compare[str(key)[2:-1]] = int(val)
+            bms_active_compare[key] = int(val)
 
         # bms active in usb1
         bms_active1 = red.hgetall('bms_active_usb1')
@@ -321,7 +320,7 @@ def talis_active():
 
         bms_active_compare1 = dict()
         for key, val in bms_active1.items():
-            bms_active_compare1[str(key)[2:-1]] = int(val)
+            bms_active_compare1[key] = int(val)
 
         if bms_active_compare == {} and bms_active_compare1 == {}:
             response = {
@@ -427,6 +426,14 @@ def realtime_talis():
 
 
 # =========================== Loggers ===========================
+def clean_json_string(json_string):
+    # Replace single quotes with double quotes
+    json_string = json_string.replace("'", '"')
+    # Ensure property names are enclosed in double quotes
+    json_string = re.sub(r'(\w+):', r'"\1":', json_string)
+    return json_string
+
+
 @api.route('/api/loggers/data', methods=("GET",))
 @auth.login_required
 def data_loggers():
@@ -445,8 +452,9 @@ def data_loggers():
         if data_energy:
             for key, val in data_energy.items():
                 try:
-                    conv_val = literal_eval(str(val)[2:-1])
-                    ts = str(key)[2:-1]
+                    clean_val = clean_json_string(val)
+                    conv_val = json.loads(clean_val)
+                    ts = key
                     conv_val['ts'] = ts
                     result.setdefault(ts, {'scc': conv_val, 'battery': []})
                 except (ValueError, SyntaxError) as e:
@@ -456,8 +464,9 @@ def data_loggers():
         if data_usb0:
             for key, val in data_usb0.items():
                 try:
-                    conv_val = literal_eval(str(val)[2:-1])
-                    ts = str(key)[2:-1]
+                    clean_val = clean_json_string(val)
+                    conv_val = json.loads(clean_val)
+                    ts = key
                     for v in conv_val:
                         v['ts'] = ts
                         v['pcb_code'] = v['pcb_code'].strip()
@@ -469,8 +478,9 @@ def data_loggers():
         if data_usb1:
             for key, val in data_usb1.items():
                 try:
-                    conv_val = literal_eval(str(val)[2:-1])
-                    ts = str(key)[2:-1]
+                    clean_val = clean_json_string(val)
+                    conv_val = json.loads(clean_val)
+                    ts = key
                     for v in conv_val:
                         v['ts'] = ts
                         v['pcb_code'] = v['pcb_code'].strip()
@@ -518,6 +528,7 @@ def data_loggers():
         print(f"Unexpected error: {e}")
         return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
 
+
 @api.route('/api/loggers/scc-alarm', methods=("GET", "DELETE"))
 @auth.login_required
 def scc_alarm_loggers():
@@ -529,14 +540,15 @@ def scc_alarm_loggers():
             page_size = request.args.get('page_size', default=10, type=int)
             
             # Fetch all data from Redis in one go
-            scc_logs = red.hgetall('scc_logs')
+            scc_logs = red.hgetall('scc_logs_epveper')
             
             # Process scc logs
             if scc_logs:
                 for key, val in scc_logs.items():
                     try:
-                        conv_val = literal_eval(str(val)[2:-1])
-                        ts = str(key)[2:-1]
+                        clean_val = clean_json_string(val)
+                        conv_val = json.loads(clean_val)
+                        ts = key
                         result.setdefault(ts, conv_val)
                     except (ValueError, SyntaxError) as e:
                         print(f"Error parsing data for key {key}: {e}")
@@ -582,9 +594,9 @@ def scc_alarm_loggers():
             return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
     if request.method == 'DELETE':
         try:
-            scc_logs = red.hgetall('scc_logs')
+            scc_logs = red.hgetall('scc_logs_epveper')
             if scc_logs:
-                red.delete('scc_logs')
+                red.delete('scc_logs_epveper')
                 response = {
                     "code": 200,
                     "message": "Data deleted successfully",
@@ -644,13 +656,9 @@ def delete_logger_talis(timestamp):
 
         if bms_data_json_usb0:
             red.hdel('bms_usb0_log', str(timestamp))
-            for id in range(1, slave_ids + 1):
-                red.hdel('bms_usb0', f"slave_id_{id}")
         
         if bms_data_json_usb1:
             red.hdel('bms_usb1_log', str(timestamp))
-            for id in range(1, slave_ids + 1):
-                red.hdel('bms_usb1', f"slave_id_{id}")
 
         response = {
             'code': 200,
