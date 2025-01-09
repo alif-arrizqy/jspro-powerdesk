@@ -1,8 +1,14 @@
-from api.redisconnection import red
+from api.redisconnection import connection as red
+import json
 
 try:
     device = red.hget('device_version', 'device_version')
-except Exception:
+    if device is not None:
+        device = json.loads(device)
+    else:
+        device = None
+except Exception as e:
+    print(f"Error fetching device version: {e}")
     device = None
 
 if device is None:
@@ -10,12 +16,7 @@ if device is None:
     number_of_batt = 10
     number_of_cell = 16
 else:
-    device = device.decode('utf-8')
-
-    if eval(device)['scc_type'] is None:
-        scc_type = None
-    else:
-        scc_type = eval(device)['scc_type']
+    scc_type = device.get('scc_type')
 
     if scc_type == "scc-srne":
         number_of_scc = 3
@@ -25,6 +26,7 @@ else:
         number_of_scc = 2
     else:
         number_of_scc = 2
+
     number_of_batt = 10
     number_of_cell = 16
 
