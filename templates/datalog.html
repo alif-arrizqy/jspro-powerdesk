@@ -14,12 +14,8 @@
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>Check Data</strong></p>
-                                <h5 id="scc1-status" class="card-title left-text">
-                                    <button class="btn btn-primary btn-md" id="check-data" onclick="document.getElementById('check-data-modals').style.display='block'; checkData();">
-                                        <b>Check</b>
-                                    </button>
-                                </h5>                                                
+                                <p class="category left-text"><strong>Data Loggers Length</strong></p>
+                                <h6 class="card-title left-text" id="datalog-length" arial-label="Datalog Length">Calculating Data...</h6>
                             </div>
                         </div>
                     </div>
@@ -27,8 +23,8 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Download Data</strong></p>
-                                <h5 id="scc1-status" class="card-title left-text">
-                                    <button class="btn btn-primary btn-md" id="download-data" onclick="downloadData();">
+                                <h5 class="card-title left-text">
+                                    <button class="btn btn-primary btn-md" id="download-datalog" onclick="downloadLoggers();">
                                         <b>Download</b>
                                     </button>
                                 </h5>
@@ -39,8 +35,8 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Clear Data</strong></p>
-                                <h5 id="scc2-status" class="card-title left-text">
-                                    <button class="btn btn-warning btn-md" id="clear-data" onclick="clearLogger();">
+                                <h5 class="card-title left-text">
+                                    <button class="btn btn-warning btn-md" id="clear-datalog" onclick="clearLoggers();">
                                         <b>Clear</b>
                                     </button>
                                 </h5>
@@ -52,4 +48,201 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+{% block js %}
+<script>
+    const siteName = "{{ site_name }}";
+    
+    const arrLoggersData = [];
+    const handleLoggers = async (cursorValue = "") => {
+        try {
+            const response = await fetch(`/api/loggers/data?cursor=${cursorValue}&page_size=500`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+
+            // Process the data here
+            arrLoggersData.push(...Object.values(data.data));
+
+            // Check if there is a next cursor
+            if (data.next_cursor) {
+                // If there is a next cursor, make another request with the new cursor value
+                handleLoggers(data.next_cursor);
+            } else {
+                // If next cursor is null, stop the requests
+                console.log('No more data to fetch.');
+                console.log(`Total data collected: ${arrLoggersData.length}`);
+                if (arrLoggersData.length > 500) {
+                    document.getElementById('datalog-length').innerHTML = `<mark class="status-danger"><b>${arrLoggersData.length}</b></mark>`;
+                } else {
+                    document.getElementById('datalog-length').innerHTML = `<b>${arrLoggersData.length}</b>`;
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+            // if status is 404, return No Data
+            if (error.message.includes('404')) {
+                document.getElementById('datalog-length').innerHTML = `<b>No Data</b>`;
+                document.getElementById('clear-datalog').disabled = true;
+                document.getElementById('download-datalog').disabled = true;
+            }
+        }
+    };
+    
+    // Download data
+    const downloadLoggers = async (cursorValue = "") => {
+        try {
+            const response = await fetch(`/api/loggers/data?cursor=${cursorValue}&page_size=500`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+
+            // Process the data here
+            const chunkData = JSON.stringify(data.data);
+            const filename = `loggers-data-${siteName}-${cursorValue || 'first'}.json`;
+            const blob = new Blob([chunkData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Check if there is a next cursor
+            if (data.next_cursor) {
+                 // If there is a next cursor, make another request with the new cursor value
+                downloadLoggers(data.next_cursor);
+            } else {
+                // If next cursor is null, stop the requests
+                console.log('No more data to fetch.');
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+            // if status is 404, button will be disabled
+            if (error.message.includes('404')) {
+                document.getElementById('download-datalog').disabled = true;
+            }
+        }
+    };
+
+    // Clear data
+    const arrClearLoggers = [];
+    const clearLoggers = async (cursorValue) => {
+        console.log('Clearing data...');
+        // validation before clearing data
+        // insert a confirmation dialog here
+        const confirmClear = confirm('Are you sure you want to clear all data?');
+        if (!confirmClear) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/loggers/data?cursor=${cursorValue}&page_size=500`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+
+            // Process the data here
+            // get keys of the data object and push them to the array
+            arrClearLoggers.push(...Object.keys(data.data));
+
+            // Check if there is a next cursor
+            if (data.next_cursor) {
+                // If there is a next cursor, make another request with the new cursor value
+                clearLoggers(data.next_cursor);
+            } else {
+                // If next cursor is null, stop the requests
+                // Start deleting the data
+                const deletePromises = arrClearLoggers.map((el) => {
+                    return fetch(`/api/loggers/data/${el}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                        }
+                    }).then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        return response.json();
+                    }).then((data) => {
+                        console.log(`Data deleted: ${data.status}`);
+                        return { status: true };
+                    }).catch((error) => {
+                        console.error(`Failed to delete data: ${error.message}`);
+                        return { status: false };
+                    });
+                });
+
+                Promise.all(deletePromises).then((results) => {
+                    const successResults = results.filter((el) => el.status === true);
+                    const errorResults = results.filter((el) => el.status === false);
+
+                    if (successResults.length > 0 && errorResults.length > 0) {
+                        alert(`Some loggers failed to delete. Please try again.`);
+                    } else if (successResults.length > 0 && errorResults.length === 0) {
+                        alert('All loggers successfully removed');
+                        document.getElementById('datalog-length').innerHTML = `<b>No Data</b>`;
+                        document.getElementById('clear-datalog').disabled = true;
+                        document.getElementById('download-datalog').disabled = true;
+                    }
+                }).catch((error) => {
+                    console.error(`Failed to delete some data: ${error.message}`);
+                });
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+            // if status is 404, button will be disabled
+            if (error.message.includes('404')) {
+                document.getElementById('clear-datalog').disabled = true;
+            }
+        }
+    }
+
+handleLoggers();
+</script>
+{% endblock js %}

@@ -14,11 +14,9 @@
                     <div class="col">
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
-                                <p class="category left-text"><strong>Check Data</strong></p>
-                                <h5 id="scc1-status" class="card-title left-text">
-                                    <button class="btn btn-primary btn-md" id="check-data" onclick="document.getElementById('check-data-modals').style.display='block'; checkData();">
-                                        <b>Check</b>
-                                    </button>
+                                <p class="category left-text"><strong>SCC Alarm Logs Length</strong></p>
+                                <h5 class="card-title left-text">
+                                    <h6 class="card-title left-text" id="scc-alarm-length" arial-label="SCC Logs Length">Calculating Data...</h6>
                                 </h5>                                                
                             </div>
                         </div>
@@ -27,8 +25,8 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Download Data</strong></p>
-                                <h5 id="scc1-status" class="card-title left-text">
-                                    <button class="btn btn-primary btn-md" id="download-data" onclick="downloadData();">
+                                <h5 class="card-title left-text">
+                                    <button class="btn btn-primary btn-md" id="scc-alarm-download" onclick="downloadSccLoggers();">
                                         <b>Download</b>
                                     </button>
                                 </h5>
@@ -39,8 +37,8 @@
                         <div class="shadow card card-stats full-border">
                             <div class="card-content">
                                 <p class="category left-text"><strong>Clear Data</strong></p>
-                                <h5 id="scc2-status" class="card-title left-text">
-                                    <button class="btn btn-warning btn-md" id="clear-data" onclick="clearLogger();">
+                                <h5 class="card-title left-text">
+                                    <button class="btn btn-warning btn-md" id="scc-alarm-clear" onclick="clearSccLoggers();">
                                         <b>Clear</b>
                                     </button>
                                 </h5>
@@ -52,4 +50,149 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+{% block js %}
+<script>
+    const siteName = "{{ site_name }}";
+    
+    const arrLoggersData = [];
+    const handleLoggers = async (cursorValue = "") => {
+        try {
+            const response = await fetch(`/api/loggers/scc-alarm?cursor=${cursorValue}&page_size=500`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+
+            // Process the data here
+            arrLoggersData.push(...Object.values(data.data));
+
+            // Check if there is a next cursor
+            if (data.next_cursor) {
+                // If there is a next cursor, make another request with the new cursor value
+                handleLoggers(data.next_cursor);
+            } else {
+                // If next cursor is null, stop the requests
+                console.log('No more data to fetch.');
+                console.log(`Total data collected: ${arrLoggersData.length}`);
+                if (arrLoggersData.length > 500) {
+                    document.getElementById('scc-alarm-length').innerHTML = `<mark class="status-danger"><b>${arrLoggersData.length}</b></mark>`;
+                } else {
+                    document.getElementById('scc-alarm-length').innerHTML = `<b>${arrLoggersData.length}</b>`;
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+            // if status is 404, return No Data
+            if (error.message.includes('404')) {
+                document.getElementById('scc-alarm-length').innerHTML = `<b>No Data</b>`;
+                document.getElementById('scc-alarm-download').disabled = true;
+                document.getElementById('scc-alarm-clear').disabled = true;
+            }
+        }
+    };
+
+    const downloadSccLoggers = async (cursorValue = "") => {
+        try {
+            const response = await fetch(`/api/loggers/scc-alarm?cursor=${cursorValue}&page_size=500`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+
+            // Process the data here
+            const chunkData = JSON.stringify(data.data);
+            const filename = `scc-alarm-${siteName}-${cursorValue || 'first'}.json`;
+            const blob = new Blob([chunkData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Check if there is a next cursor
+            if (data.next_cursor) {
+                 // If there is a next cursor, make another request with the new cursor value
+                downloadSccLoggers(data.next_cursor);
+            } else {
+                // If next cursor is null, stop the requests
+                console.log('No more data to fetch.');
+            }
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+            // if status is 404, button will be disabled
+            if (error.message.includes('404')) {
+                document.getElementById('scc-alarm-download').disabled = true;
+            }
+        }
+    };
+
+    // Clear Data
+    const clearSccLoggers = async () => {
+        // validation before clearing data
+        // insert a confirmation dialog here
+        const confirmClear = confirm('Are you sure you want to clear all data?');
+        if (!confirmClear) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/loggers/scc-alarm`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.code == 500) {
+                console.log(`Error: ${data.status}`);
+                return;
+            }
+
+            console.log('Data cleared successfully.');
+            document.getElementById('scc-alarm-length').innerHTML = `<b>No Data</b>`;
+            document.getElementById('scc-alarm-download').disabled = true;
+            document.getElementById('scc-alarm-clear').disabled = true;
+        } catch (error) {
+            console.error(`Failed to fetch data: ${error.message}`);
+        }
+    };
+
+handleLoggers();
+</script>
+{% endblock js %}
