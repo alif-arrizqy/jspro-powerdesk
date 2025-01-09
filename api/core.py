@@ -427,142 +427,99 @@ def realtime_talis():
 
 
 # =========================== Loggers ===========================
-@api.route('/api/loggers/data', methods=("GET", "DELETE"))
+@api.route('/api/loggers/data', methods=("GET",))
 @auth.login_required
 def data_loggers():
-    if request.method == 'GET':
-        result = {}
-        try:
-            # Get the cursor and page size from query parameters
-            cursor = request.args.get('cursor', default=None, type=str)
-            page_size = request.args.get('page_size', default=10, type=int)
+    result = {}
+    try:
+        # Get the cursor and page size from query parameters
+        cursor = request.args.get('cursor', default=None, type=str)
+        page_size = request.args.get('page_size', default=10, type=int)
 
-            # Fetch all data from Redis in one go
-            data_energy = red.hgetall('energy_data')
-            data_usb0 = red.hgetall('bms_usb0_log')
-            data_usb1 = red.hgetall('bms_usb1_log')
+        # Fetch all data from Redis in one go
+        data_energy = red.hgetall('energy_data')
+        data_usb0 = red.hgetall('bms_usb0_log')
+        data_usb1 = red.hgetall('bms_usb1_log')
+        
+        # Process energy data
+        if data_energy:
+            for key, val in data_energy.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    conv_val['ts'] = ts
+                    result.setdefault(ts, {'scc': conv_val, 'battery': []})
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
 
-            # Process energy data
-            if data_energy:
-                for key, val in data_energy.items():
-                    try:
-                        conv_val = literal_eval(str(val)[2:-1])
-                        ts = str(key)[2:-1]
-                        conv_val['ts'] = ts
-                        result.setdefault(ts, {'scc': conv_val, 'battery': []})
-                    except (ValueError, SyntaxError) as e:
-                        print(f"Error parsing data for key {key}: {e}")
+        # Process USB0 data
+        if data_usb0:
+            for key, val in data_usb0.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    for v in conv_val:
+                        v['ts'] = ts
+                        v['pcb_code'] = v['pcb_code'].strip()
+                        result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
 
-            # Process USB0 data
-            if data_usb0:
-                for key, val in data_usb0.items():
-                    try:
-                        conv_val = literal_eval(str(val)[2:-1])
-                        ts = str(key)[2:-1]
-                        for v in conv_val:
-                            v['ts'] = ts
-                            v['pcb_code'] = v['pcb_code'].strip()
-                            result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
-                    except (ValueError, SyntaxError) as e:
-                        print(f"Error parsing data for key {key}: {e}")
+        # Process USB1 data
+        if data_usb1:
+            for key, val in data_usb1.items():
+                try:
+                    conv_val = literal_eval(str(val)[2:-1])
+                    ts = str(key)[2:-1]
+                    for v in conv_val:
+                        v['ts'] = ts
+                        v['pcb_code'] = v['pcb_code'].strip()
+                        result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
+                except (ValueError, SyntaxError) as e:
+                    print(f"Error parsing data for key {key}: {e}")
 
-            # Process USB1 data
-            if data_usb1:
-                for key, val in data_usb1.items():
-                    try:
-                        conv_val = literal_eval(str(val)[2:-1])
-                        ts = str(key)[2:-1]
-                        for v in conv_val:
-                            v['ts'] = ts
-                            v['pcb_code'] = v['pcb_code'].strip()
-                            result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
-                    except (ValueError, SyntaxError) as e:
-                        print(f"Error parsing data for key {key}: {e}")
+        if not result:
+            return jsonify({'code': 404, 'message': 'Data not found', 'data': {}}), 404
 
-            if not result:
-                return jsonify({'code': 404, 'message': 'Data not found', 'data': {}}), 404
+        # Convert result to a sorted list of items based on timestamp
+        sorted_items = sorted(result.items(), key=lambda x: x[0])
 
-            # Convert result to a sorted list of items based on timestamp
-            sorted_items = sorted(result.items(), key=lambda x: x[0])
+        # Find the starting point based on the cursor
+        if cursor:
+            index = next((i for i, (ts, _) in enumerate(sorted_items) if ts == cursor), None)
+            if index is not None:
+                sorted_items = sorted_items[index + 1:]  # Get items after the cursor
 
-            # Find the starting point based on the cursor
-            if cursor:
-                index = next((i for i, (ts, _) in enumerate(sorted_items) if ts == cursor), None)
-                if index is not None:
-                    sorted_items = sorted_items[index + 1:]  # Get items after the cursor
+        # Get the next set of results based on the page size
+        paginated_result = dict(sorted_items[:page_size])
 
-            # Get the next set of results based on the page size
-            paginated_result = dict(sorted_items[:page_size])
+        # Calculate the next cursor
+        next_cursor = sorted_items[page_size - 1][0] if len(sorted_items) > page_size else None
 
-            # Calculate the next cursor
-            next_cursor = sorted_items[page_size - 1][0] if len(sorted_items) > page_size else None
+        # Prepare the response
+        response = {
+            'code': 200,
+            'message': 'Success',
+            'next_cursor': next_cursor,
+            'page_size': page_size,
+            'data': paginated_result
+        }
+        return jsonify(response), 200
 
-            # Prepare the response
-            response = {
-                'code': 200,
-                'message': 'Success',
-                'next_cursor': next_cursor,
-                'page_size': page_size,
-                'data': paginated_result
-            }
-            return jsonify(response), 200
+    except RedisError as e:
+        print(f"Redis error: {e}")
+        return jsonify({'code': 500, 'message': 'Internal server error', 'status': 'error'}), 500
 
-        except RedisError as e:
-            print(f"Redis error: {e}")
-            return jsonify({'code': 500, 'message': 'Internal server error', 'status': 'error'}), 500
+    except ValueError as e:
+        print(f"Error: {e}")
+        return jsonify({'code': 404, 'message': 'Data not found', 'data': []}), 404
 
-        except ValueError as e:
-            print(f"Error: {e}")
-            return jsonify({'code': 404, 'message': 'Data not found', 'data': []}), 404
-
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
-    if request.method == 'DELETE':
-        try:
-            data_energy = red.hgetall('energy_data')
-            data_usb0 = red.hgetall('bms_usb0_log')
-            data_usb1 = red.hgetall('bms_usb1_log')
-
-            if data_energy:
-                red.delete('energy_data')
-
-            if data_usb0:
-                red.delete('bms_usb0_log')
-                for id in range(1, slave_ids + 1):
-                    red.hdel('bms_usb0', f"slave_id_{id}")
-
-            if data_usb1:
-                red.delete('bms_usb1_log')
-                for id in range(1, slave_ids + 1):
-                    red.hdel('bms_usb1', f"slave_id_{id}")
-
-            response = {
-                'code': 200,
-                'message': 'Data deleted successfully',
-                'status': 'success'
-            }
-            return jsonify(response), 200
-
-        except RedisError as e:
-            print(f"Redis error: {e}")
-            response = {
-                'code': 500,
-                'message': 'Internal server error',
-                'status': 'error'
-            }
-            return jsonify(response), 500
-
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            response = {
-                'code': 500,
-                'message': 'Internal server error',
-                'status': 'error'
-            }
-            return jsonify(response), 500
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
 
 @api.route('/api/loggers/scc-alarm', methods=("GET", "DELETE"))
+@auth.login_required
 def scc_alarm_loggers():
     if request.method == 'GET':
         result = {}
@@ -572,7 +529,7 @@ def scc_alarm_loggers():
             page_size = request.args.get('page_size', default=10, type=int)
             
             # Fetch all data from Redis in one go
-            scc_logs = red.hgetall('scc_logs_srne')
+            scc_logs = red.hgetall('scc_logs')
             
             # Process scc logs
             if scc_logs:
@@ -625,9 +582,9 @@ def scc_alarm_loggers():
             return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
     if request.method == 'DELETE':
         try:
-            scc_logs = red.hgetall('scc_logs_srne')
+            scc_logs = red.hgetall('scc_logs')
             if scc_logs:
-                red.delete('scc_logs_srne')
+                red.delete('scc_logs')
                 response = {
                     "code": 200,
                     "message": "Data deleted successfully",
@@ -661,3 +618,62 @@ def scc_alarm_loggers():
             return jsonify(response), 500
 
 # =========================== End Loggers ===========================
+
+
+# ===================== Delete Loggers ===========================
+@api.route('/api/loggers/data/<timestamp>', methods=('DELETE',))
+@auth.login_required
+def delete_logger_talis(timestamp):
+    try:
+        # Check data in redis bms_usb0_log and bms_usb1_log
+        bms_data_json_usb0 = red.hget('bms_usb0_log', str(timestamp))
+        bms_data_json_usb1 = red.hget('bms_usb1_log', str(timestamp))
+        scc_logs = red.hget('energy_data', str(timestamp)) 
+
+        if not bms_data_json_usb0 and not bms_data_json_usb1 and not scc_logs:
+            response = {
+                'code': 404,
+                'message': 'Data not found',
+                'status': 'error'
+            }
+            return jsonify(response), 404
+
+        # Delete the data
+        if scc_logs:
+            red.hdel('energy_data', str(timestamp))
+
+        if bms_data_json_usb0:
+            red.hdel('bms_usb0_log', str(timestamp))
+            for id in range(1, slave_ids + 1):
+                red.hdel('bms_usb0', f"slave_id_{id}")
+        
+        if bms_data_json_usb1:
+            red.hdel('bms_usb1_log', str(timestamp))
+            for id in range(1, slave_ids + 1):
+                red.hdel('bms_usb1', f"slave_id_{id}")
+
+        response = {
+            'code': 200,
+            'message': 'Data deleted successfully',
+            'status': 'success'
+        }
+        return jsonify(response), 200
+    except RedisError as e:
+        print(f"Redis error: {e}")
+        response = {
+            'code': 500,
+            'message': 'Internal server error',
+            'status': 'error'
+        }
+        return jsonify(response), 500
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        response = {
+            'code': 500,
+            'message': 'Internal server error',
+            'status': 'error'
+        }
+        return jsonify(response), 500
+
+# ===================== End Delete Loggers ===========================
