@@ -1,12 +1,12 @@
 [Unit]
-Description=Gunicorn instance to serve joulestore-web-app
+Description=Gunicorn instance to serve jspro-powerdesk
 After=network.target
 
 [Service]
 User=root
 Group=www-data
-WorkingDirectory=/var/lib/sundaya/joulestore-web-app
-ExecStart=gunicorn --workers 3 --bind unix:joulestore-web-app.sock -m 007 wsgi:app --timeout 480
+WorkingDirectory=/var/lib/sundaya/jspro-powerdesk
+ExecStart=gunicorn --workers 3 --bind unix:jspro-powerdesk.sock -m 007 wsgi:app --timeout 480
 Restart=on-failure
 RestartSec=10s
 
