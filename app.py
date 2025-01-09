@@ -1,13 +1,12 @@
 import os
 import json
-from datetime import timedelta
 from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for
 from flask_cors import CORS
 from config import *
-from api import core
-from api.redisconnection import red
-from auths import basic_auth as auth
 from functions import *
+from api import core
+from api.redisconnection import connection as red
+from auths import basic_auth as auth
 from validations import validate_setting_ip, validate_modbus_id
 
 app = Flask(__name__)
@@ -15,19 +14,20 @@ cors = CORS(app)
 app.secret_key = '83dcdc455025cedcfe64b21e620564fb'
 app.register_blueprint(core.api)
 
-# PATH = "/var/lib/sundaya/ehub-bakti"
+# PATH = "/var/lib/sundaya/ehub-talis"
 PATH = "E:/sundaya/developments/EhubTalis/ehub-talis"
 
 
 @app.route('/', methods=['GET'])
 @auth.login_required
 def index():
+    site_name = ""
     try:
         # username login
         username = auth.username()
         
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        # get site name
+        site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -35,10 +35,11 @@ def index():
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
         }
-    except Exception:
+    except Exception as e:
+        print(f"index() error: {e}")
         context = {
-            'username': 'Username',
-            'site_name': 'Site Name',
+            'username': username,
+            'site_name': 'Sitea Name',
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
@@ -49,12 +50,12 @@ def index():
 @app.route('/scc', methods=['GET'])
 @auth.login_required
 def scc():
+    site_name = ""
     try:
         # username login
         username = auth.username()
         
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -63,7 +64,8 @@ def scc():
             'scc_type': scc_type,
             'number_of_scc': number_of_scc
         }
-    except Exception:
+    except Exception as e:
+        print(f"scc() error: {e}")
         context = {
             'username': username,
             'site_name': 'Site Name',
@@ -78,12 +80,12 @@ def scc():
 @app.route('/battery', methods=['GET'])
 @auth.login_required
 def battery():
+    site_name = ""
     try:
         # username login
         username = auth.username()
         
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -92,7 +94,8 @@ def battery():
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }
-    except Exception:
+    except Exception as e:
+        print(f"battery() error: {e}")
         context = {
             'username': username,
             'site_name': 'Site Name',
@@ -107,19 +110,20 @@ def battery():
 @app.route('/datalog', methods=['GET'])
 @auth.login_required
 def datalog():
+    site_name = ""
     try:
         # username login
         username = auth.username()
         
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.4.44'
         }
-    except Exception:
+    except Exception as e:
+        print(f"datalog() error: {e}")
         context = {
             'username': username,
             'site_name': 'Site Name',
@@ -132,19 +136,20 @@ def datalog():
 @app.route('/scc-alarm-log', methods=['GET'])
 @auth.login_required
 def scc_alarm_log():
+    site_name = ""
     try:
         # username login
         username = auth.username()
         
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4'
         }
-    except Exception:
+    except Exception as e:
+        print(f"scc_alarm_log() error: {e}")
         context = {
             'username': username,
             'site_name': 'Site Name',
@@ -157,6 +162,7 @@ def scc_alarm_log():
 @app.route('/site-information', methods=['GET'])
 @auth.login_required
 def site_information():
+    site_name = ""
     path = f'{PATH}/config_device.json'
     try:
         # username login
@@ -165,8 +171,8 @@ def site_information():
         with open(path, 'r') as file:
             data = json.load(file)
         
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        # get site name
+        site_name = red.hget('site_name', 'site_name')
         
         context = {
             'username': username,
@@ -185,7 +191,9 @@ def site_information():
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
-    except Exception:
+    except Exception as e:
+        print(f"site_information() error: {e}")
+        
         with open(path, 'r') as file:
             data = json.load(file)
         
@@ -212,6 +220,7 @@ def site_information():
 @app.route('/setting-device', methods=['GET', 'POST'])
 @auth.login_required
 def setting_device():
+    site_name = ""
     # username login
     username = auth.username()
 
@@ -226,6 +235,9 @@ def setting_device():
         
         if form_site_location:
             response = update_site_location(path, data)
+            # add site name to redis
+            red.hset('site_name', 'site_name', data.get('site-name'))
+            
             if response:
                 flash('Site Location has been updated successfully', 'success')
             else:
@@ -244,8 +256,8 @@ def setting_device():
         with open(path, 'r') as file:
             data = json.load(file)
 
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        # get site name
+        site_name = red.hget('site_name', 'site_name')
 
         context = {
             'username': username,
@@ -255,7 +267,9 @@ def setting_device():
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
         }
-    except Exception:
+    except Exception as e:
+        print(f"setting_device() error: {e}")
+        
         with open(path, 'r') as file:
             data = json.load(file)
 
@@ -273,6 +287,7 @@ def setting_device():
 @app.route('/setting-ip', methods=['GET', 'POST'])
 @auth.login_required
 def setting_ip():
+    site_name = ""
     # username login
     username = auth.username()
     
@@ -302,8 +317,8 @@ def setting_ip():
             flash('Invalid IP Address', 'danger')
             return redirect(url_for('setting_ip'))
     try:
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        # get site name
+        site_name = red.hget('site_name', 'site_name')
         
         # open data site
         with open('./data_site.json', 'r') as f:
@@ -324,7 +339,9 @@ def setting_ip():
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
-    except Exception:
+    except Exception as e:
+        print(f"setting_ip() error: {e}")
+        
         context = {
             'username': username,
             'site_name': 'Site Name',
@@ -346,6 +363,7 @@ def setting_ip():
 @app.route('/setting-scc', methods=['GET', 'POST'])
 @auth.login_required
 def setting_scc():
+    site_name = ""
     # username login
     username = auth.username()
     
@@ -365,7 +383,7 @@ def setting_scc():
             response = update_scc_type(path, data)
             if response:
                 flash('SCC Type has been updated successfully', 'success')
-                # bash_command('sudo systemctl restart mppt device_version.service webapp.service')
+                bash_command('sudo systemctl restart mppt device_version.service webapp.service')
             else:
                 flash('Failed to update SCC Type', 'danger')
             return redirect(url_for('setting_scc'))
@@ -378,17 +396,17 @@ def setting_scc():
                 if number_of_scc == 2:
                     for i in range(1, 3):
                         red.set(f'scc:{i}:id', request.form.get(f'scc-id-{i}'))
-                # bash_command('sudo systemctl restart mppt device_version.service webapp.service')
-                # bash_command('sudo systemctl daemon-reload')
+                bash_command('sudo systemctl restart mppt device_version.service webapp.service')
+                bash_command('sudo systemctl daemon-reload')
                 flash('SCC ID has been updated successfully', 'success')
             else:
                 flash('Failed to update SCC ID', 'danger')
             return redirect(url_for('setting_scc'))
     try:
         # get site name
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
-    except Exception:
+        site_name = red.hget('site_name', 'site_name')
+    except Exception as e:
+        print(f"setting_scc() error: {e}")
         site_name = 'Site Name'
     
     # get scc type
@@ -401,7 +419,7 @@ def setting_scc():
         try:
             scc_id_1 = int(red.get('scc:1:id'))
             scc_id_2 = int(red.get('scc:2:id'))
-        except Exception:
+        except Exception as e:
             scc_id_1 = 1
             scc_id_2 = 2
         context = {
@@ -412,7 +430,7 @@ def setting_scc():
             'scc_ids': {1: scc_id_1, 2: scc_id_2},
             'number_of_scc': number_of_scc,
             'scc_type': data.get('device_version').get('scc_type'),
-            'scc_source': data.get(f'{'device_version'}').get('scc_source'),
+            'scc_source': data.get('device_version').get('scc_source'),
             'host': data.get(f'{scc_type}').get('host'),
             'port': data.get(f'{scc_type}').get('port'),
             'scc_scan': data.get(f'{scc_type}').get('scan'),
@@ -422,7 +440,7 @@ def setting_scc():
             scc_id_1 = int(red.get('scc:1:id'))
             scc_id_2 = int(red.get('scc:2:id'))
             scc_id_3 = int(red.get('scc:3:id'))
-        except Exception:
+        except Exception as e:
             scc_id_1 = 1
             scc_id_2 = 2
             scc_id_3 = 3
@@ -434,7 +452,7 @@ def setting_scc():
             'scc_ids': {1: scc_id_1, 2: scc_id_2, 3: scc_id_3},
             'number_of_scc': number_of_scc,
             'scc_type': data.get('device_version').get('scc_type'),
-            'scc_source': data.get(f'{'device_version'}').get('scc_source'),
+            'scc_source': data.get('device_version').get('scc_source'),
             'host': data.get(f'{scc_type}').get('host'),
             'port': data.get(f'{scc_type}').get('port'),
             'scc_scan': data.get(f'{scc_type}').get('scan'),
@@ -444,6 +462,7 @@ def setting_scc():
 @app.route('/config-value-scc', methods=['GET', 'POST'])
 @auth.login_required
 def config_value_scc():
+    site_name = ""
     # username login
     username = auth.username()
 
@@ -479,9 +498,9 @@ def config_value_scc():
             return redirect(url_for('config_value_scc'))
     try:
         # get site name
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
-    except Exception:
+        site_name = red.hget('site_name', 'site_name')
+    except Exception as e:
+        print(f"config_value_scc() error: {e}")
         site_name = 'Site Name'
     
     # get scc type
@@ -504,13 +523,13 @@ def config_value_scc():
 @app.route('/disk-storage', methods=['GET'])
 @auth.login_required
 def disk_storage():
+    site_name = ""
     try:
         # username login
         username = auth.username()
         
         # get site name
-        if red.get('site_name') is not None:
-            site_name = str(red.get('site_name'))[2:-1]
+        site_name = red.hget('site_name', 'site_name')
         
         context = {
             'username': username,
@@ -518,7 +537,8 @@ def disk_storage():
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.34.1'
         }
-    except Exception:
+    except Exception as e:
+        print(f"disk_storage() error: {e}")
         context = {
             'username': username,
             'site_name': 'Site Name',
