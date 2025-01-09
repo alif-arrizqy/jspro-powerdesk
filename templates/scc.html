@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% block breadcrumbs %} SCC Monitoring {% endblock breadcrumbs %}
+{% block breadcrumbs %} SCC Monitoring - {{ scc_type.upper().replace('-', '  ') }} {% endblock breadcrumbs %}
 
 {% block content %}
 <!-- SCC Overview -->
