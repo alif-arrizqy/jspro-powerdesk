@@ -528,10 +528,10 @@ def disk_storage():
     return render_template('disk-storage.html', **context)
 
 
-@app.route('/logout')
-@auth.login_required
-def logout():
-    session.pop('username', None)
-    session.clear()
-    flash('You have been logged out.', 'success')
-    return redirect(url_for('index'))
+# @app.route('/logout')
+# @auth.login_required
+# def logout():
+#     session.pop('username', None)
+#     session.clear()
+#     flash('You have been logged out.', 'success')
+#     return redirect(url_for('index'))
