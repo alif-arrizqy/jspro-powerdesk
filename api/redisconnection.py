@@ -1,4 +1,4 @@
 import redis
 
 host = "localhost"
-red = redis.StrictRedis(host=host, password='')
+connection = redis.Redis(host=host, password='', decode_responses=True)
