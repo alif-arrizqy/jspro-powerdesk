@@ -90,9 +90,11 @@
                             <li>
                                 <a href="/setting-ip">Setting IP</a>
                             </li>
+                            {% if username == 'apt' and scc_type != 'scc-tristar' %}
                             <li>
                                 <a href="/config-value-scc">Config Value SCC</a>
                             </li>
+                            {% endif %}
                             <li>
                                 <a href="/disk-storage">Disk Storage</a>
                             </li>
@@ -117,6 +119,10 @@
                     </li>
                     {% endif %}
                     -->
+
+                    <li>
+                        <a href="/logout"><i class="material-icons fas fa-sign-out-alt"></i><span>Logout</span></a>
+                    </li>
                 </ul>
             </nav>
             

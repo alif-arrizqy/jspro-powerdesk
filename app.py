@@ -2,35 +2,55 @@ import os
 import json
 from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for
 from flask_cors import CORS
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from config import *
 from functions import *
 from api import core
 from api.redisconnection import connection as red
-from auths import basic_auth as auth
+from auths import users
 from validations import validate_setting_ip, validate_modbus_id
 
 app = Flask(__name__)
-cors = CORS(app)
 app.secret_key = '83dcdc455025cedcfe64b21e620564fb'
 app.register_blueprint(core.api)
+
+cors = CORS(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class User(UserMixin):
+    def __init__(self, username):
+        self.id = username
 
 # PATH = "/var/lib/sundaya/ehub-talis"
 PATH = "E:/sundaya/developments/EhubTalis/ehub-talis"
 
+@login_manager.user_loader
+def load_user(username):
+    if username in users:
+        return User(username)
+    return None
 
 @app.route('/', methods=['GET'])
-@auth.login_required
+# @login_required
 def index():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    
     site_name = ""
+    username = ""
     try:
-        # username login
-        username = auth.username()
+        # get current username
+        username = current_user.id
         
         # get site name
         site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
@@ -40,6 +60,7 @@ def index():
         context = {
             'username': username,
             'site_name': 'Sitea Name',
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
@@ -48,17 +69,18 @@ def index():
 
 
 @app.route('/scc', methods=['GET'])
-@auth.login_required
+@login_required
 def scc():
     site_name = ""
     try:
         # username login
-        username = auth.username()
+        username = current_user.id
         
         site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'scc_type': scc_type,
@@ -69,6 +91,7 @@ def scc():
         context = {
             'username': username,
             'site_name': 'Site Name',
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'scc_type': scc_type,
@@ -78,17 +101,18 @@ def scc():
 
 
 @app.route('/battery', methods=['GET'])
-@auth.login_required
+@login_required
 def battery():
     site_name = ""
     try:
         # username login
-        username = auth.username()
+        username = current_user.id
         
         site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
@@ -99,6 +123,7 @@ def battery():
         context = {
             'username': username,
             'site_name': 'Site Name',
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
@@ -108,17 +133,18 @@ def battery():
 
 
 @app.route('/datalog', methods=['GET'])
-@auth.login_required
+@login_required
 def datalog():
     site_name = ""
     try:
         # username login
-        username = auth.username()
+        username = current_user.id
         
         site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.4.44'
         }
@@ -127,6 +153,7 @@ def datalog():
         context = {
             'username': username,
             'site_name': 'Site Name',
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.4.3'
         }
@@ -134,17 +161,18 @@ def datalog():
 
 
 @app.route('/scc-alarm-log', methods=['GET'])
-@auth.login_required
+@login_required
 def scc_alarm_log():
     site_name = ""
     try:
         # username login
-        username = auth.username()
+        username = current_user.id
         
         site_name = red.hget('site_name', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4'
         }
@@ -153,6 +181,7 @@ def scc_alarm_log():
         context = {
             'username': username,
             'site_name': 'Site Name',
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4'
         }
@@ -160,13 +189,13 @@ def scc_alarm_log():
 
 
 @app.route('/site-information', methods=['GET'])
-@auth.login_required
+@login_required
 def site_information():
     site_name = ""
     path = f'{PATH}/config_device.json'
     try:
         # username login
-        username = auth.username()
+        username = current_user.id
         
         with open(path, 'r') as file:
             data = json.load(file)
@@ -177,6 +206,7 @@ def site_information():
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
             'device_version': data.get('device_version'),
@@ -200,6 +230,7 @@ def site_information():
         context = {
             'username': username,
             'site_name': 'Site Name',
+            'scc_type': scc_type,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
             'device_version': data.get('device_version'),
@@ -218,11 +249,11 @@ def site_information():
 
 
 @app.route('/setting-device', methods=['GET', 'POST'])
-@auth.login_required
+@login_required
 def setting_device():
     site_name = ""
     # username login
-    username = auth.username()
+    username = current_user.id
 
     # path config device
     path = f'{PATH}/config_device.json'
@@ -262,6 +293,7 @@ def setting_device():
         context = {
             'username': username,
             'site_name': site_name,
+            'scc_type': scc_type,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
             # 'ip_address': get_ip_address('eth0'),
@@ -276,6 +308,7 @@ def setting_device():
         context = {
             'username': username,
             'site_name': 'Site Name',
+            'scc_type': scc_type,
             'site_location': data.get('site_location'),
             'device_info': data.get('device_model'),
             # 'ip_address': get_ip_address('eth0'),
@@ -285,11 +318,11 @@ def setting_device():
 
 
 @app.route('/setting-ip', methods=['GET', 'POST'])
-@auth.login_required
+@login_required
 def setting_ip():
     site_name = ""
     # username login
-    username = auth.username()
+    username = current_user.id
     
     if request.method == 'POST':
         path = './commands/change_ip.py'
@@ -328,6 +361,7 @@ def setting_ip():
             'username': username,
             'site_name': site_name,
             'data_ip': data_ip,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
             # 'ip_address_secondary': get_ip_address('eth1'),
@@ -346,6 +380,7 @@ def setting_ip():
             'username': username,
             'site_name': 'Site Name',
             'data_ip': data_ip,
+            'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
             # 'ip_address_secondary': get_ip_address('eth1'),
@@ -361,11 +396,11 @@ def setting_ip():
 
 
 @app.route('/setting-scc', methods=['GET', 'POST'])
-@auth.login_required
+@login_required
 def setting_scc():
     site_name = ""
     # username login
-    username = auth.username()
+    username = current_user.id
     
     # path config device
     path = f'{PATH}/config_device.json'
@@ -460,11 +495,11 @@ def setting_scc():
     return render_template('setting-scc.html', **context)
 
 @app.route('/config-value-scc', methods=['GET', 'POST'])
-@auth.login_required
+@login_required
 def config_value_scc():
     site_name = ""
     # username login
-    username = auth.username()
+    username = current_user.id
 
     # path config device
     path = f'{PATH}/config_device.json'
@@ -521,12 +556,12 @@ def config_value_scc():
     return render_template('config-value-scc.html', **context)
 
 @app.route('/disk-storage', methods=['GET'])
-@auth.login_required
+@login_required
 def disk_storage():
     site_name = ""
     try:
         # username login
-        username = auth.username()
+        username = current_user.id
         
         # get site name
         site_name = red.hget('site_name', 'site_name')
@@ -548,10 +583,27 @@ def disk_storage():
     return render_template('disk-storage.html', **context)
 
 
-# @app.route('/logout')
-# @auth.login_required
-# def logout():
-#     session.pop('username', None)
-#     session.clear()
-#     flash('You have been logged out.', 'success')
-#     return redirect(url_for('index'))
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username in users and password == users[username]['password']:
+            user = User(username)
+            login_user(user)
+            session['username'] = username
+            flash('Kamu Telah Login Sebagai', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password.', 'danger')
+            return redirect(url_for('login'))
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    session.clear()
+    flash('Berhasil Logout', 'success')
+    return redirect(url_for('login'))

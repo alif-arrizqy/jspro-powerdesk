@@ -22,17 +22,6 @@ def device_information():
             for k, v in conv_val.items():
                 device_information[k] = v
         
-        # datalog length
-        talis_log1 = red.hgetall("bms_usb0_log")
-        talis_log2 = red.hgetall("bms_usb1_log")
-        scc_data = red.hgetall("energy_data")
-
-        talis_log1_length = len(talis_log1) if talis_log1 else 0
-        talis_log2_length = len(talis_log2) if talis_log2 else 0
-        scc_data_length = len(scc_data) if scc_data else 0
-        # total datalog length
-        datalog_length = talis_log1_length + talis_log2_length + scc_data_length            
-        
         # disk usage and ram usage
         disk = get_disk_detail()
         free_ram = get_free_ram()
@@ -50,7 +39,6 @@ def device_information():
             'message': 'success',
             'data': {
                 'device_information': device_information,
-                'datalog_length': datalog_length,
                 'disk_ram': disk_ram
             }
         }
@@ -214,32 +202,6 @@ def scc_realtime():
             except Exception as e:
                 print(f"Error retrieving load_status for {scc_key}: {e}")
                 scc_data[scc_key]['load_status'] = "error retrieving data"
-
-            # battery temperature
-            try:
-                _batt_temp = int(red.hget(scc_key, "battery_temperature"))
-                if _batt_temp is None:
-                    scc_data[scc_key]['battery_temperature'] = -1
-                elif _batt_temp == b'-1':
-                    scc_data[scc_key]['battery_temperature'] = "modbus error"
-                else:
-                    scc_data[scc_key]['battery_temperature'] = _batt_temp
-            except Exception as e:
-                print(f"Error retrieving battery_temperature for {scc_key}: {e}")
-                scc_data[scc_key]['battery_temperature'] = "modbus error"
-
-            # device temperature
-            try:
-                _device_temp = int(red.hget(scc_key, "device_temperature"))
-                if _device_temp is None:
-                    scc_data[scc_key]['device_temperature'] = -1
-                elif _device_temp == -1:
-                    scc_data[scc_key]['device_temperature'] = "modbus error"
-                else:
-                    scc_data[scc_key]['device_temperature'] = _device_temp
-            except Exception as e:
-                print(f"Error retrieving device temperature for {scc_key}: {e}")
-                scc_data[scc_key]['device_temperature'] = "modbus error"
 
         response = {
             'code': 200,
