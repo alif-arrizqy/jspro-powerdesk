@@ -241,7 +241,9 @@
                                         <i class="fas fa-power-off"></i>
                                     </div>
                                 </div>
-                                <h3 class="stats-card-value" id="cmos-status-{{i}}">Loading...</h3>
+                                <h3 class="stats-card-value">
+                                    <span class="status-indicator" id="cmos-status-{{i}}">Loading...</span>
+                                </h3>
                                 <p class="stats-card-subtitle">Charging MOSFET</p>
                             </div>
                         </div>
@@ -253,7 +255,9 @@
                                         <i class="fas fa-power-off"></i>
                                     </div>
                                 </div>
-                                <h3 class="stats-card-value" id="dmos-status-{{i}}">Loading...</h3>
+                                <h3 class="stats-card-value">
+                                    <span class="status-indicator" id="dmos-status-{{i}}">Loading...</span>
+                                </h3>
                                 <p class="stats-card-subtitle">Discharging MOSFET</p>
                             </div>
                         </div>
@@ -440,11 +444,30 @@
         startBatterySimulation();
     });
 
+    // Helper function to update status indicator elements
+    function updateStatusIndicator(elementId, status, activeStates = ['Online', 'ON'], dangerStates = ['Offline', 'modbus error', 'unknown status']) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = status;
+            
+            if (activeStates.includes(status)) {
+                element.className = 'status-indicator active';
+            } else if (dangerStates.includes(status)) {
+                element.className = 'status-indicator danger';
+            } else {
+                element.className = 'status-indicator inactive';
+            }
+        }
+    }
+
     // Dummy data generation functions
     function generateDummyBatteryData() {
+        const statuses = ['Online', 'Offline', 'modbus error', 'unknown status'];
+        const mosfetStates = ['ON', 'OFF'];
+        
         return {
             packNumber: Math.floor(Math.random() * 4) + 1,
-            packStatus: Math.random() > 0.2 ? 'Online' : 'Offline',
+            packStatus: Math.random() > 0.15 ? 'Online' : statuses[Math.floor(Math.random() * statuses.length)],
             port: Math.random() > 0.5 ? 'USB0' : 'USB1',
             voltage: (48 + Math.random() * 6 - 3).toFixed(2), // 45-51V
             current: (Math.random() * 100 - 50).toFixed(2), // -50 to 50A
@@ -462,8 +485,8 @@
             pcbCode: `PCB${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
             snCode: `SN${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
             heartbeat: Math.floor(Math.random() * 1000),
-            cmosStatus: Math.random() > 0.5 ? 'ON' : 'OFF',
-            dmosStatus: Math.random() > 0.5 ? 'ON' : 'OFF',
+            cmosStatus: mosfetStates[Math.floor(Math.random() * mosfetStates.length)],
+            dmosStatus: mosfetStates[Math.floor(Math.random() * mosfetStates.length)],
             cmosTemp: (30 + Math.random() * 10).toFixed(1),
             dmosTemp: (32 + Math.random() * 10).toFixed(1),
             envTemp: (25 + Math.random() * 8).toFixed(1),
@@ -481,11 +504,10 @@
         const voltageEl = document.getElementById(`pack${packNumber}-voltage`);
         
         if (packNumberEl) packNumberEl.textContent = packNumber;
-        if (packStatusEl) {
-            packStatusEl.innerHTML = data.packStatus === 'Online' 
-                ? `<span class="badge bg-success">Online</span>`
-                : `<span class="badge bg-danger">Offline</span>`;
-        }
+        
+        // Update pack status using helper function
+        updateStatusIndicator(`pack-status-${packNumber}`, data.packStatus, ['Online'], ['Offline']);
+        
         if (portEl) portEl.textContent = data.port;
         if (voltageEl) voltageEl.textContent = `${data.voltage} V`;
 
@@ -522,20 +544,9 @@
         if (cellMinEl) cellMinEl.textContent = `${data.minCellVoltage} V`;
         if (cellDiffEl) cellDiffEl.textContent = `${data.cellDifference} mV`;
 
-        // Update MOSFET status with ON/OFF states
-        const cmosStatusEl = document.getElementById(`cmos-status-${packNumber}`);
-        const dmosStatusEl = document.getElementById(`dmos-status-${packNumber}`);
-        
-        if (cmosStatusEl) {
-            cmosStatusEl.innerHTML = data.cmosStatus === 'ON' 
-                ? `<span class="badge bg-success">ON</span>`
-                : `<span class="badge bg-secondary">OFF</span>`;
-        }
-        if (dmosStatusEl) {
-            dmosStatusEl.innerHTML = data.dmosStatus === 'ON' 
-                ? `<span class="badge bg-success">ON</span>`
-                : `<span class="badge bg-secondary">OFF</span>`;
-        }
+        // Update MOSFET status using helper function
+        updateStatusIndicator(`cmos-status-${packNumber}`, data.cmosStatus, ['ON'], ['OFF']);
+        updateStatusIndicator(`dmos-status-${packNumber}`, data.dmosStatus, ['ON'], ['OFF']);
 
         // Update temperature status
         const cmosTemperatureEl = document.getElementById(`cmos-temp-${packNumber}`);
