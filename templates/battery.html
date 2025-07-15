@@ -1,71 +1,370 @@
-{% extends 'layout.html' %}
-{% block breadcrumbs %} Battery Monitoring {% endblock breadcrumbs %}
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}Battery Monitoring{% endblock breadcrumbs %}
 
 {% block content %}
-<!--Battery Overview -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-battery-full"></i> Pack Information</h4>
+<!-- Battery Pack Selection -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-battery-full"></i>
+                    Battery Pack Management
+                </h2>
             </div>
-            <div class="card-content">
-                <div class="row">
-                    <!-- Status Pack -->
-                    <div class="col-12">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content text-center">
-                                {% for i in range(1, number_of_battery+1) %}
-                                <button class="btn btn-dark btn-lg" id="pack{{i}}-button">{{ i }}</button>
-                                {% endfor %}
+            <div class="modern-card-body">
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    {% for i in range(1, number_of_battery+1) %}
+                    <button class="btn btn-modern btn-secondary pack-selector" id="pack{{i}}-button" data-pack="{{i}}">
+                        <i class="fas fa-battery-full"></i>
+                        Pack {{i}}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Battery Pack Information -->
+{% for i in range(1, number_of_battery+1) %}
+<div class="pack-information" id="pack-information-{{i}}" style="display: none;">
+    <!-- Pack Status Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-battery-full"></i>
+                        Battery Pack {{i}} - Status Overview
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-heartbeat text-danger me-2"></i>
+                            <span class="text-muted" id="heartbeat-{{i}}">Heartbeat: Loading...</span>
+                        </div>
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Port</h6>
+                                    <div class="stats-card-icon bg-info">
+                                        <i class="fas fa-plug"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="port-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Connection Port</p>
                             </div>
                         </div>
-                        {% for i in range(1, number_of_battery+1) %}
-                        <div class="row pack" id="pack-information-{{i}}" style="display: none;">
-                            <!-- pack number -->
-                            <div class="col">
-                                <div class="shadow card card-stats full-border">
-                                    <div class="card-content">
-                                        <p class="category left-text"><strong>Pack Number</strong></p>
-                                        <h5 id="pack{{i}}-number" class="card-title left-text">Getting Data...</h5>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Pack Status</h6>
+                                    <div class="stats-card-icon bg-success">
+                                        <i class="fas fa-check-circle"></i>
                                     </div>
                                 </div>
+                                <h3 class="stats-card-value">
+                                    <span class="status-indicator" id="pack-status-{{i}}">Loading...</span>
+                                </h3>
+                                <p class="stats-card-subtitle">Current Status</p>
                             </div>
-                            <!-- pack status -->
-                            <div class="col">
-                                <div class="shadow card card-stats full-border">
-                                    <div class="card-content">
-                                        <p class="category left-text"><strong>Pack Status</strong></p>
-                                        <h5 id="pack-status-{{i}}" class="card-title left-text">Getting Data...</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">PCB Code</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-hashtag"></i>
                                     </div>
                                 </div>
+                                <h3 class="stats-card-value" id="pcb-code-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">PCB Code Battery</p>
                             </div>
-                            <!-- Port -->
-                            <div class="col">
-                                <div class="shadow card card-stats full-border">
-                                    <div class="card-content">
-                                        <p class="category left-text"><strong>Port</strong></p>
-                                        <h5 id="port-{{i}}" class="card-title left-text">Getting Data...</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">SN Code</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-hashtag"></i>
                                     </div>
                                 </div>
+                                <h3 class="stats-card-value" id="sn-code-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Serial Number Battery</p>
                             </div>
-                            <!-- pcb code -->
-                            <div class="col">
-                                <div class="shadow card card-stats full-border">
-                                    <div class="card-content">
-                                        <p class="category left-text"><strong>PCB Code</strong></p>
-                                        <h5 id="pcb-code-{{i}}" class="card-title left-text">Getting Data...</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Battery Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-chart-line"></i>
+                        Battery Pack {{i}} - Key Metrics
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Voltage</h6>
+                                    <div class="stats-card-icon bg-warning">
+                                        <i class="fas fa-bolt"></i>
                                     </div>
                                 </div>
+                                <h3 class="stats-card-value" id="pack{{i}}-voltage">Loading...</h3>
+                                <p class="stats-card-subtitle">Pack Voltage</p>
                             </div>
-                            <!-- sn code -->
-                            <div class="col">
-                                <div class="shadow card card-stats full-border">
-                                    <div class="card-content">
-                                        <p class="category left-text"><strong>SN Code</strong></p>
-                                        <h5 id="sn-code-{{i}}" class="card-title left-text">Getting Data...</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Current</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-tachometer-alt"></i>
                                     </div>
                                 </div>
+                                <h3 class="stats-card-value" id="pack{{i}}-current">Loading...</h3>
+                                <p class="stats-card-subtitle">Battery Current</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">SOC</h6>
+                                    <div class="stats-card-icon bg-success">
+                                        <i class="fas fa-percentage"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="pack{{i}}-soc">Loading...</h3>
+                                <p class="stats-card-subtitle">State of Charge</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">SOH</h6>
+                                    <div class="stats-card-icon bg-info">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="pack{{i}}-soh">Loading...</h3>
+                                <p class="stats-card-subtitle">State of Health</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Battery Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-info-circle"></i>
+                        Battery Pack {{i}} - Status Information
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Cell Max</h6>
+                                    <div class="stats-card-icon bg-danger">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="cell-max-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Maximum Cell Voltage</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Cell Min</h6>
+                                    <div class="stats-card-icon bg-success">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="cell-min-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Minimum Cell Voltage</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Cell Difference</h6>
+                                    <div class="stats-card-icon bg-warning">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="cell-diff-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Cell Voltage Difference</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOSFET Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-microchip"></i>
+                        Battery Pack {{i}} - MOSFET Status
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">CMOS State</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-power-off"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="cmos-status-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Charging MOSFET</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">DMOS State</h6>
+                                    <div class="stats-card-icon bg-secondary">
+                                        <i class="fas fa-power-off"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="dmos-status-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Discharging MOSFET</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Temperature Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-thermometer-half"></i>
+                        Battery Pack {{i}} - Temperature Monitoring
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">CMOS Temp</h6>
+                                    <div class="stats-card-icon bg-danger">
+                                        <i class="fas fa-thermometer-three-quarters"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="cmos-temp-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">CMOS Temperature</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">DMOS Temp</h6>
+                                    <div class="stats-card-icon bg-warning">
+                                        <i class="fas fa-thermometer-three-quarters"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="dmos-temp-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">DMOS Temperature</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Temp Top</h6>
+                                    <div class="stats-card-icon bg-info">
+                                        <i class="fas fa-thermometer-half"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="top-temp-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Top Temperature</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Temp Mid</h6>
+                                    <div class="stats-card-icon bg-success">
+                                        <i class="fas fa-thermometer-half"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="mid-temp-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Middle Temperature</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Temp Bot</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-thermometer-quarter"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="bot-temp-{{i}}">Loading...</h3>
+                                <p class="stats-card-subtitle">Bottom Temperature</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cell Voltages -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-battery-quarter"></i>
+                        Battery Pack {{i}} - Cell Voltages
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-2">
+                        <!-- Cell voltage monitoring grid -->
+                        {% for cell in range(1, 17) %}
+                        <div class="col-md-3 col-sm-4 col-6">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Cell {{cell}}</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-battery-half"></i>
+                                    </div>
+                                </div>
+                                <h4 class="stats-card-value" id="pack{{i}}-cell{{cell}}-voltage">Loading...</h4>
+                                <p class="stats-card-subtitle">Cell {{cell}} Voltage</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -74,355 +373,349 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Pack Overview -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-plug"></i> Pack Overview</h4>
-            </div>
-            <div class="card-content">
-                {% for i in range(1, number_of_battery+1) %}
-                <div class="row pack" id="pack-1-overview-{{i}}" style="display: none;">
-                    <!-- Heartbeat -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Heartbeat</strong></p>
-                                <h5 id="heartbeat-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Voltage - Current - SOC -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Voltage</strong></p>
-                                <h5 id="voltage-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Current</strong></p>
-                                <h5 id="current-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>SOC</strong></p>
-                                <h5 id="soc-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
+    <!-- Battery Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h3 class="modern-card-title">
+                        <i class="fas fa-chart-area"></i>
+                        Battery Pack {{i}} - Performance Chart
+                    </h3>
+                </div>
+                <div class="modern-card-body">
+                    <div class="chart-container">
+                        <canvas id="batteryChart{{i}}"></canvas>
                     </div>
                 </div>
-                <!-- Battery Status Cell Max Cell Min Cell Diff -->
-                <div class="row pack" id="pack-2-overview-{{i}}" style="display: none;">
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Battery Status</strong></p>
-                                <h5 id="battery-status-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Cell Max</strong></p>
-                                <h5 id="cell-max-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Cell Min</strong></p>
-                                <h5 id="cell-min-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Cell Difference</strong></p>
-                                <h5 id="cell-diff-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
             </div>
         </div>
     </div>
 </div>
+{% endfor %}
 
-<!-- Cell Overview -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-solar-panel"></i> Cell Overview</h4>
-            </div>
-            <div class="card-content">
-                {% for i in range(1, number_of_battery+1) %}
-                <div class="row pack" id="cell-overview-{{i}}" style="display: none;">
-                    {% for num in range(1, number_of_cell+1) %}
-                    <div class="col-sm-3">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Cell {{num}}</strong></p>
-                                <h6 id="cell{{num}}-voltage-{{i}}" class="card-title left-text">Getting Data...</h6>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
+{% endblock %}
 
-<!-- Mosfet Status -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card" style="min-height: 250px">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-plug"></i> Mosfet Status</h4>
-            </div>
-            <div class="card-content">
-                {% for i in range(1, number_of_battery+1) %}
-                <div class="row pack" id="mosfet-status-{{i}}" style="display: none;">
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>CMOS status</strong></p>
-                                <h5 id="cmos-status-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>DMOS status</strong></p>
-                                <h5 id="dmos-status-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Temperature Status -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card" style="min-height: 250px">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-thermometer-three-quarters"></i> Temperature Status</h4>
-            </div>
-            <div class="card-content">
-                {% for i in range(1, number_of_battery+1) %}
-                <div class="row pack" id="temperature-status-{{i}}" style="display: none;">
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>CMOS Temp</strong></p>
-                                <h5 id="cmos-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>DMOS Temp</strong></p>
-                                <h5 id="dmos-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Env Temp</strong></p>
-                                <h5 id="env-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Top Temp</strong></p>
-                                <h5 id="top-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Mid Temp</strong></p>
-                                <h5 id="mid-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Bot Temp</strong></p>
-                                <h5 id="bot-temp-{{i}}" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock content %}
-
-{% block js %}
-
+{% block scripts %}
 <script>
-    const number_of_battery = {{ number_of_battery }};
-    const number_of_cell = {{ number_of_cell }};
-
-    function openPackInformation(packNumber) {
-        let i;
-        let packClassElements = document.getElementsByClassName('pack');
-        for (i = 0; i < packClassElements.length; i++) {
-            packClassElements[i].style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pack selector functionality
+        const packSelectors = document.querySelectorAll('.pack-selector');
+        const packInformation = document.querySelectorAll('.pack-information');
+        
+        packSelectors.forEach(selector => {
+            selector.addEventListener('click', function() {
+                const packNumber = this.getAttribute('data-pack');
+                
+                // Hide all pack information
+                packInformation.forEach(info => {
+                    info.style.display = 'none';
+                });
+                
+                // Remove active class from all selectors
+                packSelectors.forEach(sel => {
+                    sel.classList.remove('btn-primary');
+                    sel.classList.add('btn-secondary');
+                });
+                
+                // Show selected pack information
+                document.getElementById(`pack-information-${packNumber}`).style.display = 'block';
+                
+                // Add active class to selected selector
+                this.classList.remove('btn-secondary');
+                this.classList.add('btn-primary');
+                
+                // Initialize chart for selected pack
+                initializeBatteryChart(packNumber);
+            });
+        });
+        
+        // Show first pack by default
+        if (packSelectors.length > 0) {
+            packSelectors[0].click();
         }
-        document.getElementById(`pack-information-${packNumber}`).style.display = 'flex';
-        document.getElementById(`pack-1-overview-${packNumber}`).style.display = 'flex';
-        document.getElementById(`pack-2-overview-${packNumber}`).style.display = 'flex';
-        document.getElementById(`cell-overview-${packNumber}`).style.display = 'flex';
-        document.getElementById(`mosfet-status-${packNumber}`).style.display = 'flex';
-        document.getElementById(`temperature-status-${packNumber}`).style.display = 'flex';
+        
+        // Start battery simulation with dummy data
+        startBatterySimulation();
+    });
+
+    // Dummy data generation functions
+    function generateDummyBatteryData() {
+        return {
+            packNumber: Math.floor(Math.random() * 4) + 1,
+            packStatus: Math.random() > 0.2 ? 'Online' : 'Offline',
+            port: Math.random() > 0.5 ? 'USB0' : 'USB1',
+            voltage: (48 + Math.random() * 6 - 3).toFixed(2), // 45-51V
+            current: (Math.random() * 100 - 50).toFixed(2), // -50 to 50A
+            temperature: (25 + Math.random() * 10).toFixed(1), // 25-35°C
+            soc: Math.floor(Math.random() * 100), // 0-100%
+            soh: Math.floor(85 + Math.random() * 15), // 85-100%
+            cycles: Math.floor(Math.random() * 1000), // 0-1000 cycles
+            capacity: (80 + Math.random() * 20).toFixed(1), // 80-100%
+            cellVoltages: Array.from({length: 16}, () => 
+                (3.2 + Math.random() * 0.4).toFixed(3) // 3.2-3.6V per cell
+            ),
+            maxCellVoltage: (3.4 + Math.random() * 0.2).toFixed(3),
+            minCellVoltage: (3.2 + Math.random() * 0.2).toFixed(3),
+            cellDifference: Math.floor(Math.random() * 200), // 0-200mV
+            pcbCode: `PCB${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+            snCode: `SN${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+            heartbeat: Math.floor(Math.random() * 1000),
+            cmosStatus: Math.random() > 0.5 ? 'ON' : 'OFF',
+            dmosStatus: Math.random() > 0.5 ? 'ON' : 'OFF',
+            cmosTemp: (30 + Math.random() * 10).toFixed(1),
+            dmosTemp: (32 + Math.random() * 10).toFixed(1),
+            envTemp: (25 + Math.random() * 8).toFixed(1),
+            topTemp: (28 + Math.random() * 7).toFixed(1),
+            midTemp: (27 + Math.random() * 6).toFixed(1),
+            botTemp: (26 + Math.random() * 5).toFixed(1)
+        };
     }
 
-    const talisActive = async () => {
-        try {
-            // Display pack 1 information by default
-            openPackInformation(1);
-
-            const response = await fetch(`/api/realtime/talis-active/`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
-                return;
-            }
-            
-            for (let i = 1; i <= number_of_battery; i++) {
-                const talisActiveButton = document.getElementById(`pack${i}-button`);
-                const packNumber = document.getElementById(`pack${i}-number`);
-                const packStatus = document.getElementById(`pack-status-${i}`);
-
-                if (data.data.usb0[`slave_id_${i}`] == 1 || data.data.usb1[`slave_id_${i}`] == 1) {
-                    talisActiveButton.classList.remove('btn-dark');
-                    talisActiveButton.classList.add('btn-success');
-                    talisActiveButton.addEventListener('click', () => openPackInformation(i));
-                    packNumber.innerText = `${i}`;
-                    packStatus.innerHTML = `<mark class="status-active" id="pack-${i}">Online</mark>`;
-                } else {
-                    talisActiveButton.classList.remove('btn-success');
-                    talisActiveButton.classList.add('btn-dark');
-                    packNumber.innerText = `${i}`;
-                    talisActiveButton.addEventListener('click', () => openPackInformation(i));
-                    packStatus.innerHTML = `<mark class="status-inactive" id="pack-${i}">Offline</mark>`;
-                }
-            }
-        } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
+    function updateBatteryUI(packNumber, data) {
+        // Update pack status overview
+        const packNumberEl = document.getElementById(`pack${packNumber}-number`);
+        const packStatusEl = document.getElementById(`pack-status-${packNumber}`);
+        const portEl = document.getElementById(`port-${packNumber}`);
+        const voltageEl = document.getElementById(`pack${packNumber}-voltage`);
+        
+        if (packNumberEl) packNumberEl.textContent = packNumber;
+        if (packStatusEl) {
+            packStatusEl.innerHTML = data.packStatus === 'Online' 
+                ? `<span class="badge bg-success">Online</span>`
+                : `<span class="badge bg-danger">Offline</span>`;
         }
-    };
+        if (portEl) portEl.textContent = data.port;
+        if (voltageEl) voltageEl.textContent = `${data.voltage} V`;
 
-    const talisData = async () => {
-        try {
-            const response = await fetch(`/api/realtime/talis/`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        // Update additional elements
+        const pcbCodeEl = document.getElementById(`pcb-code-${packNumber}`);
+        const snCodeEl = document.getElementById(`sn-code-${packNumber}`);
+        const heartbeatEl = document.getElementById(`heartbeat-${packNumber}`);
+        
+        if (pcbCodeEl) pcbCodeEl.textContent = data.pcbCode;
+        if (snCodeEl) snCodeEl.textContent = data.snCode;
+        if (heartbeatEl) heartbeatEl.textContent = data.heartbeat;
+
+        // Update key metrics
+        const currentEl = document.getElementById(`pack${packNumber}-current`);
+        const temperatureEl = document.getElementById(`pack${packNumber}-temperature`);
+        const socEl = document.getElementById(`pack${packNumber}-soc`);
+        const sohEl = document.getElementById(`pack${packNumber}-soh`);
+        const cyclesEl = document.getElementById(`pack${packNumber}-cycles`);
+        const capacityEl = document.getElementById(`pack${packNumber}-capacity`);
+
+        if (currentEl) currentEl.textContent = `${data.current} A`;
+        if (temperatureEl) temperatureEl.textContent = `${data.temperature} °C`;
+        if (socEl) socEl.textContent = `${data.soc}%`;
+        if (sohEl) sohEl.textContent = `${data.soh}%`;
+        if (cyclesEl) cyclesEl.textContent = data.cycles;
+        if (capacityEl) capacityEl.textContent = `${data.capacity}%`;
+
+        // Update status information
+        const cellMaxEl = document.getElementById(`cell-max-${packNumber}`);
+        const cellMinEl = document.getElementById(`cell-min-${packNumber}`);
+        const cellDiffEl = document.getElementById(`cell-diff-${packNumber}`);
+
+        if (cellMaxEl) cellMaxEl.textContent = `${data.maxCellVoltage} V`;
+        if (cellMinEl) cellMinEl.textContent = `${data.minCellVoltage} V`;
+        if (cellDiffEl) cellDiffEl.textContent = `${data.cellDifference} mV`;
+
+        // Update MOSFET status with ON/OFF states
+        const cmosStatusEl = document.getElementById(`cmos-status-${packNumber}`);
+        const dmosStatusEl = document.getElementById(`dmos-status-${packNumber}`);
+        
+        if (cmosStatusEl) {
+            cmosStatusEl.innerHTML = data.cmosStatus === 'ON' 
+                ? `<span class="badge bg-success">ON</span>`
+                : `<span class="badge bg-secondary">OFF</span>`;
+        }
+        if (dmosStatusEl) {
+            dmosStatusEl.innerHTML = data.dmosStatus === 'ON' 
+                ? `<span class="badge bg-success">ON</span>`
+                : `<span class="badge bg-secondary">OFF</span>`;
+        }
+
+        // Update temperature status
+        const cmosTemperatureEl = document.getElementById(`cmos-temp-${packNumber}`);
+        const dmosTemperatureEl = document.getElementById(`dmos-temp-${packNumber}`);
+        const topTemperatureEl = document.getElementById(`top-temp-${packNumber}`);
+        const midTemperatureEl = document.getElementById(`mid-temp-${packNumber}`);
+        const botTemperatureEl = document.getElementById(`bot-temp-${packNumber}`);
+
+        if (cmosTemperatureEl) cmosTemperatureEl.textContent = `${data.cmosTemp} °C`;
+        if (dmosTemperatureEl) dmosTemperatureEl.textContent = `${data.dmosTemp} °C`;
+        if (topTemperatureEl) topTemperatureEl.textContent = `${data.topTemp} °C`;
+        if (midTemperatureEl) midTemperatureEl.textContent = `${data.midTemp} °C`;
+        if (botTemperatureEl) botTemperatureEl.textContent = `${data.botTemp} °C`;
+
+        // Update cell voltages
+        for (let i = 1; i <= 16; i++) {
+            const cellEl = document.getElementById(`pack${packNumber}-cell${i}-voltage`);
+            if (cellEl && data.cellVoltages[i-1]) {
+                cellEl.textContent = `${data.cellVoltages[i-1]} V`;
+            }
+        }
+
+        // Update chart data
+        updateBatteryChart(packNumber, data);
+    }
+
+    function updateBatteryChart(packNumber, data) {
+        const chartId = `batteryChart${packNumber}`;
+        
+        if (window.powerDeskApp && window.powerDeskApp.charts[chartId]) {
+            const chart = window.powerDeskApp.charts[chartId];
+            const now = new Date().toLocaleTimeString();
+            
+            // Add new data point
+            chart.data.labels.push(now);
+            chart.data.datasets[0].data.push(parseFloat(data.voltage));
+            chart.data.datasets[1].data.push(parseFloat(data.current));
+            chart.data.datasets[2].data.push(parseFloat(data.maxCellVoltage));
+            chart.data.datasets[3].data.push(parseFloat(data.minCellVoltage));
+            chart.data.datasets[4].data.push(data.cellDifference);
+            
+            // Keep only last 20 data points
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(dataset => dataset.data.shift());
             }
             
-            const data = await response.json();
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
-                return;
+            chart.update('none');
+        }
+    }
+
+    function startBatterySimulation() {
+        const numberOfBattery = {{ number_of_battery }};
+        
+        // Update battery data every 2 seconds
+        setInterval(() => {
+            for (let i = 1; i <= numberOfBattery; i++) {
+                const dummyData = generateDummyBatteryData();
+                updateBatteryUI(i, dummyData);
             }
-            
-            for (let i = 1; i <= number_of_battery; i++) {
-                const packStatus = document.getElementById(`pack-${i}`).innerHTML;
-                if (packStatus == 'Online') {
-                    const port = document.getElementById(`port-${i}`);
-                    const pcbCode = document.getElementById(`pcb-code-${i}`);
-                    const snCode = document.getElementById(`sn-code-${i}`);
-                    const heartbeat = document.getElementById(`heartbeat-${i}`);
-                    const voltage = document.getElementById(`voltage-${i}`);
-                    const current = document.getElementById(`current-${i}`);
-                    const soc = document.getElementById(`soc-${i}`);
-                    const batteryStatus = document.getElementById(`battery-status-${i}`);
-                    const cellMax = document.getElementById(`cell-max-${i}`);
-                    const cellMin = document.getElementById(`cell-min-${i}`);
-                    const cellDiff = document.getElementById(`cell-diff-${i}`);
-                    const cmosStatus = document.getElementById(`cmos-status-${i}`);
-                    const dmosStatus = document.getElementById(`dmos-status-${i}`);
-                    const cmosTemp = document.getElementById(`cmos-temp-${i}`);
-                    const dmosTemp = document.getElementById(`dmos-temp-${i}`);
-                    const envTemp = document.getElementById(`env-temp-${i}`);
-                    const topTemp = document.getElementById(`top-temp-${i}`);
-                    const midTemp = document.getElementById(`mid-temp-${i}`);
-                    const botTemp = document.getElementById(`bot-temp-${i}`);
+        }, 2000);
+        
+        // Initial data load
+        for (let i = 1; i <= numberOfBattery; i++) {
+            const dummyData = generateDummyBatteryData();
+            updateBatteryUI(i, dummyData);
+        }
+    }
 
-                    const packData = data.data.usb0.find(pack => pack.slave_id == i) || data.data.usb1.find(pack => pack.slave_id == i);
-                    if (packData) {
-                        port.innerText = packData.port.toUpperCase();
-                        pcbCode.innerText = packData.pcb_code;
-                        snCode.innerText = packData.sn1_code;
-                        heartbeat.innerText = packData.counter;
-                        voltage.innerText = (packData.pack_voltage / 100).toFixed(2) + ' V';
-                        current.innerText = (packData.pack_current / 100).toFixed(2) + ' A';
-                        soc.innerText = (packData.soc / 100) + ' %';
-                        cellMax.innerText = packData.max_cell_voltage + ' mV';
-                        cellMin.innerText = packData.min_cell_voltage + ' mV';
-                        cellDiff.innerText = packData.cell_difference + ' mV';
-                        
-                        if (packData.cell_difference > 500) {
-                            batteryStatus.innerHTML = `<mark class="status-danger">Battery Fault</mark>`;
-                        } else {
-                            batteryStatus.innerHTML = `Battery Normal`;
+    function initializeBatteryChart(packNumber) {
+        const chartId = `batteryChart${packNumber}`;
+        
+        // Destroy existing chart if it exists
+        if (window.powerDeskApp && window.powerDeskApp.charts[chartId]) {
+            window.powerDeskApp.destroyChart(chartId);
+        }
+        
+        // Create new chart
+        if (window.powerDeskApp) {
+            window.powerDeskApp.createChart(chartId, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Voltage (V)',
+                            data: [],
+                            borderColor: 'rgb(37, 99, 235)',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Current (A)',
+                            data: [],
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Max Cell Voltage (V)',
+                            data: [],
+                            borderColor: 'rgba(239, 66, 66, 1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Min Cell Voltage (V)',
+                            data: [],
+                            borderColor: 'rgba(17, 228, 20, 1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Cell Difference',
+                            data: [],
+                            borderColor: 'rgba(226, 214, 39, 1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            yAxisID: 'y2',
+                            tension: 0.4
                         }
-
-                        for (let j = 1; j <= number_of_cell; j++) {
-                            const cellVoltage = document.getElementById(`cell${j}-voltage-${i}`);
-                            cellVoltage.innerText = packData.cell_voltage[j - 1] + ' mV';
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Voltage (V)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Current (A)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false,
+                            position: 'right',
                         }
-
-                        cmosTemp.innerText = (packData.fet_temperature / 10).toFixed(1) + ' °C';
-                        dmosTemp.innerText = (packData.fet_temperature / 10).toFixed(1) + ' °C';
-                        envTemp.innerText = (packData.environment_temperature / 10).toFixed(1) + ' °C';
-                        topTemp.innerText = (packData.cell_temperature[0] / 10).toFixed(1) + ' °C';
-                        midTemp.innerText = (packData.cell_temperature[1] / 10).toFixed(1) + ' °C';
-                        botTemp.innerText = (packData.cell_temperature[2] / 10).toFixed(1) + ' °C';
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `Battery Pack ${packNumber} - Real-time Performance`
+                        }
                     }
                 }
-            }
-        } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
+            });
         }
-    };
-
-    talisActive();
-    talisData();
+    }
 </script>
 {% endblock %}
