@@ -32,12 +32,17 @@
 
     <!-- Main Container -->
     <div class="app-container">
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo-container">
                     <img src="{{ url_for('static', filename='images/logoSundaya300x.png') }}" alt="Sundaya" class="logo">
-                    <h5 class="logo-text">JSPro PowerDesk</h5>
+                    <div class="logo-text-container">
+                        <h5 class="logo-text">JSPro PowerDesk</h5>
+                    </div>
                 </div>
                 <button class="btn-close-sidebar d-lg-none" id="closeSidebar">
                     <i class="fas fa-times"></i>
@@ -51,11 +56,12 @@
                         <a href="/" class="nav-link {{ 'active' if request.endpoint == 'main.index' }}">
                             <i class="fas fa-home"></i>
                             <span>Dashboard</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                     {% endif %}
                     
-                    <li class="nav-item has-submenu">
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.scc', 'main.battery'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-chart-line"></i>
                             <span>Monitoring</span>
@@ -65,14 +71,16 @@
                             <li>
                                 <a href="/scc" class="nav-link {{ 'active' if request.endpoint == 'main.scc' }}">
                                     <i class="fas fa-solar-panel"></i>
-                                    Solar Charge Controller
+                                    <span>Solar Charge Controller</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% if username == 'teknisi' %}
                             <li>
                                 <a href="/battery" class="nav-link {{ 'active' if request.endpoint == 'main.battery' }}">
                                     <i class="fas fa-battery-full"></i>
-                                    Battery Monitor
+                                    <span>Battery Monitor</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% endif %}
@@ -80,7 +88,7 @@
                     </li>
                     
                     {% if username == 'teknisi' %}
-                    <li class="nav-item has-submenu">
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.datalog', 'main.scc_alarm_log'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-history"></i>
                             <span>Historical Data</span>
@@ -90,13 +98,15 @@
                             <li>
                                 <a href="/datalog" class="nav-link {{ 'active' if request.endpoint == 'main.datalog' }}">
                                     <i class="fas fa-database"></i>
-                                    Data Logs
+                                    <span>Data Logs</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             <li>
                                 <a href="/scc-alarm-log" class="nav-link {{ 'active' if request.endpoint == 'main.scc_alarm_log' }}">
                                     <i class="fas fa-exclamation-triangle"></i>
-                                    SCC Alarm Log
+                                    <span>SCC Alarm Log</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                         </ul>
@@ -108,11 +118,12 @@
                         <a href="/site-information" class="nav-link {{ 'active' if request.endpoint == 'main.site_information' }}">
                             <i class="fas fa-info-circle"></i>
                             <span>Site Information</span>
+                            <div class="nav-indicator"></div>
                         </a>
                     </li>
                     {% endif %}
                     
-                    <li class="nav-item has-submenu">
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.setting_device', 'main.setting_scc', 'main.setting_ip', 'main.config_value_scc', 'main.disk_storage'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
@@ -123,7 +134,8 @@
                             <li>
                                 <a href="/setting-device" class="nav-link {{ 'active' if request.endpoint == 'main.setting_device' }}">
                                     <i class="fas fa-microchip"></i>
-                                    Device Settings
+                                    <span>Device Settings</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% endif %}
@@ -131,27 +143,31 @@
                             <li>
                                 <a href="/setting-scc" class="nav-link {{ 'active' if request.endpoint == 'main.setting_scc' }}">
                                     <i class="fas fa-solar-panel"></i>
-                                    SCC Settings
+                                    <span>SCC Settings</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             <li>
                                 <a href="/setting-ip" class="nav-link {{ 'active' if request.endpoint == 'main.setting_ip' }}">
                                     <i class="fas fa-network-wired"></i>
-                                    IP Configuration
+                                    <span>IP Configuration</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% if username == 'apt' and scc_type != 'scc-tristar' %}
                             <li>
                                 <a href="/config-value-scc" class="nav-link {{ 'active' if request.endpoint == 'main.config_value_scc' }}">
                                     <i class="fas fa-wrench"></i>
-                                    SCC Configuration
+                                    <span>SCC Configuration</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% endif %}
                             <li>
                                 <a href="/disk-storage" class="nav-link {{ 'active' if request.endpoint == 'main.disk_storage' }}">
                                     <i class="fas fa-hdd"></i>
-                                    Disk Storage
+                                    <span>Disk Storage</span>
+                                    <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% endif %}
@@ -188,8 +204,16 @@
                     <div class="breadcrumb-container">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><i class="fas fa-home"></i></li>
-                                <li class="breadcrumb-item active">{% block breadcrumbs %}Dashboard{% endblock %}</li>
+                                <li class="breadcrumb-item">
+                                    <a href="/">
+                                        <i class="fas fa-home"></i>
+                                        <span class="d-none d-sm-inline">Home</span>
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    <i class="fas fa-angle-right me-2"></i>
+                                    {% block breadcrumbs %}Dashboard{% endblock %}
+                                </li>
                             </ol>
                         </nav>
                     </div>
@@ -197,19 +221,27 @@
                 
                 <div class="header-center">
                     <div class="site-info">
-                        <h6 class="site-name">{{ site_name }}</h6>
-                        <span class="site-ip">{{ ip_address }}</span>
+                        <h6 class="site-name">{{ site_name or 'JSPro PowerDesk' }}</h6>
+                        <span class="site-ip">{{ ip_address or 'No IP' }}</span>
                     </div>
                 </div>
                 
                 <div class="header-right">
                     <div class="header-actions">
-                        <button class="btn btn-outline-primary btn-sm me-2" id="refreshData">
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh
-                        </button>
+                        <div class="action-group">
+                            <button class="btn btn-outline-primary btn-sm" id="refreshData" title="Refresh Data">
+                                <i class="fas fa-sync-alt"></i>
+                                <span class="d-none d-md-inline ms-1">Refresh</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="toggleTheme" title="Toggle Theme">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                        </div>
                         <div class="datetime-display" id="datetime-display">
-                            <span id="current-time"></span>
+                            <div class="time-info">
+                                <span id="current-time" class="time-text"></span>
+                                <span id="current-date" class="date-text"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
