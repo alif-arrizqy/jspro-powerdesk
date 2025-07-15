@@ -1,57 +1,65 @@
-{% extends 'layout.html' %}
-{% block breadcrumbs %} Dashboard {% endblock breadcrumbs %}
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}Dashboard{% endblock breadcrumbs %}
 
 {% block content %}
-<!-- Flash messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="container mt-3">
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    <strong>Info!</strong> {{ message }} <strong>{{ username.capitalize() }}</strong>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}
-<!-- Device Information -->
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text">
-                    <a href="#" style="text-decoration: none;">
-                        <i class="fas fa-info"></i> Device Information
-                    </a>
-                </h4>
+<!-- System Status Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    System Status Overview
+                </h2>
             </div>
-            <div class="card-content">
-                <div class="row">
-                    <div class="col-lg-4">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>SCC Type</strong></p>
-                                <h6 class="card-title left-text" id="scc-type" aria-label="SCC Type">Getting Data...</h6>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Battery Type</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-battery"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value" id="battery-type">Loading...</h3>
+                            <p class="stats-card-subtitle">Battery in Use</p>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Disk Usage</strong></p>
-                                <h6 class="card-title left-text" id="disk-usage">used: | free: / GB</h6>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">SCC Type</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-solar-panel"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value" id="scc-type">Loading...</h3>
+                            <p class="stats-card-subtitle">Solar Charge Controller</p>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Data Loggers Length</strong></p>
-                                <h6 class="card-title left-text" id="datalog-length" arial-label="Datalog Length">Getting Data...</h6>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Disk Usage</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value" id="disk-usage">Loading...</h3>
+                            <p class="stats-card-subtitle">Storage Space</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Data Logs</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="datalog-length">Loading...</h3>
+                            <p class="stats-card-subtitle">Total Records</p>
                         </div>
                     </div>
                 </div>
@@ -60,84 +68,133 @@
     </div>
 </div>
 
-<!--Power/LVD Overview -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
-                <h4 class="card-title left-text">
-                    <a href="#" style="text-decoration: none;">
-                        <i class="fas fa-bolt"></i> Power Overview
-                    </a>
-                </h4>
-                <h4 class="card-title text-right">
-                    <a href="#" style="text-decoration: none;">
-                        <i class="fas fa-heart"></i>
-                        <span id="lvd-counter-heartbeat">Heartbeat: Getting Data...</span>
-                    </a>
-                </h4>
+<!-- Power & LVD Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-bolt"></i>
+                    Power System Status
+                </h2>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-heartbeat text-danger me-2"></i>
+                    <span class="text-muted" id="lvd-counter-heartbeat">Heartbeat: Loading...</span>
+                </div>
             </div>
-            <div class="card-content">
-                <div class="row">
-                    <!-- VSAT Lvd -->
-                    <div class="col-lg-6">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>VSAT LVD</strong></p>
-                                <h5 id="vsat-lvd" class="card-title left-text">Getting Data...</h5>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <!-- LVD Status -->
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">VSAT LVD</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-satellite"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="vsat-lvd">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">VSAT Low Voltage Disconnect</p>
                         </div>
                     </div>
-
-                    <!-- BTS Lvd -->
-                    <div class="col-lg-6">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>BTS LVD</strong></p>
-                                <h5 id="bts-lvd" class="card-title left-text">Getting Data...</h5>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">BTS LVD</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-broadcast-tower"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="bts-lvd">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">BTS Low Voltage Disconnect</p>
                         </div>
                     </div>
-
-                    <!-- MCB -->
-                    {% for i in range(1, 4) %}
-                    <div class="col-lg-4">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>MCB {{i}} Status</strong></p>
-                                <h5 id="mcb{{i}}" class="card-title left-text">Getting Data...</h5>
+                    
+                    <!-- MCB Status -->
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">MCB 1</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-toggle-on"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="mcb1">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Circuit Breaker 1</p>
                         </div>
                     </div>
-                    {% endfor %}
-
-                    <!-- System Voltage -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>System Voltage</strong></p>
-                                <h5 id="system-voltage" class="card-title left-text">Getting Data...</h5>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">MCB 2</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-toggle-on"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="mcb2">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Circuit Breaker 2</p>
                         </div>
                     </div>
-
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">MCB 3</h6>
+                                <div class="stats-card-icon bg-danger">
+                                    <i class="fas fa-toggle-on"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="mcb3">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Circuit Breaker 3</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Voltage Readings -->
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">System Voltage</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="system-voltage">Loading...</h3>
+                            <p class="stats-card-subtitle">Main System Voltage</p>
+                        </div>
+                    </div>
                     
                     {% for i in range(1, number_of_scc+1) %}
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Load {{i}} Voltage</strong></p>
-                                <h5 id="load{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Load {{i}} Voltage</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value" id="load{{i}}-voltage">Loading...</h3>
+                            <p class="stats-card-subtitle">Load {{i}} Voltage Reading</p>
                         </div>
                     </div>
-
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Load {{i}} Current</strong></p>
-                                <h5 id="load{{i}}-current" class="card-title left-text">Getting Data...</h5>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Load {{i}} Current</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
                             </div>
+                            <h3 class="stats-card-value" id="load{{i}}-current">Loading...</h3>
+                            <p class="stats-card-subtitle">Load {{i}} Current Reading</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -148,350 +205,449 @@
 </div>
 
 <!-- SCC Overview -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border d-flex justify-content-between align-items-center">
-                <h4 class="card-title left-text">
-                    <a href="#" style="text-decoration: none;">
-                        <i class="fas fa-solar-panel"></i> SCC Overview
-                    </a>
-                </h4>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-solar-panel"></i>
+                    Solar Charge Controller Overview
+                </h2>
             </div>
-            <div class="card-content">
-                <div class="row">
-                    <!-- SCC Status -->
-                    <!-- jika ada 3 scc, col-lg-4 -->
-                    <!-- jika ada 2 scc, col-lg-6 -->
-                    
-                    <!-- SCC 2 -->
-                    {% if number_of_scc == 2 %}
+            <div class="modern-card-body">
+                {% if number_of_scc == 2 %}
+                <div class="row g-4">
                     {% for i in range(1, number_of_scc+1) %}
-                    <!-- SCC Status -->
-                    <div class="col-lg-5">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
-                                <h5 id="scc{{i}}-status" class="card-title left-text">Getting Data...</h5>
+                    <div class="col-lg-6">
+                        <div class="modern-card">
+                            <div class="modern-card-header">
+                                <h5 class="modern-card-title">
+                                    <i class="fas fa-solar-panel"></i>
+                                    SCC {{i}}
+                                </h5>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-heartbeat text-danger me-2"></i>
+                                    <span class="text-muted" id="scc{{i}}-counter-heartbeat">Loading...</span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- SCC Counter Heartbeat -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Heartbeat</strong></p>
-                                <h5 id="scc{{i}}-counter-heartbeat" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- PV Voltage -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>PV{{i}} Voltage</strong></p>
-                                <h5 id="pv{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- PV Current -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>PV{{i}} Current</strong></p>
-                                <h5 id="pv{{i}}-current" class="card-title left-text">Getting Data...</h5>
+                            <div class="modern-card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="stats-card">
+                                            <div class="stats-card-header">
+                                                <h6 class="stats-card-title">Status</h6>
+                                                <div class="stats-card-icon bg-primary">
+                                                    <i class="fas fa-power-off"></i>
+                                                </div>
+                                            </div>
+                                            <h4 class="stats-card-value">
+                                                <span class="status-indicator" id="scc{{i}}-status">Loading...</span>
+                                            </h4>
+                                            <p class="stats-card-subtitle">SCC {{i}} Status</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stats-card">
+                                            <div class="stats-card-header">
+                                                <h6 class="stats-card-title">PV {{i}} Voltage</h6>
+                                                <div class="stats-card-icon bg-success">
+                                                    <i class="fas fa-sun"></i>
+                                                </div>
+                                            </div>
+                                            <h4 class="stats-card-value" id="pv{{i}}-voltage">Loading...</h4>
+                                            <p class="stats-card-subtitle">Photovoltaic Voltage</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stats-card">
+                                            <div class="stats-card-header">
+                                                <h6 class="stats-card-title">PV {{i}} Current</h6>
+                                                <div class="stats-card-icon bg-info">
+                                                    <i class="fas fa-tachometer-alt"></i>
+                                                </div>
+                                            </div>
+                                            <h4 class="stats-card-value" id="pv{{i}}-current">Loading...</h4>
+                                            <p class="stats-card-subtitle">Photovoltaic Current</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stats-card">
+                                            <div class="stats-card-header">
+                                                <h6 class="stats-card-title">PV {{i}} Power</h6>
+                                                <div class="stats-card-icon bg-warning">
+                                                    <i class="fas fa-bolt"></i>
+                                                </div>
+                                            </div>
+                                            <h4 class="stats-card-value" id="pv{{i}}-power">Loading...</h4>
+                                            <p class="stats-card-subtitle">Photovoltaic Power</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
-                    {% endif %}
-
-                    <!-- SCC 3 -->
-                    {% if number_of_scc == 3 %}
+                </div>
+                {% else %}
+                <!-- Handle different number of SCCs -->
+                <div class="row g-3">
                     {% for i in range(1, number_of_scc+1) %}
-                    <!-- SCC Status -->
-                    <div class="col-lg-5">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>SCC {{i}} Status</strong></p>
-                                <h5 id="scc{{i}}-status" class="card-title left-text">Getting Data...</h5>
+                    <div class="col-lg-4">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">SCC {{i}} Status</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-power-off"></i>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- SCC Counter Heartbeat -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Heartbeat</strong></p>
-                                <h5 id="scc{{i}}-counter-heartbeat" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- PV Voltage -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>PV{{i}} Voltage</strong></p>
-                                <h5 id="pv{{i}}-voltage" class="card-title left-text">Getting Data...</h5>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- PV Current -->
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>PV{{i}} Current</strong></p>
-                                <h5 id="pv{{i}}-current" class="card-title left-text">Getting Data...</h5>
-                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="scc{{i}}-status">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Solar Charge Controller {{i}}</p>
                         </div>
                     </div>
                     {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-tools"></i>
+                    Quick Actions
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="/scc" class="btn btn-modern btn-primary w-100">
+                            <i class="fas fa-solar-panel"></i>
+                            Monitor SCC
+                        </a>
+                    </div>
+                    {% if username == 'teknisi' %}
+                    <div class="col-md-3">
+                        <a href="/battery" class="btn btn-modern btn-success w-100">
+                            <i class="fas fa-battery-full"></i>
+                            Battery Status
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/datalog" class="btn btn-modern btn-info w-100">
+                            <i class="fas fa-database"></i>
+                            View Data Logs
+                        </a>
+                    </div>
                     {% endif %}
+                    <div class="col-md-3">
+                        <a href="/site-information" class="btn btn-modern btn-secondary w-100">
+                            <i class="fas fa-info-circle"></i>
+                            Site Information
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock content %}
 
-{% block js %}
-<script> 
-const deviceInformation = async () => {
-    try {
-        const response = await fetch('/api/device-information/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+{% endblock %}
 
-        const data = await response.json();
+{% block scripts %}
+<script>
+// Enhanced dashboard functionality with modern approach
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard data updates
+    if (window.powerDeskApp) {
+        // Override the default data processing for dashboard
+        window.powerDeskApp.processData = function(endpoint, data) {
+            switch (endpoint) {
+                case '/api/device-information':
+                    updateDeviceInformation(data);
+                    break;
+                case '/api/lvd-realtime':
+                    updatePowerOverview(data);
+                    break;
+                case '/api/scc-realtime':
+                    updateSCCOverview(data);
+                    break;
+            }
+        };
+    }
+});
 
-        if (data.code == 500) {
-            console.log(`Error: ${data.status}`);
-            return;
-        }
+// Device Information Update
+const updateDeviceInformation = (data) => {
+    if (data.code == 500) {
+        console.log(`Error: ${data.status}`);
+        return;
+    }
 
-        // SCC Type
-        document.getElementById('scc-type').innerHTML = data.data.device_information.scc_type.toUpperCase();
+    // Battery Type
+    const batteryTypeElement = document.getElementById('battery-type');
+    if (batteryTypeElement && data.data.device_information) {
+        batteryTypeElement.textContent = data.data.device_information.battery_type.toUpperCase();
+    }
+    
+    // SCC Type
+    const sccTypeElement = document.getElementById('scc-type');
+    if (sccTypeElement && data.data.device_information) {
+        sccTypeElement.textContent = data.data.device_information.scc_type.toUpperCase();
+    }
+    
+    // Disk Usage
+    const diskUsageElement = document.getElementById('disk-usage');
+    if (diskUsageElement && data.data.disk_ram) {
+        const disk = data.data.disk_ram.disk;
+        const usageText = `${disk.used}/${disk.total} GB (${disk.free} free)`;
+        diskUsageElement.textContent = usageText;
         
-        // Disk Usage
-        if (data.data.disk_ram.disk.used > 11) {
-            document.getElementById('disk-usage').innerHTML = `<mark class="status-danger">used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB</mark>`;
+        // Update status indicator
+        if (disk.used > 11) {
+            diskUsageElement.classList.add('text-danger');
         } else {
-            document.getElementById('disk-usage').innerHTML = `used: ${data.data.disk_ram.disk.used} | free: ${data.data.disk_ram.disk.free} / ${data.data.disk_ram.disk.total} GB`;
+            diskUsageElement.classList.remove('text-danger');
         }
+    }
+    
+    // Datalog length
+    const datalogElement = document.getElementById('datalog-length');
+    if (datalogElement && data.data.datalog_length !== undefined) {
+        datalogElement.textContent = data.data.datalog_length;
         
-        // datalog length
+        // Update status indicator
         if (data.data.datalog_length > 500) {
-            document.getElementById('datalog-length').innerHTML = `<mark class="status-danger">${data.data.datalog_length}</mark>`;
+            datalogElement.classList.add('text-danger');
         } else {
-            document.getElementById('datalog-length').innerHTML = data.data.datalog_length;
+            datalogElement.classList.remove('text-danger');
         }
-    } catch (error) {
-        console.error(`Failed to fetch data: ${error.message}`);
     }
 };
 
-const powerOverview = async () => {
-    try {
-        const response = await fetch('/api/realtime/lvd/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+// Power Overview Update
+const updatePowerOverview = (data) => {
+    if (data.code == 500) {
+        console.log(`Error: ${data.status}`);
+        return;
+    }
 
-        const data = await response.json();
-
-        if (data.code == 500) {
-            console.log(`Error: ${data.status}`);
-            return;
-        }
-    
-        // Counter Heartbeat
-        if (data.data.counter_heartbeat == -1) {
-            document.getElementById('lvd-counter-heartbeat').innerHTML = `<mark class="status-inactive">Heartbeat: ${data.data.counter_heartbeat}</mark>`;
-        } else {
-            document.getElementById('lvd-counter-heartbeat').innerHTML = `Heartbeat: ${data.data.counter_heartbeat}`;
-        }
-    
-        // System Voltage
-        if (data.data.system_voltage === -1){
-            document.getElementById('system-voltage').innerHTML = `<mark class="status-inactive">${data.data.system_voltage}</mark>`;
-        } else {
-            document.getElementById('system-voltage').innerHTML = `${data.data.system_voltage} V`;
-        }
-    
-        // Relay and MCB Status
-        // MCB Status
-        {% for i in range(1, 4) %}
-            if (data.data.relay_status.relay{{i}} === "CLOSED") {
-                document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-active">${data.data.relay_status.relay{{i}}}</mark>`;
-            } else {
-                document.getElementById('mcb{{i}}').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay{{i}}}</mark>`;
-            }
-        {% endfor %}
-    
-        // VSAT LVD
-        if (data.data.relay_status.relay1 === "CLOSED") {
-            document.getElementById('vsat-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay1}</mark>`;
-        } else {
-            document.getElementById('vsat-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay1}</mark>`;
-        }
+    // Counter Heartbeat
+    const heartbeatElement = document.getElementById('lvd-counter-heartbeat');
+    if (heartbeatElement) {
+        const heartbeatText = `Heartbeat: ${data.data.counter_heartbeat}`;
+        heartbeatElement.textContent = heartbeatText;
         
-        // BTS LVD
-        if (data.data.relay_status.relay2 === "CLOSED") {
-            document.getElementById('bts-lvd').innerHTML = `<mark class="status-active">${data.data.relay_status.relay2}</mark>`;
+        if (data.data.counter_heartbeat == -1) {
+            heartbeatElement.classList.add('text-danger');
         } else {
-            document.getElementById('bts-lvd').innerHTML = `<mark class="status-inactive">${data.data.relay_status.relay2}</mark>`;
+            heartbeatElement.classList.remove('text-danger');
         }
-    
-        // Load Voltage
-        {% if number_of_scc == 2 %}
-        {% for i in range(1, number_of_scc+1) %}
-            if (data.data.lvd.lvd{{i}} === -1){
-                document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.lvd.lvd{{i}}}</mark>`;
-            } else {
-                document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
-            }
-    
-            if (data.data.load_current.load{{i}}_current === -1){
-                document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.load_current.load{{i}}_current}</mark>`;
-            } else {
-                document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
-            }
-        {% endfor %}
-        {% endif %}
-    
-        {% if number_of_scc == 3 %}
-        {% for i in range(1, number_of_scc+1) %}
-            if (data.data.lvd.lvd{{i}} === -1){
-                document.getElementById('load{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.lvd.lvd{{i}}}</mark>`;
-            } else {
-                document.getElementById('load{{i}}-voltage').innerHTML = `${data.data.lvd.lvd{{i}}} V`;
-            }
-    
-            if (data.data.load_current.load{{i}}_current === -1){
-                document.getElementById('load{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.load_current.load{{i}}_current}</mark>`;
-            } else {
-                document.getElementById('load{{i}}-current').innerHTML = `${data.data.load_current.load{{i}}_current} A`;
-            }
-        {% endfor %}
-        {% endif %}
+    }
 
-    } catch {
-        console.error(`Failed to fetch data: ${error.message}`);
+    // System Voltage
+    const systemVoltageElement = document.getElementById('system-voltage');
+    if (systemVoltageElement) {
+        if (data.data.system_voltage === -1) {
+            systemVoltageElement.textContent = 'N/A';
+            systemVoltageElement.classList.add('text-muted');
+        } else {
+            systemVoltageElement.textContent = `${data.data.system_voltage} V`;
+            systemVoltageElement.classList.remove('text-muted');
+        }
+    }
+
+    // MCB Status
+    {% for i in range(1, 4) %}
+    const mcb{{i}}Element = document.getElementById('mcb{{i}}');
+    if (mcb{{i}}Element && data.data.relay_status) {
+        const status = data.data.relay_status.relay{{i}};
+        const statusSpan = mcb{{i}}Element.querySelector('.status-indicator') || mcb{{i}}Element;
+        statusSpan.textContent = status;
+        
+        if (status === "CLOSED") {
+            statusSpan.className = 'status-indicator active';
+        } else {
+            statusSpan.className = 'status-indicator inactive';
+        }
+    }
+    {% endfor %}
+
+    // VSAT LVD
+    const vsatLvdElement = document.getElementById('vsat-lvd');
+    if (vsatLvdElement && data.data.relay_status) {
+        const status = data.data.relay_status.relay1;
+        vsatLvdElement.textContent = status;
+        
+        if (status === "CLOSED") {
+            vsatLvdElement.className = 'status-indicator active';
+        } else {
+            vsatLvdElement.className = 'status-indicator inactive';
+        }
     }
     
+    // BTS LVD
+    const btsLvdElement = document.getElementById('bts-lvd');
+    if (btsLvdElement && data.data.relay_status) {
+        const status = data.data.relay_status.relay2;
+        btsLvdElement.textContent = status;
+        
+        if (status === "CLOSED") {
+            btsLvdElement.className = 'status-indicator active';
+        } else {
+            btsLvdElement.className = 'status-indicator inactive';
+        }
+    }
+
+    // Load Voltage and Current
+    {% if number_of_scc >= 2 %}
+    {% for i in range(1, number_of_scc+1) %}
+    const load{{i}}VoltageElement = document.getElementById('load{{i}}-voltage');
+    if (load{{i}}VoltageElement && data.data.lvd) {
+        if (data.data.lvd.lvd{{i}} === -1) {
+            load{{i}}VoltageElement.textContent = 'N/A';
+            load{{i}}VoltageElement.classList.add('text-muted');
+        } else {
+            load{{i}}VoltageElement.textContent = `${data.data.lvd.lvd{{i}}} V`;
+            load{{i}}VoltageElement.classList.remove('text-muted');
+        }
+    }
+
+    const load{{i}}CurrentElement = document.getElementById('load{{i}}-current');
+    if (load{{i}}CurrentElement && data.data.load_current) {
+        if (data.data.load_current.load{{i}}_current === -1) {
+            load{{i}}CurrentElement.textContent = 'N/A';
+            load{{i}}CurrentElement.classList.add('text-muted');
+        } else {
+            load{{i}}CurrentElement.textContent = `${data.data.load_current.load{{i}}_current} A`;
+            load{{i}}CurrentElement.classList.remove('text-muted');
+        }
+    }
+    {% endfor %}
+    {% endif %}
 };
 
-const sccOverview = async () => {
-    try {
-        const response = await fetch('/api/realtime/scc/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.code == 500) {
-            console.log(`Error: ${data.status}`);
-            return;
-        }
-
-        {% if number_of_scc == 2 %}
-        // SCC Status
-        {% for i in range(1, number_of_scc+1) %}
-            // SCC Status
-            if (data.data.scc{{i}}.load_status == 'is standby') {
-                document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.load_status}</mark>`;
-            } else if (data.data.scc{{i}}.load_status == 'modbus error' || data.data.scc{{i}}.load_status == 'unknown status') {
-                document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-danger">${data.data.scc{{i}}.load_status}</mark>`; 
-            } else {
-                document.getElementById('scc{{i}}-status').innerHTML = `${data.data.scc{{i}}.load_status}`;
-            }
-
-            // PV Voltage
-            if (data.data.scc{{i}}.pv_voltage === -1){
-                document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_voltage}</mark>`;
-            } else {
-                document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.scc{{i}}.pv_voltage} V`;
-            }
-
-            // PV Current
-            if (data.data.scc{{i}}.pv_current === -1){
-                document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_current}</mark>`;
-            } else {
-                document.getElementById('pv{{i}}-current').innerHTML = `${data.data.scc{{i}}.pv_current} A`;
-            }
-
-            // SCC Counter Heartbeat
-            if (data.data.scc{{i}}.counter_heartbeat == -1) {
-                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `<mark class="status-inactive">Heartbeat:${data.data.scc{{i}}.counter_heartbeat}</mark>`;
-            } else {
-                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `Heartbeat: ${data.data.scc{{i}}.counter_heartbeat}`;
-            }
-        {% endfor %}
-        {% endif %}
-
-        {% if number_of_scc == 3 %}
-        {% for i in range(1, number_of_scc+1) %}
-            // SCC Status
-            if (data.data.scc{{i}}.load_status != 'is running') {
-                document.getElementById('scc{{i}}-status').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.load_status}</mark>`;
-            } else {
-                document.getElementById('scc{{i}}-status').innerHTML = `${data.data.scc{{i}}.load_status}`;
-            }
-
-            // PV Voltage
-            if (data.data.scc{{i}}.pv_voltage === -1){
-                document.getElementById('pv{{i}}-voltage').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_voltage}</mark>`;
-            } else {
-                document.getElementById('pv{{i}}-voltage').innerHTML = `${data.data.scc{{i}}.pv_voltage} V`;
-            }
-
-            // PV Current
-            if (data.data.scc{{i}}.pv_current === -1){
-                document.getElementById('pv{{i}}-current').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.pv_current}</mark>`;
-            } else {
-                document.getElementById('pv{{i}}-current').innerHTML = `${data.data.scc{{i}}.pv_current} A`;
-            }
-
-            // SCC Counter Heartbeat
-            if (data.data.scc{{i}}.counter_heartbeat == -1) {
-                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `<mark class="status-inactive">${data.data.scc{{i}}.counter_heartbeat}</mark>`;
-            } else {
-                document.getElementById('scc{{i}}-counter-heartbeat').innerHTML = `${data.data.scc{{i}}.counter_heartbeat}`;
-            }
-        {% endfor %}
-        {% endif %}
-    } catch {
-        console.error(`Failed to fetch data: ${error.message}`);
+// SCC Overview Update
+const updateSCCOverview = (data) => {
+    if (data.code == 500) {
+        console.log(`Error: ${data.status}`);
+        return;
     }
-}
 
-setInterval(() => {
-    deviceInformation();
-    powerOverview();
-    sccOverview();
-}, 1000);
+    {% if number_of_scc >= 2 %}
+    {% for i in range(1, number_of_scc+1) %}
+    // SCC {{i}} Status
+    const scc{{i}}StatusElement = document.getElementById('scc{{i}}-status');
+    if (scc{{i}}StatusElement && data.data.scc{{i}}) {
+        const status = data.data.scc{{i}}.load_status;
+        scc{{i}}StatusElement.textContent = status;
+        
+        if (status === 'is standby') {
+            scc{{i}}StatusElement.className = 'status-indicator inactive';
+        } else if (status === 'modbus error' || status === 'unknown status') {
+            scc{{i}}StatusElement.className = 'status-indicator danger';
+        } else {
+            scc{{i}}StatusElement.className = 'status-indicator active';
+        }
+    }
+
+    // PV {{i}} Voltage
+    const pv{{i}}VoltageElement = document.getElementById('pv{{i}}-voltage');
+    if (pv{{i}}VoltageElement && data.data.scc{{i}}) {
+        if (data.data.scc{{i}}.pv_voltage === -1) {
+            pv{{i}}VoltageElement.textContent = 'N/A';
+            pv{{i}}VoltageElement.classList.add('text-muted');
+        } else {
+            pv{{i}}VoltageElement.textContent = `${data.data.scc{{i}}.pv_voltage} V`;
+            pv{{i}}VoltageElement.classList.remove('text-muted');
+        }
+    }
+
+    // PV {{i}} Current
+    const pv{{i}}CurrentElement = document.getElementById('pv{{i}}-current');
+    if (pv{{i}}CurrentElement && data.data.scc{{i}}) {
+        if (data.data.scc{{i}}.pv_current === -1) {
+            pv{{i}}CurrentElement.textContent = 'N/A';
+            pv{{i}}CurrentElement.classList.add('text-muted');
+        } else {
+            pv{{i}}CurrentElement.textContent = `${data.data.scc{{i}}.pv_current} A`;
+            pv{{i}}CurrentElement.classList.remove('text-muted');
+        }
+    }
+
+    // PV {{i}} Power (calculate from voltage and current)
+    const pv{{i}}PowerElement = document.getElementById('pv{{i}}-power');
+    if (pv{{i}}PowerElement && data.data.scc{{i}}) {
+        const voltage = data.data.scc{{i}}.pv_voltage;
+        const current = data.data.scc{{i}}.pv_current;
+        
+        if (voltage === -1 || current === -1) {
+            pv{{i}}PowerElement.textContent = 'N/A';
+            pv{{i}}PowerElement.classList.add('text-muted');
+        } else {
+            const power = (voltage * current).toFixed(2);
+            pv{{i}}PowerElement.textContent = `${power} W`;
+            pv{{i}}PowerElement.classList.remove('text-muted');
+        }
+    }
+
+    // SCC {{i}} Counter Heartbeat
+    const scc{{i}}HeartbeatElement = document.getElementById('scc{{i}}-counter-heartbeat');
+    if (scc{{i}}HeartbeatElement && data.data.scc{{i}}) {
+        const heartbeat = data.data.scc{{i}}.counter_heartbeat;
+        scc{{i}}HeartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
+        
+        if (heartbeat == -1) {
+            scc{{i}}HeartbeatElement.classList.add('text-danger');
+        } else {
+            scc{{i}}HeartbeatElement.classList.remove('text-danger');
+        }
+    }
+    {% endfor %}
+    {% endif %}
+};
+
+// Fallback for manual data fetching if PowerDeskApp is not available
+if (!window.powerDeskApp) {
+    const fetchData = async (endpoint) => {
+        try {
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error(`Failed to fetch data from ${endpoint}:`, error);
+            return null;
+        }
+    };
+
+    const updateAllData = async () => {
+        const deviceData = await fetchData('/api/device-information/');
+        const lvdData = await fetchData('/api/realtime/lvd/');
+        const sccData = await fetchData('/api/realtime/scc/');
+        
+        if (deviceData) updateDeviceInformation(deviceData);
+        if (lvdData) updatePowerOverview(lvdData);
+        if (sccData) updateSCCOverview(sccData);
+    };
+
+    // Initial load and periodic updates
+    updateAllData();
+    setInterval(updateAllData, 5000);
+}
 </script>
-{% endblock js %}
+{% endblock %}
