@@ -2,14 +2,161 @@
 {% block breadcrumbs %}Dashboard{% endblock breadcrumbs %}
 
 {% block content %}
+
 <!-- System Status Overview -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h2 class="modern-card-title">
-                    <i class="fas fa-tachometer-alt"></i>
-                    System Status Overview
+                    <i class="fas fa-server"></i>
+                    System Resources & Services
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <!-- CPU Usage -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">CPU Usage</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="cpu-usage">Loading...</h3>
+                            <p class="stats-card-subtitle">Processor Load</p>
+                        </div>
+                    </div>
+                    <!-- Memory Usage -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Memory Usage</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="memory-usage">Loading...</h3>
+                            <p class="stats-card-subtitle">RAM Consumption</p>
+                        </div>
+                    </div>
+                    <!-- System Temperature -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Temperature</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="system-temp">Loading...</h3>
+                            <p class="stats-card-subtitle">System Temperature</p>
+                        </div>
+                    </div>
+                    <!-- Disk Usage -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Disk Usage</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="disk-usage">Loading...</h3>
+                            <p class="stats-card-subtitle">Storage Space</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Status Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-cogs"></i>
+                    Service Status Overview
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <!-- Redis Service -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Redis Service</h6>
+                                <div class="stats-card-icon bg-danger">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="redis-status">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Database Service</p>
+                        </div>
+                    </div>
+                    <!-- SNMP Service -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">SNMP Service</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="snmp-status">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Network Monitoring</p>
+                        </div>
+                    </div>
+                    <!-- MQTT Service -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">MQTT Service</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="mqtt-status">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Message Broker</p>
+                        </div>
+                    </div>
+                    <!-- System Uptime -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">System Uptime</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="system-uptime">Loading...</h3>
+                            <p class="stats-card-subtitle">Operational Time</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Device Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-info-circle"></i>
+                    Device Information
                 </h2>
             </div>
             <div class="modern-card-body">
@@ -41,13 +188,13 @@
                     <div class="col-md-3">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">Disk Usage</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-hdd"></i>
+                                <h6 class="stats-card-title">SCC IDs</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-hashtag"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value" id="disk-usage">Loading...</h3>
-                            <p class="stats-card-subtitle">Storage Space</p>
+                            <h3 class="stats-card-value" id="scc-ids">Loading...</h3>
+                            <p class="stats-card-subtitle">Controller IDs</p>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -223,7 +370,7 @@
                             <div class="modern-card-header">
                                 <h5 class="modern-card-title">
                                     <i class="fas fa-solar-panel"></i>
-                                    SCC {{i}}
+                                    SCC {{i}} <span class="badge bg-secondary" id="scc{{i}}-device-id">ID: Loading...</span>
                                 </h5>
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-heartbeat text-danger me-2"></i>
@@ -273,13 +420,37 @@
                                     <div class="col-md-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">PV {{i}} Power</h6>
+                                                <h6 class="stats-card-title">Load Voltage</h6>
+                                                <div class="stats-card-icon bg-info">
+                                                    <i class="fas fa-plug"></i>
+                                                </div>
+                                            </div>
+                                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
+                                            <p class="stats-card-subtitle">Load Voltage</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stats-card">
+                                            <div class="stats-card-header">
+                                                <h6 class="stats-card-title">Load Current</h6>
+                                                <div class="stats-card-icon bg-primary">
+                                                    <i class="fas fa-arrow-left"></i>
+                                                </div>
+                                            </div>
+                                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
+                                            <p class="stats-card-subtitle">Load Current</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stats-card">
+                                            <div class="stats-card-header">
+                                                <h6 class="stats-card-title">Load Power</h6>
                                                 <div class="stats-card-icon bg-warning">
                                                     <i class="fas fa-bolt"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value" id="pv{{i}}-power">Loading...</h4>
-                                            <p class="stats-card-subtitle">Photovoltaic Power</p>
+                                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
+                                            <p class="stats-card-subtitle">Load Power</p>
                                         </div>
                                     </div>
                                 </div>
@@ -364,6 +535,9 @@
 <script>
 // Enhanced dashboard functionality with modern approach
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize system monitoring
+    initializeSystemMonitoring();
+    
     // Initialize dashboard data updates
     if (window.powerDeskApp) {
         // Override the default data processing for dashboard
@@ -378,10 +552,101 @@ document.addEventListener('DOMContentLoaded', function() {
                 case '/api/scc-realtime':
                     updateSCCOverview(data);
                     break;
+                case '/api/system-resources':
+                    updateSystemResources(data);
+                    break;
+                case '/api/service-status':
+                    updateServiceStatus(data);
+                    break;
             }
         };
     }
 });
+
+// Helper function to update status indicators
+function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'running'], dangerStates = ['error', 'offline', 'stopped']) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = status;
+        
+        const statusLower = status.toLowerCase();
+        if (activeStates.some(state => statusLower.includes(state))) {
+            element.className = 'status-indicator active';
+        } else if (dangerStates.some(state => statusLower.includes(state))) {
+            element.className = 'status-indicator danger';
+        } else {
+            element.className = 'status-indicator inactive';
+        }
+    }
+}
+
+// System monitoring initialization
+function initializeSystemMonitoring() {
+    // Generate dummy system data
+    generateDummySystemData();
+    
+    // Update every 5 seconds
+    setInterval(generateDummySystemData, 5000);
+}
+
+// Generate dummy system resource data
+function generateDummySystemData() {
+    // CPU Usage
+    const cpuUsage = Math.floor(Math.random() * 80) + 10; // 10-90%
+    const cpuElement = document.getElementById('cpu-usage');
+    if (cpuElement) {
+        cpuElement.textContent = `${cpuUsage}%`;
+        cpuElement.className = cpuUsage > 80 ? 'stats-card-value text-danger' : 'stats-card-value';
+    }
+    
+    // Memory Usage
+    const memoryUsage = Math.floor(Math.random() * 70) + 20; // 20-90%
+    const memoryElement = document.getElementById('memory-usage');
+    if (memoryElement) {
+        memoryElement.textContent = `${memoryUsage}%`;
+        memoryElement.className = memoryUsage > 85 ? 'stats-card-value text-danger' : 'stats-card-value';
+    }
+    
+    // System Temperature
+    const systemTemp = (Math.random() * 20 + 35).toFixed(1); // 35-55°C
+    const tempElement = document.getElementById('system-temp');
+    if (tempElement) {
+        tempElement.textContent = `${systemTemp}°C`;
+        tempElement.className = systemTemp > 50 ? 'stats-card-value text-danger' : 'stats-card-value';
+    }
+    
+    // System Uptime
+    const uptimeHours = Math.floor(Math.random() * 720) + 1; // 1-720 hours
+    const days = Math.floor(uptimeHours / 24);
+    const hours = uptimeHours % 24;
+    const uptimeElement = document.getElementById('system-uptime');
+    if (uptimeElement) {
+        uptimeElement.textContent = `${days}d ${hours}h`;
+    }
+    
+    // Service Status
+    const services = ['redis', 'snmp', 'mqtt'];
+    const serviceStates = ['active', 'active', 'active', 'inactive', 'error'];
+    
+    services.forEach(service => {
+        const status = serviceStates[Math.floor(Math.random() * serviceStates.length)];
+        updateStatusIndicator(`${service}-status`, status, ['active'], ['inactive', 'error']);
+    });
+}
+
+// SCC Device ID mapping
+const sccDeviceIds = {
+    'scc-srne': ['122', '123', '124'],
+    'scc-epveper': ['1', '2']
+};
+
+// Update SCC IDs based on type
+function updateSCCIds(sccType) {
+    const sccIdsElement = document.getElementById('scc-ids');
+    if (sccIdsElement && sccDeviceIds[sccType]) {
+        sccIdsElement.textContent = sccDeviceIds[sccType].join(', ');
+    }
+}
 
 // Device Information Update
 const updateDeviceInformation = (data) => {
@@ -396,37 +661,44 @@ const updateDeviceInformation = (data) => {
         batteryTypeElement.textContent = data.data.device_information.battery_type.toUpperCase();
     }
     
-    // SCC Type
+    // SCC Type and IDs
     const sccTypeElement = document.getElementById('scc-type');
     if (sccTypeElement && data.data.device_information) {
-        sccTypeElement.textContent = data.data.device_information.scc_type.toUpperCase();
+        const sccType = data.data.device_information.scc_type;
+        sccTypeElement.textContent = sccType.toUpperCase();
+        
+        // Update SCC IDs based on type
+        updateSCCIds(sccType);
     }
     
     // Disk Usage
     const diskUsageElement = document.getElementById('disk-usage');
     if (diskUsageElement && data.data.disk_ram) {
         const disk = data.data.disk_ram.disk;
-        const usageText = `${disk.used}/${disk.total} GB (${disk.free} free)`;
+        const usagePercent = ((disk.used / disk.total) * 100).toFixed(1);
+        const usageText = `${usagePercent}% (${disk.used}/${disk.total} GB)`;
         diskUsageElement.textContent = usageText;
         
         // Update status indicator
-        if (disk.used > 11) {
+        if (usagePercent > 85) {
             diskUsageElement.classList.add('text-danger');
+        } else if (usagePercent > 70) {
+            diskUsageElement.classList.add('text-warning');
         } else {
-            diskUsageElement.classList.remove('text-danger');
+            diskUsageElement.classList.remove('text-danger', 'text-warning');
         }
     }
     
     // Datalog length
     const datalogElement = document.getElementById('datalog-length');
     if (datalogElement && data.data.datalog_length !== undefined) {
-        datalogElement.textContent = data.data.datalog_length;
+        datalogElement.textContent = data.data.datalog_length.toLocaleString();
         
         // Update status indicator
-        if (data.data.datalog_length > 500) {
-            datalogElement.classList.add('text-danger');
+        if (data.data.datalog_length > 1000) {
+            datalogElement.classList.add('text-warning');
         } else {
-            datalogElement.classList.remove('text-danger');
+            datalogElement.classList.remove('text-warning');
         }
     }
 };
@@ -540,8 +812,18 @@ const updateSCCOverview = (data) => {
         return;
     }
 
+    // Get SCC type to determine device IDs
+    const sccType = document.getElementById('scc-type')?.textContent?.toLowerCase() || 'unknown';
+    const deviceIds = sccDeviceIds[sccType] || [];
+
     {% if number_of_scc >= 2 %}
     {% for i in range(1, number_of_scc+1) %}
+    // SCC {{i}} Device ID
+    const scc{{i}}DeviceIdElement = document.getElementById('scc{{i}}-device-id');
+    if (scc{{i}}DeviceIdElement && deviceIds[{{i-1}}]) {
+        scc{{i}}DeviceIdElement.textContent = `ID: ${deviceIds[{{i-1}}]}`;
+    }
+
     // SCC {{i}} Status
     const scc{{i}}StatusElement = document.getElementById('scc{{i}}-status');
     if (scc{{i}}StatusElement && data.data.scc{{i}}) {
