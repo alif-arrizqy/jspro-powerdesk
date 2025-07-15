@@ -22,7 +22,22 @@ class PowerDeskApp {
         this.setupDataUpdates();
         this.setupWebSocket();
         this.setupAnimations();
+        this.initializeSidebar();
         this.hideLoadingSpinner();
+    }
+
+    initializeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Initialize sidebar state based on screen size
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.add('hidden');
+            mainContent.classList.remove('sidebar-open');
+        } else {
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('sidebar-open');
+        }
     }
 
     setupEventListeners() {
@@ -31,18 +46,23 @@ class PowerDeskApp {
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.querySelector('.main-content');
         const closeSidebar = document.getElementById('closeSidebar');
+        const mobileOverlay = document.getElementById('mobileSidebarOverlay');
 
         if (menuToggle) {
             menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('show');
-                mainContent.classList.toggle('expanded');
+                this.toggleSidebar();
             });
         }
 
         if (closeSidebar) {
             closeSidebar.addEventListener('click', () => {
-                sidebar.classList.remove('show');
-                mainContent.classList.remove('expanded');
+                this.closeSidebar();
+            });
+        }
+
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', () => {
+                this.closeSidebar();
             });
         }
 
@@ -54,6 +74,14 @@ class PowerDeskApp {
             });
         }
 
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+            });
+        }
+
         // Responsive handling
         window.addEventListener('resize', () => {
             this.handleResize();
@@ -61,16 +89,72 @@ class PowerDeskApp {
 
         // Handle clicks outside sidebar on mobile
         document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 1024) {
+            if (window.innerWidth <= 768) {
                 const sidebar = document.getElementById('sidebar');
                 const menuToggle = document.getElementById('menuToggle');
                 
                 if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.remove('show');
-                    mainContent.classList.remove('expanded');
+                    this.closeSidebar();
                 }
             }
         });
+
+        // Handle escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeSidebar();
+            }
+        });
+    }
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const mobileOverlay = document.getElementById('mobileSidebarOverlay');
+        const hamburger = document.getElementById('menuToggle');
+
+        if (window.innerWidth <= 768) {
+            // Mobile behavior
+            sidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        } else {
+            // Desktop behavior
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('sidebar-collapsed');
+        }
+    }
+
+    closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const mobileOverlay = document.getElementById('mobileSidebarOverlay');
+        const hamburger = document.getElementById('menuToggle');
+
+        if (window.innerWidth <= 768) {
+            sidebar.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+            hamburger.classList.remove('active');
+        } else {
+            sidebar.classList.add('hidden');
+            mainContent.classList.add('sidebar-collapsed');
+        }
+    }
+
+    toggleTheme() {
+        const body = document.body;
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        if (body.classList.contains('dark-theme')) {
+            body.classList.remove('dark-theme');
+            themeIcon.className = 'fas fa-moon';
+            localStorage.setItem('theme', 'light');
+        } else {
+            body.classList.add('dark-theme');
+            themeIcon.className = 'fas fa-sun';
+            localStorage.setItem('theme', 'dark');
+        }
     }
 
     setupNavigation() {
@@ -84,37 +168,83 @@ class PowerDeskApp {
                 const isOpen = parent.classList.contains('open');
                 
                 // Close all other submenus
-                document.querySelectorAll('.has-submenu').forEach(item => {
+                document.querySelectorAll('.has-submenu.open').forEach(item => {
                     if (item !== parent) {
                         item.classList.remove('open');
                     }
                 });
                 
                 // Toggle current submenu
-                parent.classList.toggle('open', !isOpen);
+                parent.classList.toggle('open');
+                
+                // Update aria-expanded
+                toggle.setAttribute('aria-expanded', !isOpen);
             });
         });
 
-        // Highlight active menu item
-        this.highlightActiveMenuItem();
+        // Set active states based on current page
+        this.setActiveNavigation();
     }
 
-    highlightActiveMenuItem() {
+    setActiveNavigation() {
         const currentPath = window.location.pathname;
         const navLinks = document.querySelectorAll('.nav-link');
         
         navLinks.forEach(link => {
             const href = link.getAttribute('href');
-            if (href === currentPath) {
+            if (href && (currentPath === href || currentPath.startsWith(href + '/'))) {
                 link.classList.add('active');
                 
                 // Open parent submenu if exists
-                const submenu = link.closest('.submenu');
-                if (submenu) {
-                    submenu.closest('.has-submenu').classList.add('open');
+                const parentSubmenu = link.closest('.has-submenu');
+                if (parentSubmenu) {
+                    parentSubmenu.classList.add('open');
+                    const toggle = parentSubmenu.querySelector('.submenu-toggle');
+                    if (toggle) {
+                        toggle.setAttribute('aria-expanded', 'true');
+                    }
                 }
             }
         });
+    }
+
+    updateSiteStatus() {
+        const statusElement = document.querySelector('.site-status');
+        const statusIndicator = document.querySelector('.status-indicator');
+        
+        if (statusElement && statusIndicator) {
+            if (this.isConnected) {
+                statusElement.classList.remove('offline');
+                statusElement.classList.add('online');
+                statusElement.querySelector('.status-text').textContent = 'Online';
+            } else {
+                statusElement.classList.remove('online');
+                statusElement.classList.add('offline');
+                statusElement.querySelector('.status-text').textContent = 'Offline';
+            }
+        }
+    }
+
+    handleResize() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const mobileOverlay = document.getElementById('mobileSidebarOverlay');
+        
+        if (window.innerWidth <= 768) {
+            // Mobile mode
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('sidebar-collapsed');
+            
+            // Close sidebar on mobile
+            if (!sidebar.classList.contains('active')) {
+                mobileOverlay.classList.remove('active');
+            }
+        } else {
+            // Desktop mode
+            sidebar.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+            document.getElementById('menuToggle').classList.remove('active');
+        }
     }
 
     setupDateTime() {
@@ -426,8 +556,11 @@ class PowerDeskApp {
         const mainContent = document.querySelector('.main-content');
         
         if (window.innerWidth > 1024) {
-            sidebar.classList.remove('show');
-            mainContent.classList.remove('expanded');
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('sidebar-open');
+        } else {
+            sidebar.classList.add('hidden');
+            mainContent.classList.remove('sidebar-open');
         }
     }
 
