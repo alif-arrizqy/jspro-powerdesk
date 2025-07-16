@@ -1,45 +1,203 @@
-{% extends 'layout.html' %}
-{% block breadcrumbs %} Data Log {% endblock breadcrumbs %}
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}Data Log Management{% endblock breadcrumbs %}
 
 {% block content %}
-<!-- content row -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-folder-open"></i> Data log</h4>
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Data Log Management
+                </h3>
             </div>
-            <div class="card-content">
-                <div class="row">
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Data Loggers Length</strong></p>
-                                <h6 class="card-title left-text" id="datalog-length" arial-label="Datalog Length">Calculating Data...</h6>
+            <div class="modern-card-body">
+                <p class="text-muted mb-0">Monitor and manage data in Redis and SQLite.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Storage Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-bar text-info me-2"></i>
+                    Storage Overview
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Redis Storage</h6>
+                                <div class="stats-card-icon bg-danger">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="redis-storage">Loading...</h3>
+                            <p class="stats-card-subtitle">Memory Usage</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">SQLite Storage</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="sqlite-storage">Loading...</h3>
+                            <p class="stats-card-subtitle">Disk Usage</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Disk Usage</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="stats-card-value" id="disk-usage">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Storage Space</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    Data Statistics
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Logger Records</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-list-ol"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="datalog-length">Loading...</h3>
+                            <p class="stats-card-subtitle">API Data Entries</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">SQLite Records</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="sqlite-length">Loading...</h3>
+                            <p class="stats-card-subtitle">Database Records</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Last Update</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="last-update">Loading...</h3>
+                            <p class="stats-card-subtitle">Data Refresh</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Operations -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-tools"></i>
+                    Data Operations
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-download text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Download Logger Data</h5>
+                                <p class="text-muted mb-3">Export all Data logs to JSON files</p>
+                                <button class="btn btn-modern btn-primary w-100" id="download-datalog" onclick="downloadLoggers();">
+                                    <i class="fas fa-download"></i>
+                                    Download Data Logs
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Download Data</strong></p>
-                                <h5 class="card-title left-text">
-                                    <button class="btn btn-primary btn-md" id="download-datalog" onclick="downloadLoggers();">
-                                        <b>Download</b>
-                                    </button>
-                                </h5>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-download text-warning" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Download SQLite Data</h5>
+                                <p class="text-muted mb-3">Export SQLite database to JSON</p>
+                                <button class="btn btn-modern btn-warning w-100" id="download-sqlite" onclick="downloadSqliteData();">
+                                    <i class="fas fa-download"></i>
+                                    Download SQLite
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Clear Data</strong></p>
-                                <h5 class="card-title left-text">
-                                    <button class="btn btn-warning btn-md" id="clear-datalog" onclick="clearLoggers();">
-                                        <b>Clear</b>
-                                    </button>
-                                </h5>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-trash-alt text-danger" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Clear Redis Data</h5>
+                                <p class="text-muted mb-3">Remove all Redis cache data</p>
+                                <button class="btn btn-modern btn-danger w-100" id="clear-redis" onclick="clearRedisData();">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Clear Redis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-trash-alt text-danger" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Clear SQLite Data</h5>
+                                <p class="text-muted mb-3">Remove all SQLite database data</p>
+                                <button class="btn btn-modern btn-danger w-100" id="clear-sqlite" onclick="clearSqliteData();">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Clear SQLite
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -48,14 +206,246 @@
         </div>
     </div>
 </div>
+
 {% endblock content %}
 
-{% block js %}
+{% block scripts %}
 <script>
     const siteName = "{{ site_name }}";
     
+    // Helper function to update status indicators
+    function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'unhealthy']) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = status;
+            
+            const statusLower = status.toLowerCase();
+            if (activeStates.some(state => statusLower.includes(state))) {
+                element.className = 'status-indicator active';
+            } else if (dangerStates.some(state => statusLower.includes(state))) {
+                element.className = 'status-indicator danger';
+            } else {
+                element.className = 'status-indicator inactive';
+            }
+        }
+    }
+
+    // Helper function to format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Helper function to update last update time
+    function updateLastUpdate() {
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            const now = new Date().toLocaleTimeString();
+            lastUpdateElement.textContent = now;
+        }
+    }
+
+    // Helper function to show loading state
+    function showLoadingState() {
+        const downloadBtn = document.getElementById('download-datalog');
+        const clearBtn = document.getElementById('clear-datalog');
+        const refreshBtn = document.getElementById('refresh-datalog');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = true;
+        }
+        if (refreshBtn) {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        }
+    }
+
+    // Helper function to reset button states
+    function resetButtonStates() {
+        const downloadBtn = document.getElementById('download-datalog');
+        const clearBtn = document.getElementById('clear-datalog');
+        const refreshBtn = document.getElementById('refresh-datalog');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = false;
+        }
+        if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        }
+    }
+
+    // Helper function to disable buttons when no data
+    function disableButtonsNoData() {
+        const downloadBtn = document.getElementById('download-datalog');
+        const clearBtn = document.getElementById('clear-datalog');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> No Data';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> No Data';
+        }
+    }
+
     const arrLoggersData = [];
+    const arrRedisData = [];
+    const arrSqliteData = [];
+    
+    // Function to get Redis data length
+    const getRedisDataLength = async () => {
+        try {
+            const response = await fetch('/api/redis/keys', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.length || 0;
+        } catch (error) {
+            console.error('Failed to get Redis data length:', error);
+            return 0;
+        }
+    };
+    
+    // Function to get SQLite data length
+    const getSqliteDataLength = async () => {
+        try {
+            const response = await fetch('/api/sqlite/count', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.count || 0;
+        } catch (error) {
+            console.error('Failed to get SQLite data length:', error);
+            return 0;
+        }
+    };
+    
+    // Function to get Redis storage usage
+    const getRedisStorage = async () => {
+        try {
+            const response = await fetch('/api/redis/info', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.used_memory || 0;
+        } catch (error) {
+            console.error('Failed to get Redis storage:', error);
+            return 0;
+        }
+    };
+    
+    // Function to get SQLite storage usage
+    const getSqliteStorage = async () => {
+        try {
+            const response = await fetch('/api/sqlite/size', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.size || 0;
+        } catch (error) {
+            console.error('Failed to get SQLite storage:', error);
+            return 0;
+        }
+    };
+    
+    // Function to update all data lengths
+    const updateAllDataLengths = async () => {
+        try {
+            const [redisLength, sqliteLength, redisStorage, sqliteStorage] = await Promise.all([
+                getRedisDataLength(),
+                getSqliteDataLength(),
+                getRedisStorage(),
+                getSqliteStorage()
+            ]);
+            
+            // Update Redis data
+            const redisLengthElement = document.getElementById('redis-length');
+            if (redisLengthElement) {
+                redisLengthElement.textContent = redisLength.toLocaleString();
+            }
+            
+            // Update SQLite data
+            const sqliteLengthElement = document.getElementById('sqlite-length');
+            if (sqliteLengthElement) {
+                sqliteLengthElement.textContent = sqliteLength.toLocaleString();
+            }
+            
+            // Update Redis storage
+            const redisStorageElement = document.getElementById('redis-storage');
+            if (redisStorageElement) {
+                redisStorageElement.textContent = formatFileSize(redisStorage);
+            }
+            
+            // Update SQLite storage
+            const sqliteStorageElement = document.getElementById('sqlite-storage');
+            if (sqliteStorageElement) {
+                sqliteStorageElement.textContent = formatFileSize(sqliteStorage);
+            }
+            
+            // Update total storage
+            const totalStorageElement = document.getElementById('total-storage');
+            if (totalStorageElement) {
+                const apiStorage = arrLoggersData.length * 1024; // Rough estimate
+                const totalStorage = apiStorage + redisStorage + sqliteStorage;
+                totalStorageElement.textContent = formatFileSize(totalStorage);
+            }
+            
+        } catch (error) {
+            console.error('Failed to update data lengths:', error);
+        }
+    };
     const handleLoggers = async (cursorValue = "") => {
+        showLoadingState();
+        
         try {
             const response = await fetch(`/api/loggers/data?cursor=${cursorValue}&page_size=500`, {
                 method: 'GET',
@@ -64,6 +454,7 @@
                     'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
                 }
             });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -72,6 +463,7 @@
 
             if (data.code == 500) {
                 console.log(`Error: ${data.status}`);
+                updateStatusIndicator('datalog-status', 'Error');
                 return;
             }
 
@@ -86,25 +478,357 @@
                 // If next cursor is null, stop the requests
                 console.log('No more data to fetch.');
                 console.log(`Total data collected: ${arrLoggersData.length}`);
-                if (arrLoggersData.length > 500) {
-                    document.getElementById('datalog-length').innerHTML = `<mark class="status-danger"><b>${arrLoggersData.length}</b></mark>`;
-                } else {
-                    document.getElementById('datalog-length').innerHTML = `<b>${arrLoggersData.length}</b>`;
+                
+                const datalogLengthElement = document.getElementById('datalog-length');
+                const storageUsageElement = document.getElementById('storage-usage');
+                
+                if (datalogLengthElement) {
+                    datalogLengthElement.textContent = arrLoggersData.length.toLocaleString();
+                    
+                    // Update status based on data length
+                    if (arrLoggersData.length > 1000) {
+                        datalogLengthElement.classList.add('text-warning');
+                        updateStatusIndicator('datalog-status', 'High Volume');
+                    } else if (arrLoggersData.length > 500) {
+                        datalogLengthElement.classList.add('text-info');
+                        updateStatusIndicator('datalog-status', 'Normal');
+                    } else {
+                        updateStatusIndicator('datalog-status', 'Low Volume');
+                    }
                 }
+                
+                // Estimate storage usage
+                if (storageUsageElement) {
+                    const estimatedSize = arrLoggersData.length * 1024; // Rough estimate
+                    storageUsageElement.textContent = formatFileSize(estimatedSize);
+                }
+                
+                // Update data health
+                updateStatusIndicator('data-health', 'Healthy');
+                
+                // Update last update time
+                updateLastUpdate();
+                
+                // Update all data lengths (Redis, SQLite)
+                updateAllDataLengths();
+                
+                // Reset button states
+                resetButtonStates();
             }
         } catch (error) {
             console.error(`Failed to fetch data: ${error.message}`);
+            
+            // Update UI for error state
+            updateStatusIndicator('datalog-status', 'Error');
+            updateStatusIndicator('data-health', 'Error');
+            
             // if status is 404, return No Data
             if (error.message.includes('404')) {
-                document.getElementById('datalog-length').innerHTML = `<b>No Data</b>`;
-                document.getElementById('clear-datalog').disabled = true;
-                document.getElementById('download-datalog').disabled = true;
+                const datalogLengthElement = document.getElementById('datalog-length');
+                const storageUsageElement = document.getElementById('storage-usage');
+                
+                if (datalogLengthElement) {
+                    datalogLengthElement.textContent = 'No Data';
+                    datalogLengthElement.classList.add('text-muted');
+                }
+                
+                if (storageUsageElement) {
+                    storageUsageElement.textContent = '0 Bytes';
+                    storageUsageElement.classList.add('text-muted');
+                }
+                
+                updateStatusIndicator('datalog-status', 'No Data');
+                updateStatusIndicator('data-health', 'No Data');
+                
+                disableButtonsNoData();
+            } else {
+                resetButtonStates();
+            }
+        }
+    };
+
+    // Refresh all data function
+    function refreshAllData() {
+        arrLoggersData.length = 0; // Clear existing data
+        arrRedisData.length = 0;
+        arrSqliteData.length = 0;
+        handleLoggers();
+        updateAllDataLengths();
+    }
+    
+    // Refresh data function (backward compatibility)
+    function refreshData() {
+        refreshAllData();
+    }
+    
+    // Download Redis data
+    const downloadRedisData = async () => {
+        const downloadBtn = document.getElementById('download-redis');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        }
+        
+        try {
+            const response = await fetch('/api/redis/export', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Create download
+            const jsonData = JSON.stringify(data, null, 2);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `${siteName}-redis-export-${timestamp}.json`;
+            
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Redis data downloaded successfully!', 'success');
+            } else {
+                alert('Redis data downloaded successfully!');
+            }
+            
+        } catch (error) {
+            console.error('Failed to download Redis data:', error);
+            
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Failed to download Redis data. Please try again.', 'error');
+            } else {
+                alert('Failed to download Redis data. Please try again.');
+            }
+        } finally {
+            // Reset button
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Redis';
+            }
+        }
+    };
+    
+    // Download SQLite data
+    const downloadSqliteData = async () => {
+        const downloadBtn = document.getElementById('download-sqlite');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        }
+        
+        try {
+            const response = await fetch('/api/sqlite/export', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Create download
+            const jsonData = JSON.stringify(data, null, 2);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `${siteName}-sqlite-export-${timestamp}.json`;
+            
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('SQLite data downloaded successfully!', 'success');
+            } else {
+                alert('SQLite data downloaded successfully!');
+            }
+            
+        } catch (error) {
+            console.error('Failed to download SQLite data:', error);
+            
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Failed to download SQLite data. Please try again.', 'error');
+            } else {
+                alert('Failed to download SQLite data. Please try again.');
+            }
+        } finally {
+            // Reset button
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download SQLite';
+            }
+        }
+    };
+    
+    // Clear Redis data
+    const clearRedisData = async () => {
+        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all Redis cache data!\n\nThis action cannot be undone. Are you sure you want to continue?');
+        if (!confirmClear) {
+            return;
+        }
+        
+        const clearBtn = document.getElementById('clear-redis');
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
+        }
+        
+        try {
+            const response = await fetch('/api/redis/clear', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Redis data cleared successfully!', 'success');
+            } else {
+                alert('Redis data cleared successfully!');
+            }
+            
+            // Update UI
+            const redisLengthElement = document.getElementById('redis-length');
+            const redisStorageElement = document.getElementById('redis-storage');
+            
+            if (redisLengthElement) {
+                redisLengthElement.textContent = '0';
+            }
+            
+            if (redisStorageElement) {
+                redisStorageElement.textContent = '0 Bytes';
+            }
+            
+            // Update total storage
+            updateAllDataLengths();
+            
+        } catch (error) {
+            console.error('Failed to clear Redis data:', error);
+            
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Failed to clear Redis data. Please try again.', 'error');
+            } else {
+                alert('Failed to clear Redis data. Please try again.');
+            }
+        } finally {
+            // Reset button
+            if (clearBtn) {
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear Redis';
+            }
+        }
+    };
+    
+    // Clear SQLite data
+    const clearSqliteData = async () => {
+        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all SQLite database data!\n\nThis action cannot be undone. Are you sure you want to continue?');
+        if (!confirmClear) {
+            return;
+        }
+        
+        const clearBtn = document.getElementById('clear-sqlite');
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
+        }
+        
+        try {
+            const response = await fetch('/api/sqlite/clear', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('SQLite data cleared successfully!', 'success');
+            } else {
+                alert('SQLite data cleared successfully!');
+            }
+            
+            // Update UI
+            const sqliteLengthElement = document.getElementById('sqlite-length');
+            const sqliteStorageElement = document.getElementById('sqlite-storage');
+            
+            if (sqliteLengthElement) {
+                sqliteLengthElement.textContent = '0';
+            }
+            
+            if (sqliteStorageElement) {
+                sqliteStorageElement.textContent = '0 Bytes';
+            }
+            
+            // Update total storage
+            updateAllDataLengths();
+            
+        } catch (error) {
+            console.error('Failed to clear SQLite data:', error);
+            
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Failed to clear SQLite data. Please try again.', 'error');
+            } else {
+                alert('Failed to clear SQLite data. Please try again.');
+            }
+        } finally {
+            // Reset button
+            if (clearBtn) {
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear SQLite';
             }
         }
     };
     
     // Download data
     const downloadLoggers = async (cursorValue = "") => {
+        const downloadBtn = document.getElementById('download-datalog');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        }
+        
         try {
             const response = await fetch(`/api/loggers/data?cursor=${cursorValue}&page_size=500`, {
                 method: 'GET',
@@ -113,6 +837,7 @@
                     'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
                 }
             });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -125,8 +850,10 @@
             }
 
             // Process the data here
-            const chunkData = JSON.stringify(data.data);
-            const filename = `loggers-data-${siteName}-${cursorValue || 'first'}.json`;
+            const chunkData = JSON.stringify(data.data, null, 2);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `${siteName}-datalog-${timestamp}-${cursorValue || 'first'}.json`;
+            
             const blob = new Blob([chunkData], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -140,17 +867,39 @@
 
             // Check if there is a next cursor
             if (data.next_cursor) {
-                 // If there is a next cursor, make another request with the new cursor value
+                // If there is a next cursor, make another request with the new cursor value
                 downloadLoggers(data.next_cursor);
             } else {
                 // If next cursor is null, stop the requests
-                console.log('No more data to fetch.');
+                console.log('Download complete.');
+                
+                // Show success message
+                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                    window.powerDeskApp.showNotification('Download completed successfully!', 'success');
+                } else {
+                    alert('Download completed successfully!');
+                }
+                
+                // Reset button
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+                }
             }
         } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
-            // if status is 404, button will be disabled
-            if (error.message.includes('404')) {
-                document.getElementById('download-datalog').disabled = true;
+            console.error(`Failed to download data: ${error.message}`);
+            
+            // Show error message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Download failed. Please try again.', 'error');
+            } else {
+                alert('Download failed. Please try again.');
+            }
+            
+            // Reset button
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
             }
         }
     };
@@ -159,11 +908,17 @@
     const arrClearLoggers = [];
     const clearLoggers = async (cursorValue) => {
         console.log('Clearing data...');
-        // validation before clearing data
-        // insert a confirmation dialog here
-        const confirmClear = confirm('Are you sure you want to clear all data?');
+        
+        // Enhanced confirmation dialog
+        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all data logs!\n\nThis action cannot be undone. Are you sure you want to continue?');
         if (!confirmClear) {
             return;
+        }
+        
+        const clearBtn = document.getElementById('clear-datalog');
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
         }
         
         try {
@@ -174,6 +929,7 @@
                     'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
                 }
             });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -223,26 +979,74 @@
                     const errorResults = results.filter((el) => el.status === false);
 
                     if (successResults.length > 0 && errorResults.length > 0) {
-                        alert(`Some loggers failed to delete. Please try again.`);
+                        if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                            window.powerDeskApp.showNotification('Some data failed to delete. Please try again.', 'warning');
+                        } else {
+                            alert('Some data failed to delete. Please try again.');
+                        }
                     } else if (successResults.length > 0 && errorResults.length === 0) {
-                        alert('All loggers successfully removed');
-                        document.getElementById('datalog-length').innerHTML = `<b>No Data</b>`;
-                        document.getElementById('clear-datalog').disabled = true;
-                        document.getElementById('download-datalog').disabled = true;
+                        if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                            window.powerDeskApp.showNotification('All data successfully cleared!', 'success');
+                        } else {
+                            alert('All data successfully cleared!');
+                        }
+                        
+                        // Update UI
+                        const datalogLengthElement = document.getElementById('datalog-length');
+                        const storageUsageElement = document.getElementById('storage-usage');
+                        
+                        if (datalogLengthElement) {
+                            datalogLengthElement.textContent = 'No Data';
+                            datalogLengthElement.classList.add('text-muted');
+                        }
+                        
+                        if (storageUsageElement) {
+                            storageUsageElement.textContent = '0 Bytes';
+                            storageUsageElement.classList.add('text-muted');
+                        }
+                        
+                        updateStatusIndicator('datalog-status', 'No Data');
+                        updateStatusIndicator('data-health', 'No Data');
+                        
+                        disableButtonsNoData();
                     }
                 }).catch((error) => {
                     console.error(`Failed to delete some data: ${error.message}`);
+                    
+                    if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                        window.powerDeskApp.showNotification('Failed to delete data. Please try again.', 'error');
+                    } else {
+                        alert('Failed to delete data. Please try again.');
+                    }
                 });
             }
         } catch (error) {
             console.error(`Failed to fetch data: ${error.message}`);
-            // if status is 404, button will be disabled
-            if (error.message.includes('404')) {
-                document.getElementById('clear-datalog').disabled = true;
+            
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Failed to clear data. Please try again.', 'error');
+            } else {
+                alert('Failed to clear data. Please try again.');
+            }
+            
+            // Reset button
+            if (clearBtn) {
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear All';
             }
         }
-    }
+    };
 
-handleLoggers();
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        handleLoggers();
+        updateAllDataLengths();
+        
+        // Update last update time every minute
+        setInterval(updateLastUpdate, 60000);
+        
+        // Update data lengths every 5 minutes
+        setInterval(updateAllDataLengths, 300000);
+    });
 </script>
-{% endblock js %}
+{% endblock scripts %}
