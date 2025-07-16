@@ -88,6 +88,39 @@
                     </li>
                     
                     {% if username == 'teknisi' %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.mqtt_service', 'main.logger_service'] }}">
+                        <a href="#" class="nav-link submenu-toggle">
+                            <i class="fas fa-cogs"></i>
+                            <span>Services</span>
+                            <i class="fas fa-chevron-down chevron"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="/mqtt-service" class="nav-link {{ 'active' if request.endpoint == 'main.mqtt_service' }}">
+                                    <i class="fas fa-exchange"></i>
+                                    <span>MQTT</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/upload-loggers" class="nav-link {{ 'active' if request.endpoint == 'main.upload_loggers' }}">
+                                    <i class="fas fa-upload"></i>
+                                    <span>Upload Loggers</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/service-systemd" class="nav-link {{ 'active' if request.endpoint == 'main.service_systemd' }}">
+                                    <i class="fas fa-adjust"></i>
+                                    <span>Systemd</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    
+                    {% if username == 'teknisi' %}
                     <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.datalog', 'main.scc_alarm_log'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-history"></i>
