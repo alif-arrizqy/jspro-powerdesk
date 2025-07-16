@@ -206,6 +206,16 @@
                             {% endif %}
                         </ul>
                     </li>
+
+                    {% if username == 'teknisi' %}
+                    <li class="nav-item">
+                        <a href="/power-operation" class="nav-link {{ 'active' if request.endpoint == 'main.power_operation' }}">
+                            <i class="fas fa-power-off"></i>
+                            <span>Power Operation</span>
+                            <div class="nav-indicator"></div>
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
             
