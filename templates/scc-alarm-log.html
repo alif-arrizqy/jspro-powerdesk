@@ -1,47 +1,134 @@
-{% extends 'layout.html' %}
-{% block breadcrumbs %} SCC Alarm Log {% endblock breadcrumbs %}
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}SCC Alarm Log{% endblock breadcrumbs %}
 
 {% block content %}
-<!-- content row -->
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title left-text"><i class="fas fa-folder-open"></i> SCC Alarm log</h4>
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    SCC Alarm Log Management
+                </h3>
             </div>
-            <div class="card-content">
-                <div class="row">
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>SCC Alarm Logs Length</strong></p>
-                                <h5 class="card-title left-text">
-                                    <h6 class="card-title left-text" id="scc-alarm-length" arial-label="SCC Logs Length">Calculating Data...</h6>
-                                </h5>                                                
+            <div class="modern-card-body">
+                <p class="text-muted mb-0">Monitor and manage Solar Charge Controller alarm logs and system events.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-bar text-info me-2"></i>
+                    Alarm Statistics
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Total Alarm Logs</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-list-ol"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="scc-alarm-length">Loading...</h3>
+                            <p class="stats-card-subtitle">System Events</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">System Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator" id="alarm-status">Loading...</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Current State</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Last Update</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="last-update">Loading...</h3>
+                            <p class="stats-card-subtitle">Data Refresh</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alarm Operations -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-tools text-primary me-2"></i>
+                    Alarm Operations
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-sync-alt text-info" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Refresh Data</h5>
+                                <p class="text-muted mb-3">Update alarm log information</p>
+                                <button class="btn btn-modern btn-info w-100" id="refresh-alarm" onclick="refreshAlarmData();">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Refresh Alarms
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Download Data</strong></p>
-                                <h5 class="card-title left-text">
-                                    <button class="btn btn-primary btn-md" id="scc-alarm-download" onclick="downloadSccLoggers();">
-                                        <b>Download</b>
-                                    </button>
-                                </h5>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-download text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Download Alarm Logs</h5>
+                                <p class="text-muted mb-3">Export alarm data to JSON files</p>
+                                <button class="btn btn-modern btn-primary w-100" id="scc-alarm-download" onclick="downloadSccLoggers();">
+                                    <i class="fas fa-download"></i>
+                                    Download Logs
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="shadow card card-stats full-border">
-                            <div class="card-content">
-                                <p class="category left-text"><strong>Clear Data</strong></p>
-                                <h5 class="card-title left-text">
-                                    <button class="btn btn-warning btn-md" id="scc-alarm-clear" onclick="clearSccLoggers();">
-                                        <b>Clear</b>
-                                    </button>
-                                </h5>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="modern-card">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-trash-alt text-danger" style="font-size: 2rem;"></i>
+                                </div>
+                                <h5 class="mb-3">Clear Alarm Data</h5>
+                                <p class="text-muted mb-3">Remove all alarm log entries</p>
+                                <button class="btn btn-modern btn-danger w-100" id="scc-alarm-clear" onclick="clearSccLoggers();">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Clear Alarms
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -52,9 +139,90 @@
 </div>
 {% endblock content %}
 
-{% block js %}
+{% block scripts %}
 <script>
     const siteName = "{{ site_name }}";
+    
+    // Helper function to update status indicators
+    function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'critical']) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = status;
+            
+            const statusLower = status.toLowerCase();
+            if (activeStates.some(state => statusLower.includes(state))) {
+                element.className = 'status-indicator active';
+            } else if (dangerStates.some(state => statusLower.includes(state))) {
+                element.className = 'status-indicator danger';
+            } else {
+                element.className = 'status-indicator inactive';
+            }
+        }
+    }
+
+    // Helper function to update last update time
+    function updateLastUpdate() {
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            const now = new Date().toLocaleTimeString();
+            lastUpdateElement.textContent = now;
+        }
+    }
+
+    // Helper function to show loading state
+    function showLoadingState() {
+        const downloadBtn = document.getElementById('scc-alarm-download');
+        const clearBtn = document.getElementById('scc-alarm-clear');
+        const refreshBtn = document.getElementById('refresh-alarm');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
+        if (refreshBtn) {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        }
+    }
+
+    // Helper function to reset button states
+    function resetButtonStates() {
+        const downloadBtn = document.getElementById('scc-alarm-download');
+        const clearBtn = document.getElementById('scc-alarm-clear');
+        const refreshBtn = document.getElementById('refresh-alarm');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Logs';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = false;
+            clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear Alarms';
+        }
+        if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Alarms';
+        }
+    }
+
+    // Helper function to disable buttons when no data
+    function disableButtonsNoData() {
+        const downloadBtn = document.getElementById('scc-alarm-download');
+        const clearBtn = document.getElementById('scc-alarm-clear');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> No Data';
+        }
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> No Data';
+        }
+    }
     
     const arrLoggersData = [];
     const handleLoggers = async (cursorValue = "") => {
@@ -74,6 +242,7 @@
 
             if (data.code == 500) {
                 console.log(`Error: ${data.status}`);
+                updateStatusIndicator('alarm-status', 'Error');
                 return;
             }
 
@@ -88,24 +257,68 @@
                 // If next cursor is null, stop the requests
                 console.log('No more data to fetch.');
                 console.log(`Total data collected: ${arrLoggersData.length}`);
-                if (arrLoggersData.length > 500) {
-                    document.getElementById('scc-alarm-length').innerHTML = `<mark class="status-danger"><b>${arrLoggersData.length}</b></mark>`;
-                } else {
-                    document.getElementById('scc-alarm-length').innerHTML = `<b>${arrLoggersData.length}</b>`;
+                
+                const alarmLengthElement = document.getElementById('scc-alarm-length');
+                if (alarmLengthElement) {
+                    alarmLengthElement.textContent = arrLoggersData.length.toLocaleString();
+                    
+                    // Update status based on alarm count
+                    if (arrLoggersData.length > 500) {
+                        alarmLengthElement.classList.add('text-danger');
+                        updateStatusIndicator('alarm-status', 'Critical');
+                    } else if (arrLoggersData.length > 100) {
+                        alarmLengthElement.classList.add('text-warning');
+                        updateStatusIndicator('alarm-status', 'Warning');
+                    } else if (arrLoggersData.length > 0) {
+                        alarmLengthElement.classList.add('text-info');
+                        updateStatusIndicator('alarm-status', 'Active');
+                    } else {
+                        updateStatusIndicator('alarm-status', 'Normal');
+                    }
                 }
+                
+                // Update last update time
+                updateLastUpdate();
+                
+                // Reset button states
+                resetButtonStates();
             }
         } catch (error) {
             console.error(`Failed to fetch data: ${error.message}`);
+            
+            // Update UI for error state
+            updateStatusIndicator('alarm-status', 'Error');
+            
             // if status is 404, return No Data
             if (error.message.includes('404')) {
-                document.getElementById('scc-alarm-length').innerHTML = `<b>No Data</b>`;
-                document.getElementById('scc-alarm-download').disabled = true;
-                document.getElementById('scc-alarm-clear').disabled = true;
+                const alarmLengthElement = document.getElementById('scc-alarm-length');
+                if (alarmLengthElement) {
+                    alarmLengthElement.textContent = 'No Data';
+                    alarmLengthElement.classList.add('text-muted');
+                }
+                
+                updateStatusIndicator('alarm-status', 'No Data');
+                disableButtonsNoData();
+            } else {
+                resetButtonStates();
             }
         }
     };
 
+    // Refresh alarm data function
+    function refreshAlarmData() {
+        arrLoggersData.length = 0; // Clear existing data
+        showLoadingState();
+        handleLoggers();
+    }
+
     const downloadSccLoggers = async (cursorValue = "") => {
+        const downloadBtn = document.getElementById('scc-alarm-download');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        }
+        
         try {
             const response = await fetch(`/api/loggers/scc-alarm?cursor=${cursorValue}&page_size=500`, {
                 method: 'GET',
@@ -126,8 +339,10 @@
             }
 
             // Process the data here
-            const chunkData = JSON.stringify(data.data);
-            const filename = `scc-alarm-${siteName}-${cursorValue || 'first'}.json`;
+            const chunkData = JSON.stringify(data.data, null, 2);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `${siteName}-scc-alarm-${timestamp}-${cursorValue || 'first'}.json`;
+            
             const blob = new Blob([chunkData], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -145,24 +360,59 @@
                 downloadSccLoggers(data.next_cursor);
             } else {
                 // If next cursor is null, stop the requests
-                console.log('No more data to fetch.');
+                console.log('Download complete.');
+                
+                // Show success message
+                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                    window.powerDeskApp.showNotification('SCC Alarm logs downloaded successfully!', 'success');
+                } else {
+                    alert('SCC Alarm logs downloaded successfully!');
+                }
+                
+                // Reset button
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Logs';
+                }
             }
         } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
+            console.error(`Failed to download data: ${error.message}`);
+            
+            // Show error message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Download failed. Please try again.', 'error');
+            } else {
+                alert('Download failed. Please try again.');
+            }
+            
             // if status is 404, button will be disabled
             if (error.message.includes('404')) {
-                document.getElementById('scc-alarm-download').disabled = true;
+                if (downloadBtn) {
+                    downloadBtn.disabled = true;
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> No Data';
+                }
+            } else {
+                // Reset button
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Logs';
+                }
             }
         }
     };
 
     // Clear Data
     const clearSccLoggers = async () => {
-        // validation before clearing data
-        // insert a confirmation dialog here
-        const confirmClear = confirm('Are you sure you want to clear all data?');
+        // Enhanced validation before clearing data
+        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all SCC alarm logs!\n\nThis action cannot be undone. Are you sure you want to continue?');
         if (!confirmClear) {
             return;
+        }
+
+        const clearBtn = document.getElementById('scc-alarm-clear');
+        if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
         }
 
         try {
@@ -185,14 +435,48 @@
             }
 
             console.log('Data cleared successfully.');
-            document.getElementById('scc-alarm-length').innerHTML = `<b>No Data</b>`;
-            document.getElementById('scc-alarm-download').disabled = true;
-            document.getElementById('scc-alarm-clear').disabled = true;
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('SCC Alarm logs cleared successfully!', 'success');
+            } else {
+                alert('SCC Alarm logs cleared successfully!');
+            }
+            
+            // Update UI
+            const alarmLengthElement = document.getElementById('scc-alarm-length');
+            if (alarmLengthElement) {
+                alarmLengthElement.textContent = 'No Data';
+                alarmLengthElement.classList.add('text-muted');
+            }
+            
+            updateStatusIndicator('alarm-status', 'No Data');
+            disableButtonsNoData();
+            
         } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
+            console.error(`Failed to clear data: ${error.message}`);
+            
+            // Show error message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('Failed to clear alarm logs. Please try again.', 'error');
+            } else {
+                alert('Failed to clear alarm logs. Please try again.');
+            }
+            
+            // Reset button
+            if (clearBtn) {
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear Alarms';
+            }
         }
     };
 
-handleLoggers();
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        handleLoggers();
+        
+        // Update last update time every minute
+        setInterval(updateLastUpdate, 60000);
+    });
 </script>
-{% endblock js %}
+{% endblock scripts %}
