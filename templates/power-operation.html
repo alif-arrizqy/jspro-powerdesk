@@ -1,0 +1,612 @@
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}Power Operation{% endblock breadcrumbs %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-power-off text-danger me-2"></i>
+                    System Power Management
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Peringatan:</strong> Operasi daya akan mempengaruhi ketersediaan sistem. Gunakan dengan hati-hati dan pastikan semua pekerjaan yang diperlukan telah disimpan.
+                </div>
+                <p class="text-muted mb-0">Kontrol operasi daya sistem termasuk restart dan shutdown. Semua operasi memerlukan autentikasi password.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-info-circle text-info me-2"></i>
+                    System Information
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">System Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">
+                                <span class="status-indicator active">Online</span>
+                            </h3>
+                            <p class="stats-card-subtitle">Current State</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Uptime</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="system-uptime">Loading...</h3>
+                            <p class="stats-card-subtitle">System Running</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Current User</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">{{ username.capitalize() }}</h3>
+                            <p class="stats-card-subtitle">Logged In</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Last Operation</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="last-operation">None</h3>
+                            <p class="stats-card-subtitle">Power Action</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Power Operations -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-tools text-danger me-2"></i>
+                    Power Operations
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="modern-card border-warning">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-redo-alt text-warning" style="font-size: 3rem;"></i>
+                                </div>
+                                <h4 class="mb-3 text-warning">System Reboot</h4>
+                                <p class="text-muted mb-4">Restart sistem untuk menerapkan pembaruan atau mengatasi masalah. Sistem akan sementara tidak tersedia selama proses restart.</p>
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <small>Perkiraan waktu mati: 2-3 menit</small>
+                                </div>
+                                <button class="btn btn-warning btn-lg w-100" onclick="showRebootModal();">
+                                    <i class="fas fa-redo-alt me-2"></i>
+                                    Reboot System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="modern-card border-danger">
+                            <div class="modern-card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-power-off text-danger" style="font-size: 3rem;"></i>
+                                </div>
+                                <h4 class="mb-3 text-danger">System Shutdown</h4>
+                                <p class="text-muted mb-4">Matikan sistem dengan aman. Ini akan menghentikan semua layanan dan mematikan perangkat sepenuhnya.</p>
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <small>Diperlukan power-on manual setelah shutdown</small>
+                                </div>
+                                <button class="btn btn-danger btn-lg w-100" onclick="showShutdownModal();">
+                                    <i class="fas fa-power-off me-2"></i>
+                                    Shutdown System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reboot Modal -->
+<div class="modal fade" id="rebootModal" tabindex="-1" aria-labelledby="rebootModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="rebootModalLabel">
+                    <i class="fas fa-redo-alt me-2"></i>
+                    Confirm System Reboot
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Peringatan:</strong> Ini akan me-restart sistem dan sementara mengganggu semua layanan.
+                </div>
+                <div class="mb-3">
+                    <label for="rebootPassword" class="form-label">
+                        <i class="fas fa-key me-2"></i>
+                        Masukkan password Anda untuk konfirmasi:
+                    </label>
+                    <input type="password" class="form-control" id="rebootPassword" placeholder="Masukkan password" required>
+                    <div class="invalid-feedback" id="rebootPasswordError"></div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rebootConfirm" required>
+                    <label class="form-check-label" for="rebootConfirm">
+                        Saya memahami bahwa ini akan me-restart sistem
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmReboot" onclick="executeReboot();">
+                    <i class="fas fa-redo-alt me-2"></i>
+                    Reboot System
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shutdown Modal -->
+<div class="modal fade" id="shutdownModal" tabindex="-1" aria-labelledby="shutdownModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="shutdownModalLabel">
+                    <i class="fas fa-power-off me-2"></i>
+                    Confirm System Shutdown
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Peringatan Kritis:</strong> Ini akan mematikan sistem sepenuhnya. Power-on manual akan diperlukan.
+                </div>
+                <div class="mb-3">
+                    <label for="shutdownPassword" class="form-label">
+                        <i class="fas fa-key me-2"></i>
+                        Masukkan password Anda untuk konfirmasi:
+                    </label>
+                    <input type="password" class="form-control" id="shutdownPassword" placeholder="Masukkan password" required>
+                    <div class="invalid-feedback" id="shutdownPasswordError"></div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="shutdownConfirm" required>
+                    <label class="form-check-label" for="shutdownConfirm">
+                        Saya memahami bahwa ini akan mematikan sistem sepenuhnya
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="shutdownFinalConfirm" required>
+                    <label class="form-check-label" for="shutdownFinalConfirm">
+                        Saya mengkonfirmasi bahwa saya ingin melanjutkan dengan shutdown
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmShutdown" onclick="executeShutdown();">
+                    <i class="fas fa-power-off me-2"></i>
+                    Shutdown System
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Operation Progress Modal -->
+<div class="modal fade" id="operationModal" tabindex="-1" aria-labelledby="operationModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="operationModalHeader">
+                <h5 class="modal-title" id="operationModalLabel">
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    Processing Operation
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <p id="operationStatus">Initializing operation...</p>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="operationProgress" 
+                         role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    const currentUser = "{{ username }}";
+    let operationInProgress = false;
+    
+    // Update system uptime
+    function updateSystemUptime() {
+        fetch('/api/system/uptime', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const uptimeElement = document.getElementById('system-uptime');
+            if (uptimeElement && data.uptime) {
+                uptimeElement.textContent = data.uptime;
+            } else {
+                uptimeElement.textContent = 'Unknown';
+            }
+        })
+        .catch(error => {
+            console.error('Failed to get system uptime:', error);
+            const uptimeElement = document.getElementById('system-uptime');
+            if (uptimeElement) {
+                uptimeElement.textContent = 'Error';
+            }
+        });
+    }
+    
+    // Show reboot modal
+    function showRebootModal() {
+        if (operationInProgress) {
+            alert('Another operation is in progress. Please wait.');
+            return;
+        }
+        
+        // Reset form
+        document.getElementById('rebootPassword').value = '';
+        document.getElementById('rebootConfirm').checked = false;
+        document.getElementById('rebootPassword').classList.remove('is-invalid');
+        document.getElementById('rebootPasswordError').textContent = '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('rebootModal'));
+        modal.show();
+    }
+    
+    // Show shutdown modal
+    function showShutdownModal() {
+        if (operationInProgress) {
+            alert('Another operation is in progress. Please wait.');
+            return;
+        }
+        
+        // Reset form
+        document.getElementById('shutdownPassword').value = '';
+        document.getElementById('shutdownConfirm').checked = false;
+        document.getElementById('shutdownFinalConfirm').checked = false;
+        document.getElementById('shutdownPassword').classList.remove('is-invalid');
+        document.getElementById('shutdownPasswordError').textContent = '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('shutdownModal'));
+        modal.show();
+    }
+    
+    // Validate password
+    function validatePassword(password, operation) {
+        // In a real implementation, this would validate against the actual user password
+        // For now, we'll use a simple validation based on username
+        const validPasswords = {
+            'apt': 'apt123',
+            'teknisi': 'teknisi123'
+        };
+        
+        return validPasswords[currentUser] === password;
+    }
+    
+    // Execute reboot
+    function executeReboot() {
+        const password = document.getElementById('rebootPassword').value;
+        const confirmed = document.getElementById('rebootConfirm').checked;
+        const passwordInput = document.getElementById('rebootPassword');
+        const errorElement = document.getElementById('rebootPasswordError');
+        
+        // Reset validation
+        passwordInput.classList.remove('is-invalid');
+        errorElement.textContent = '';
+        
+        // Validate inputs
+        if (!password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Password is required';
+            return;
+        }
+        
+        if (!confirmed) {
+            alert('Please confirm that you understand the consequences of this action.');
+            return;
+        }
+        
+        // Validate password
+        if (!validatePassword(password, 'reboot')) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Invalid password';
+            return;
+        }
+        
+        // Close modal and show progress
+        bootstrap.Modal.getInstance(document.getElementById('rebootModal')).hide();
+        showOperationProgress('reboot');
+        
+        // Execute reboot
+        operationInProgress = true;
+        fetch('/api/system/reboot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            },
+            body: JSON.stringify({
+                password: password,
+                user: currentUser
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateLastOperation('Reboot');
+                simulateRebootProgress();
+            } else {
+                hideOperationProgress();
+                alert('Reboot failed: ' + (data.message || 'Unknown error'));
+                operationInProgress = false;
+            }
+        })
+        .catch(error => {
+            console.error('Reboot failed:', error);
+            hideOperationProgress();
+            alert('Reboot failed: ' + error.message);
+            operationInProgress = false;
+        });
+    }
+    
+    // Execute shutdown
+    function executeShutdown() {
+        const password = document.getElementById('shutdownPassword').value;
+        const confirmed = document.getElementById('shutdownConfirm').checked;
+        const finalConfirmed = document.getElementById('shutdownFinalConfirm').checked;
+        const passwordInput = document.getElementById('shutdownPassword');
+        const errorElement = document.getElementById('shutdownPasswordError');
+        
+        // Reset validation
+        passwordInput.classList.remove('is-invalid');
+        errorElement.textContent = '';
+        
+        // Validate inputs
+        if (!password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Password is required';
+            return;
+        }
+        
+        if (!confirmed || !finalConfirmed) {
+            alert('Please confirm both checkboxes to proceed with shutdown.');
+            return;
+        }
+        
+        // Validate password
+        if (!validatePassword(password, 'shutdown')) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Invalid password';
+            return;
+        }
+        
+        // Close modal and show progress
+        bootstrap.Modal.getInstance(document.getElementById('shutdownModal')).hide();
+        showOperationProgress('shutdown');
+        
+        // Execute shutdown
+        operationInProgress = true;
+        fetch('/api/system/shutdown', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            },
+            body: JSON.stringify({
+                password: password,
+                user: currentUser
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateLastOperation('Shutdown');
+                simulateShutdownProgress();
+            } else {
+                hideOperationProgress();
+                alert('Shutdown failed: ' + (data.message || 'Unknown error'));
+                operationInProgress = false;
+            }
+        })
+        .catch(error => {
+            console.error('Shutdown failed:', error);
+            hideOperationProgress();
+            alert('Shutdown failed: ' + error.message);
+            operationInProgress = false;
+        });
+    }
+    
+    // Show operation progress
+    function showOperationProgress(operation) {
+        const modal = document.getElementById('operationModal');
+        const header = document.getElementById('operationModalHeader');
+        const title = document.getElementById('operationModalLabel');
+        const status = document.getElementById('operationStatus');
+        const progress = document.getElementById('operationProgress');
+        
+        // Update modal appearance based on operation
+        if (operation === 'reboot') {
+            header.className = 'modal-header bg-warning text-dark';
+            title.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>System Reboot in Progress';
+            status.textContent = 'Preparing system for reboot...';
+        } else if (operation === 'shutdown') {
+            header.className = 'modal-header bg-danger text-white';
+            title.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>System Shutdown in Progress';
+            status.textContent = 'Preparing system for shutdown...';
+        }
+        
+        progress.style.width = '0%';
+        progress.setAttribute('aria-valuenow', '0');
+        
+        const progressModal = new bootstrap.Modal(modal);
+        progressModal.show();
+    }
+    
+    // Hide operation progress
+    function hideOperationProgress() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('operationModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+    
+    // Simulate reboot progress
+    function simulateRebootProgress() {
+        const status = document.getElementById('operationStatus');
+        const progress = document.getElementById('operationProgress');
+        
+        const steps = [
+            { message: 'Stopping services...', progress: 20 },
+            { message: 'Saving system state...', progress: 40 },
+            { message: 'Initiating reboot...', progress: 60 },
+            { message: 'System restarting...', progress: 80 },
+            { message: 'Reboot completed successfully!', progress: 100 }
+        ];
+        
+        let stepIndex = 0;
+        const interval = setInterval(() => {
+            if (stepIndex < steps.length) {
+                const step = steps[stepIndex];
+                status.textContent = step.message;
+                progress.style.width = step.progress + '%';
+                progress.setAttribute('aria-valuenow', step.progress);
+                stepIndex++;
+            } else {
+                clearInterval(interval);
+                setTimeout(() => {
+                    hideOperationProgress();
+                    operationInProgress = false;
+                    // In a real reboot, the page would lose connection
+                    alert('Reboot operation completed successfully!');
+                }, 1000);
+            }
+        }, 1500);
+    }
+    
+    // Simulate shutdown progress
+    function simulateShutdownProgress() {
+        const status = document.getElementById('operationStatus');
+        const progress = document.getElementById('operationProgress');
+        
+        const steps = [
+            { message: 'Stopping user services...', progress: 15 },
+            { message: 'Stopping system services...', progress: 30 },
+            { message: 'Saving system state...', progress: 45 },
+            { message: 'Unmounting filesystems...', progress: 60 },
+            { message: 'Preparing for shutdown...', progress: 75 },
+            { message: 'Initiating shutdown...', progress: 90 },
+            { message: 'System shutdown completed!', progress: 100 }
+        ];
+        
+        let stepIndex = 0;
+        const interval = setInterval(() => {
+            if (stepIndex < steps.length) {
+                const step = steps[stepIndex];
+                status.textContent = step.message;
+                progress.style.width = step.progress + '%';
+                progress.setAttribute('aria-valuenow', step.progress);
+                stepIndex++;
+            } else {
+                clearInterval(interval);
+                setTimeout(() => {
+                    hideOperationProgress();
+                    operationInProgress = false;
+                    // In a real shutdown, the page would lose connection
+                    alert('Shutdown operation completed successfully!');
+                }, 1000);
+            }
+        }, 1000);
+    }
+    
+    // Update last operation
+    function updateLastOperation(operation) {
+        const lastOpElement = document.getElementById('last-operation');
+        if (lastOpElement) {
+            const now = new Date().toLocaleString();
+            lastOpElement.textContent = `${operation} (${now})`;
+        }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSystemUptime();
+        
+        // Update uptime every minute
+        setInterval(updateSystemUptime, 60000);
+        
+        // Prevent form submission on Enter key in password fields
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (e.target.id === 'rebootPassword') {
+                    e.preventDefault();
+                    executeReboot();
+                } else if (e.target.id === 'shutdownPassword') {
+                    e.preventDefault();
+                    executeShutdown();
+                }
+            }
+        });
+    });
+</script>
+{% endblock scripts %}
