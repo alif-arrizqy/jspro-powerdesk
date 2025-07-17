@@ -20,6 +20,84 @@
     </div>
 </div>
 
+<!-- SCC Relay Configuration -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-bar text-info me-2"></i>
+                    SCC Relay Configuration
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Vsat Reconnect</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-satellite"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">4700</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-up me-2"></i>
+                                Vsat Reconnect (mV)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Vsat Cut Off</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-satellite"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">4600</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-down me-2"></i>
+                                Vsat Cut Off (mV)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">BTS Reconnect</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-broadcast-tower"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">4900</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-up me-2"></i>
+                                BTS Reconnect (mV)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">BTS Cut Off</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-broadcast-tower"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">4800</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-down me-2"></i>
+                                BTS Cut Off (mV)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- SCC Real-time Data -->
 {% if number_of_scc == 2 %}
 <div class="row g-4">
@@ -32,6 +110,9 @@
                     SCC {{i}} Status
                 </h3>
                 <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    <span class="text-muted" id="scc{{i}}-device-id">SCC ID: Loading...</span>
+                    <span class="text-muted mx-2">|</span>
                     <i class="fas fa-heartbeat text-danger me-2"></i>
                     <span class="text-muted" id="scc{{i}}-counter-heartbeat">Heartbeat: Loading...</span>
                 </div>
