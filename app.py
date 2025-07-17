@@ -439,18 +439,21 @@ def setting_scc():
         data = json.load(file)
     
     if request.method == 'POST':
-        data = request.form.to_dict()
+        form_data = request.form.to_dict()
         scc_type_form = request.form.get('scc-type-form')
         scc_setting_id_form = request.form.get('scc-setting-id-form')
+        config_relay_form = request.form.get('config-relay-form')
+        config_scc_form = request.form.get('config-scc-form')
         
         if scc_type_form == 'scc-type-form':
-            response = update_scc_type(path, data)
+            response = update_scc_type(path, form_data)
             if response:
                 flash('SCC Type has been updated successfully', 'success')
-                bash_command('sudo systemctl restart mppt device_version.service webapp.service')
+                bash_command('sudo systemctl restart scc device_config_loader.service webapp.service')
             else:
                 flash('Failed to update SCC Type', 'danger')
             return redirect(url_for('setting_scc'))
+            
         if scc_setting_id_form == 'scc-setting-id-form':
             is_valid, msg = validate_modbus_id(request.form)
             if is_valid:
@@ -460,11 +463,31 @@ def setting_scc():
                 if number_of_scc == 2:
                     for i in range(1, 3):
                         red.set(f'scc:{i}:id', request.form.get(f'scc-id-{i}'))
-                bash_command('sudo systemctl restart mppt device_version.service webapp.service')
+                bash_command('sudo systemctl restart scc device_config_loader.service webapp.service')
                 bash_command('sudo systemctl daemon-reload')
                 flash('SCC ID has been updated successfully', 'success')
             else:
                 flash('Failed to update SCC ID', 'danger')
+            return redirect(url_for('setting_scc'))
+            
+        if config_relay_form == 'config-relay-form':
+            response = update_config_cutoff_reconnect(path, form_data)
+            if response:
+                flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
+                os.system(f'sudo python3 {PATH}/config_scc.py')
+                bash_command('sudo systemctl restart scc')
+            else:
+                flash('Failed to update Config Value Cut off / Reconnect', 'danger')
+            return redirect(url_for('setting_scc'))
+            
+        if config_scc_form == 'config-scc-form':
+            response = update_config_scc(path, form_data)
+            if response:
+                flash('Config Value SCC has been updated successfully', 'success')
+                os.system(f'sudo python3 {PATH}/config_scc.py')
+                bash_command('sudo systemctl restart scc')
+            else:
+                flash('Failed to update Config Value SCC', 'danger')
             return redirect(url_for('setting_scc'))
     try:
         # get site name
@@ -474,9 +497,9 @@ def setting_scc():
         site_name = 'Site Name'
     
     # get scc type
-    scc_type = data.get('device_version').get('scc_type')
+    scc_type_data = data.get('device_version').get('scc_type')
     # replace - to _
-    scc_type = scc_type.replace('-', '_')
+    scc_type_underscore = scc_type_data.replace('-', '_')
     
     # get scc id from redis
     if number_of_scc == 2:
@@ -495,9 +518,11 @@ def setting_scc():
             'number_of_scc': number_of_scc,
             'scc_type': data.get('device_version').get('scc_type'),
             'scc_source': data.get('device_version').get('scc_source'),
-            'host': data.get(f'{scc_type}').get('host'),
-            'port': data.get(f'{scc_type}').get('port'),
-            'scc_scan': data.get(f'{scc_type}').get('scan'),
+            'host': data.get(f'{scc_type_underscore}').get('host'),
+            'port': data.get(f'{scc_type_underscore}').get('port'),
+            'scc_scan': data.get(f'{scc_type_underscore}').get('scan'),
+            'config_scc': data.get(f'{scc_type_underscore}').get('parameter'),
+            'config_relay': data.get('handle_relay'),
         }
     if number_of_scc == 3:
         try:
@@ -517,99 +542,13 @@ def setting_scc():
             'number_of_scc': number_of_scc,
             'scc_type': data.get('device_version').get('scc_type'),
             'scc_source': data.get('device_version').get('scc_source'),
-            'host': data.get(f'{scc_type}').get('host'),
-            'port': data.get(f'{scc_type}').get('port'),
-            'scc_scan': data.get(f'{scc_type}').get('scan'),
+            'host': data.get(f'{scc_type_underscore}').get('host'),
+            'port': data.get(f'{scc_type_underscore}').get('port'),
+            'scc_scan': data.get(f'{scc_type_underscore}').get('scan'),
+            'config_scc': data.get(f'{scc_type_underscore}').get('parameter'),
+            'config_relay': data.get('handle_relay'),
         }
     return render_template('setting-scc.html', **context)
-
-@app.route('/config-value-scc', methods=['GET', 'POST'])
-@login_required
-def config_value_scc():
-    site_name = ""
-    # username login
-    username = current_user.id
-
-    # path config device
-    path = f'{PATH}/config_device.json'
-
-    # open config device
-    with open(path, 'r') as file:
-        data = json.load(file)
-
-    if request.method == 'POST':
-        data = request.form.to_dict()
-        config_relay = data.get('config-relay-form')
-        config_scc = data.get('config-scc-form')
-        
-        if config_relay == 'config-relay-form':
-            response = update_config_cutoff_reconnect(path, data)
-            if response:
-                flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
-                os.system(f'sudo python3 {PATH}/config_mppt.py')
-                bash_command('sudo systemctl restart mppt')
-            else:
-                flash('Failed to update Config Value Cut off / Reconnect', 'danger')
-            return redirect(url_for('config_value_scc'))
-        if config_scc == 'config-scc-form':
-            response = update_config_scc(path, data)
-            if response:
-                flash('Config Value SCC has been updated successfully', 'success')
-                os.system(f'sudo python3 {PATH}/config_mppt.py')
-                bash_command('sudo systemctl restart mppt')
-            else:
-                flash('Failed to update Config Value SCC', 'danger')
-            return redirect(url_for('config_value_scc'))
-    try:
-        # get site name
-        site_name = red.hget('site_name', 'site_name')
-    except Exception as e:
-        print(f"config_value_scc() error: {e}")
-        site_name = 'Site Name'
-    
-    # get scc type
-    scc_type = data.get('device_version').get('scc_type')
-    # replace - to _
-    scc_type = scc_type.replace('-', '_')
-    
-    context = {
-        'username': username,
-        'site_name': site_name,
-        # 'ip_address': get_ip_address('eth0'),
-        'ip_address': '192.168.3.4',
-        'scc_type': scc_type,
-        'config_scc': data.get(f'{scc_type}').get('parameter'),
-        'config_relay': data.get('handle_relay'),
-    }
-    
-    return render_template('config-value-scc.html', **context)
-
-@app.route('/disk-storage', methods=['GET'])
-@login_required
-def disk_storage():
-    site_name = ""
-    try:
-        # username login
-        username = current_user.id
-        
-        # get site name
-        site_name = red.hget('site_name', 'site_name')
-        
-        context = {
-            'username': username,
-            'site_name': site_name,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.34.1'
-        }
-    except Exception as e:
-        print(f"disk_storage() error: {e}")
-        context = {
-            'username': username,
-            'site_name': 'Site Name',
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.34.3'
-        }
-    return render_template('disk-storage.html', **context)
 
 
 @app.route('/login', methods=['GET', 'POST'])
