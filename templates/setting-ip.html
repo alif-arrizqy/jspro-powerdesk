@@ -1,162 +1,380 @@
-{% extends 'layout.html' %}
-{% block breadcrumbs %} Setting Device {% endblock breadcrumbs %}
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}IP Settings{% endblock breadcrumbs %}
 
 {% block content %}
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="container mt-3">
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-network-wired text-primary me-2"></i>
+                    Network IP Configuration
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <p class="text-muted mb-0">Konfigurasi IP Address. Pilih site atau gunakan pengaturan IP kustom.</p>
+            </div>
         </div>
-    {% endif %}
-{% endwith %}
-<!-- login information -->
-<div class="container mt-3">
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong>Info!</strong> Kamu Telah Login Sebagai <strong>{{ username.capitalize() }}</strong>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
     </div>
 </div>
-<!-- setting ip primary -->
+
+<!-- Network Status Summary -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    Network Configuration Summary
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Primary IP</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="primary-ip-display">{{ ip_address_primary if ip_address_primary else 'Not Set' }}</h4>
+                            <p class="stats-card-subtitle">Main Network</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Subnet Mask</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="subnet_mask_display">{{ subnet_mask if subnet_mask else 'Not Set' }}</h4>
+                            <p class="stats-card-subtitle">Backup Network</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Gateway</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-route"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="gateway-display">{{ gateway if gateway else 'Not Set' }}</h4>
+                            <p class="stats-card-subtitle">Default Route</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value">
+                                <span class="status-indicator {% if ip_address_primary %}active{% else %}inactive{% endif %}" id="network-status">
+                                    {% if ip_address_primary %}Configured{% else %}Pending{% endif %}
+                                </span>
+                            </h4>
+                            <p class="stats-card-subtitle">Network Config</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- IP Configuration Cards -->
 <div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title"><i class="fas fa-wifi"></i> Setting IP Primary</h4>
+    <!-- Primary IP Configuration -->
+    <div class="col-lg-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-wifi text-primary me-2"></i>
+                    Primary IP Address
+                </h5>
             </div>
-            <!-- select section -->
-            <div class="card-content">
-                <div class="row mb-3">
-                    <label for="site" class="col-sm-4 col-form-label">Site</label>
-                    <div class="col-sm-8">
+            <div class="modern-card-body">
+                <!-- Site Selection -->
+                <div class="mb-4">
+                    <label for="select_ip" class="form-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        Select Site
+                    </label>
+                    <div class="input-group">
                         <select class="form-control" name="select_ip" id="select_ip">
-                            <option value="" disabled selected>Select Site</option>
+                            <option value="" disabled selected>Choose Site Location</option>
                         </select>
+                        <button class="btn btn-modern btn-outline-primary" type="button" id="find-btn">
+                            <i class="fas fa-search me-2"></i>
+                            Find
+                        </button>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-sm-12 text-right">
-                        <button class="btn btn-primary" id="find-btn">Find</button>
-                    </div>
-                </div>
-            </div>
-            <form method="POST">
-                <div class="card-content">
+                
+                <!-- Primary IP Form -->
+                <form method="POST" id="primary-form">
                     <input type="hidden" id="site" name="site">
                     <input type="hidden" id="type-ip-address" name="type-ip-address" value="ip-primary">
 
-                    <div class="row mb-3">
-                        <label for="ip-address-primary" class="col-sm-4 col-form-label">IP Address Primary</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="ip-address-primary" id="ip-address-primary" placeholder="IP Address Primary" value="{{ip_address_primary}}" readonly>
-                        </div>
+                    <div class="mb-3">
+                        <label for="ip-address-primary" class="form-label">
+                            <i class="fas fa-globe me-2"></i>
+                            IP Address Primary
+                        </label>
+                        <input type="text" class="form-control" name="ip-address-primary" id="ip-address-primary" placeholder="192.168.1.100" value="{{ip_address_primary}}">
                     </div>
-                    <div class="row mb-3">
-                        <label for="net-mask" class="col-sm-4 col-form-label">Net Mask</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="net-mask" id="net-mask" placeholder="contoh: 24 atau 29" value="{{subnet_mask}}" readonly>
-                        </div>
+                    
+                    <div class="mb-3">
+                        <label for="net-mask" class="form-label">
+                            <i class="fas fa-mask me-2"></i>
+                            Net Mask
+                        </label>
+                        <input type="text" class="form-control" name="net-mask" id="net-mask" placeholder="24 atau 255.255.255.0" value="{{subnet_mask}}">
                     </div>
-                    <div class="row mb-3">
-                        <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="gateway" id="gateway" placeholder="Gateway" value="{{gateway}}" readonly>
-                        </div>
+                    
+                    <div class="mb-3">
+                        <label for="gateway" class="form-label">
+                            <i class="fas fa-route me-2"></i>
+                            Gateway
+                        </label>
+                        <input type="text" class="form-control" name="gateway" id="gateway" placeholder="192.168.1.1" value="{{gateway}}">
                     </div>
-                    <!-- button -->
-                    <div class="row">
-                        <div class="col-sm-12 text-right">
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-modern btn-primary" id="primary-submit">
+                            <i class="fas fa-save me-2"></i>
+                            Save Primary IP
+                        </button>
                     </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- setting ip secondary -->
-<div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-header card-header-text titel-border">
-                <h4 class="card-title"><i class="fas fa-wifi"></i> Setting IP Secondary</h4>
+                </form>
             </div>
-            <form method="POST">
-                <div class="card-content">
-                    <input type="hidden" id="site" name="site">
-                    <input type="hidden" id="type-ip-address" name="type-ip-address" value="ip-secondary">
-
-                    <div class="row mb-3">
-                        <label for="ip-address-secondary" class="col-sm-4 col-form-label">IP Address Secondary</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="ip-address-secondary" name="ip-address-secondary" placeholder="IP Address Secondary" value="{{ip_address_secondary}}">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="net-mask" class="col-sm-4 col-form-label">Net Mask</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="net-mask" id="net-mask" placeholder="contoh: 24 atau 29" value="{{subnet_mask}}">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="gateway" class="col-sm-4 col-form-label">Gateway</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="gateway" id="gateway" placeholder="Gateway" value="{{gateway}}">
-                        </div>
-                    </div>
-                    <!-- button -->
-                    <div class="row">
-                        <div class="col-sm-12 text-right">
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
 </div>
 {% endblock content %}
-{% block js %}
-<script>
-    // read data site
-    const result_data = JSON.parse('{{ data_ip | tojson | safe }}')
-    result_data.map((el) => {
-        const selectIp = document.getElementById('select_ip')
-        const option = document.createElement('option')
-        option.value = el.ip
-        option.text = el.site
-        selectIp.appendChild(option)
-    })
 
-    // find ip
-    document.getElementById('find-btn').addEventListener('click', function () {
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Read data site
+    const result_data = JSON.parse('{{ data_ip | tojson | safe }}');
+    
+    // Populate site dropdown
+    result_data.forEach(el => {
+        const selectIp = document.getElementById('select_ip');
+        const option = document.createElement('option');
+        option.value = el.ip;
+        option.text = el.site;
+        selectIp.appendChild(option);
+    });
+
+    // Find IP functionality
+    document.getElementById('find-btn').addEventListener('click', function() {
         const selectIp = document.getElementById('select_ip');
         const selectedIp = selectIp.options[selectIp.selectedIndex].value;
+        
+        if (!selectedIp) {
+            showAlert('Please select a site first', 'warning');
+            return;
+        }
 
         const result = result_data.find(el => el.ip === selectedIp);
         if (result) {
+            // Update primary IP fields
             document.getElementById('ip-address-primary').value = result.ip;
             document.getElementById('net-mask').value = result.subnet_mask;
             document.getElementById('gateway').value = result.gateway;
             document.getElementById('site').value = result.site;
             
+            // Update summary display
+            updateSummaryDisplay();
+            
+            // Handle custom IP configuration
             if (result.site === 'IP CUSTOM') {
-                // remove attribute readonly
+                // Remove readonly attributes for custom configuration
                 document.getElementById('ip-address-primary').removeAttribute('readonly');
                 document.getElementById('net-mask').removeAttribute('readonly');
                 document.getElementById('gateway').removeAttribute('readonly');
-                document.getElementById('site').value = {{ site_name|upper}};
+                document.getElementById('site').value = '{{ site_name|upper }}';
+                
+                // Show custom configuration alert
+                showAlert('Custom IP mode enabled. You can now edit the IP configuration.', 'info');
+            } else {
+                // Re-add readonly attributes for preset configurations
+                document.getElementById('ip-address-primary').setAttribute('readonly', 'readonly');
+                document.getElementById('net-mask').setAttribute('readonly', 'readonly');
+                document.getElementById('gateway').setAttribute('readonly', 'readonly');
             }
+            
+            // Visual feedback
+            const button = document.getElementById('find-btn');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-2"></i>Found';
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+            }, 2000);
         }
     });
+
+    // Form submission handlers
+    const primaryForm = document.getElementById('primary-form');
+    const secondaryForm = document.getElementById('secondary-form');
+
+    primaryForm.addEventListener('submit', function(e) {
+        handleFormSubmit(e, 'primary-submit', 'Save Primary IP');
+    });
+
+    secondaryForm.addEventListener('submit', function(e) {
+        handleFormSubmit(e, 'secondary-submit', 'Save Secondary IP');
+    });
+
+    // IP validation
+    const ipInputs = document.querySelectorAll('input[name*="ip-address"], input[name="gateway"]');
+    ipInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validateIPAddress(this);
+        });
+    });
+
+    // Net mask validation
+    const netMaskInputs = document.querySelectorAll('input[name="net-mask"]');
+    netMaskInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validateNetMask(this);
+        });
+    });
+
+    // Real-time summary updates
+    const allInputs = document.querySelectorAll('input[type="text"]');
+    allInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            updateSummaryDisplay();
+        });
+    });
+
+    // Functions
+    function handleFormSubmit(event, buttonId, originalText) {
+        const button = document.getElementById(buttonId);
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        button.disabled = true;
+        
+        // Re-enable after 5 seconds as fallback
+        setTimeout(() => {
+            button.innerHTML = `<i class="fas fa-save me-2"></i>${originalText}`;
+            button.disabled = false;
+        }, 5000);
+    }
+
+    function validateIPAddress(input) {
+        const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        const value = input.value.trim();
+        
+        if (value === '') {
+            input.classList.remove('is-valid', 'is-invalid');
+            return;
+        }
+        
+        if (ipPattern.test(value)) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    function validateNetMask(input) {
+        const value = input.value.trim();
+        
+        if (value === '') {
+            input.classList.remove('is-valid', 'is-invalid');
+            return;
+        }
+        
+        // Check if it's CIDR notation (1-32) or dotted decimal
+        const cidrPattern = /^([1-9]|[1-2][0-9]|3[0-2])$/;
+        const dottedPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        
+        if (cidrPattern.test(value) || dottedPattern.test(value)) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    function updateSummaryDisplay() {
+        const primaryIp = document.getElementById('ip-address-primary').value;
+        const secondaryIp = document.getElementById('ip-address-secondary').value;
+        const gateway = document.getElementById('gateway').value;
+        
+        // Update summary cards
+        document.getElementById('primary-ip-display').textContent = primaryIp || 'Not Set';
+        document.getElementById('secondary-ip-display').textContent = secondaryIp || 'Not Set';
+        document.getElementById('gateway-display').textContent = gateway || 'Not Set';
+        
+        // Update status
+        const statusElement = document.getElementById('network-status');
+        if (primaryIp) {
+            statusElement.textContent = 'Configured';
+            statusElement.classList.remove('inactive');
+            statusElement.classList.add('active');
+        } else {
+            statusElement.textContent = 'Pending';
+            statusElement.classList.remove('active');
+            statusElement.classList.add('inactive');
+        }
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-info-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at the top of the page
+        const firstCard = document.querySelector('.modern-card');
+        firstCard.parentNode.insertBefore(alertDiv, firstCard);
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+
+    // Initialize tooltips
+    const tooltips = {
+        'select_ip': 'Select a predefined site configuration or choose custom for manual setup',
+        'ip-address-primary': 'Primary IP address for the main network interface',
+        'ip-address-secondary': 'Secondary IP address for backup network connection',
+        'net-mask': 'Network mask in CIDR notation (e.g., 24) or dotted decimal (e.g., 255.255.255.0)',
+        'gateway': 'Default gateway IP address for routing network traffic'
+    };
+
+    Object.keys(tooltips).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.setAttribute('title', tooltips[id]);
+            element.setAttribute('data-bs-toggle', 'tooltip');
+        }
+    });
+
+    // Initialize summary display
+    updateSummaryDisplay();
+});
 </script>
-{% endblock js %}
+{% endblock %}
