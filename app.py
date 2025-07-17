@@ -187,6 +187,40 @@ def scc_alarm_log():
         }
     return render_template('scc-alarm-log.html', **context)
 
+@app.route('/mqtt-service', methods=['GET'])
+@login_required
+def mqtt_service():
+    site_name = ""
+    path = f'{PATH}/config_device.json'
+    with open(path, 'r') as file:
+        data = json.load(file)
+    
+    try:
+        # username login
+        username = current_user.id
+        
+        site_name = red.hget('site_name', 'site_name')
+        context = {
+            'username': username,
+            'site_name': site_name,
+            'scc_type': scc_type,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.1.1',
+            'mqtt_config': data.get('mqtt_config', {})
+        }
+    except Exception as e:
+        print(f"mqtt_service() error: {e}")
+        context = {
+            'username': username,
+            'site_name': 'Site Name',
+            'scc_type': scc_type,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.1.1',
+            'mqtt_config': data.get('mqtt_config', {})
+        }
+    return render_template('mqtt-service.html', **context)
+
+
 @app.route('/power-operation', methods=['GET'])
 @login_required
 def power_operation():
