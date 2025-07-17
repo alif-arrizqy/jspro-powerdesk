@@ -103,13 +103,6 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="/upload-loggers" class="nav-link {{ 'active' if request.endpoint == 'main.upload_loggers' }}">
-                                    <i class="fas fa-upload"></i>
-                                    <span>Upload Loggers</span>
-                                    <div class="nav-indicator"></div>
-                                </a>
-                            </li>
-                            <li>
                                 <a href="/service-systemd" class="nav-link {{ 'active' if request.endpoint == 'main.service_systemd' }}">
                                     <i class="fas fa-adjust"></i>
                                     <span>Systemd</span>
@@ -196,13 +189,6 @@
                                 </a>
                             </li>
                             {% endif %}
-                            <li>
-                                <a href="/disk-storage" class="nav-link {{ 'active' if request.endpoint == 'main.disk_storage' }}">
-                                    <i class="fas fa-hdd"></i>
-                                    <span>Disk Storage</span>
-                                    <div class="nav-indicator"></div>
-                                </a>
-                            </li>
                             {% endif %}
                         </ul>
                     </li>
