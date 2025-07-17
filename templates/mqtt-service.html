@@ -1,0 +1,669 @@
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}MQTT Service{% endblock breadcrumbs %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-exchange-alt text-primary me-2"></i>
+                    MQTT Service Management
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Info:</strong> Monitor MQTT publish activity, upload data from SQLite, and manage MQTT service operations.
+                </div>
+                <p class="text-muted mb-0">Real-time monitoring and management of MQTT messaging service for data communication.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Status & Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cogs text-success me-2"></i>
+                    Service Status & Controls
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Service Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-power-off"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value">
+                                <span class="status-indicator active" id="service-status">
+                                    Running
+                                </span>
+                            </h4>
+                            <p class="stats-card-subtitle">MQTT Service</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Messages</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="message-count">0</h4>
+                            <p class="stats-card-subtitle">Published Today</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Last Activity</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="last-activity">--:--</h4>
+                            <p class="stats-card-subtitle">Last Publish</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Service Control</h6>
+                                <div class="stats-card-icon bg-danger">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-modern btn-warning btn-sm" id="restart-service" onclick="restartMqttService()">
+                                    <i class="fas fa-redo me-1"></i>
+                                    Restart
+                                </button>
+                            </div>
+                            <p class="stats-card-subtitle">Service Management</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- MQTT Monitor Panel -->
+    <div class="col-lg-8 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-monitor text-primary me-2"></i>
+                    MQTT Publish Monitor
+                </h5>
+                <div class="header-actions">
+                    <button class="btn btn-modern btn-outline-primary btn-sm" id="clear-log" onclick="clearLog()">
+                        <i class="fas fa-trash me-1"></i>
+                        Clear Log
+                    </button>
+                    <button class="btn btn-modern btn-outline-secondary btn-sm" id="auto-scroll" onclick="toggleAutoScroll()">
+                        <i class="fas fa-arrows-alt-v me-1"></i>
+                        Auto Scroll
+                    </button>
+                </div>
+            </div>
+            <div class="modern-card-body">
+                <div class="mqtt-monitor">
+                    <div class="monitor-header">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <small class="text-muted">Timestamp</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Topic</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Status</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Message Size</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="monitor-log" id="mqtt-log">
+                        <div class="log-entry">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <span class="timestamp">{{ current_time }}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="topic">system/status</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="status status-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Published
+                                    </span>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="message-size">245 bytes</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- More log entries will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Upload Panel -->
+    <div class="col-lg-4 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-upload text-info me-2"></i>
+                    Data Upload
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <form id="upload-form" onsubmit="uploadMqttData(event)">
+                    <div class="mb-3">
+                        <label for="date-range" class="form-label">
+                            <i class="fas fa-calendar me-2"></i>
+                            Date Range
+                        </label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="start-date" name="start-date" required>
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" id="end-date" name="end-date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="data-type" class="form-label">
+                            <i class="fas fa-database me-2"></i>
+                            Data Type
+                        </label>
+                        <select class="form-control" id="data-type" name="data-type" required>
+                            <option value="">Select Data Type</option>
+                            <option value="scc">SCC Data</option>
+                            <option value="battery">Battery Data</option>
+                            <option value="system">System Logs</option>
+                            <option value="all">All Data</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">
+                            <i class="fas fa-tag me-2"></i>
+                            MQTT Topic
+                        </label>
+                        <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g., data/upload/batch" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="batch-size" class="form-label">
+                            <i class="fas fa-layer-group me-2"></i>
+                            Batch Size
+                        </label>
+                        <select class="form-control" id="batch-size" name="batch-size">
+                            <option value="100">100 records</option>
+                            <option value="500" selected>500 records</option>
+                            <option value="1000">1000 records</option>
+                            <option value="2000">2000 records</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-modern btn-info" id="upload-btn">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Data
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Upload Progress -->
+                <div class="upload-progress mt-3" id="upload-progress" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-info mt-2">
+                        <small class="text-muted">
+                            <span id="progress-text">Preparing upload...</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Configuration -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cog text-warning me-2"></i>
+                    MQTT Configuration
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-server me-2"></i>
+                                Broker Host
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-host" value="{{ mqtt_config.host if mqtt_config else 'localhost' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-plug me-2"></i>
+                                Port
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-port" value="{{ mqtt_config.port if mqtt_config else '1883' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2"></i>
+                                Username
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-username" value="{{ mqtt_config.username if mqtt_config else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Password
+                            </label>
+                            <input type="password" class="form-control" id="mqtt-password" value="{{ mqtt_config.password if mqtt_config else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                OpenVPN IP
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-openvpn-ip" value="{{ mqtt_config.openvpn_ip if mqtt_config else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Topic Prefix
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-topic-prefix" value="{{ mqtt_config.topic if mqtt_config else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> MQTT configuration is managed through the system configuration file. 
+                            Contact administrator to modify these settings.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to restart the MQTT service?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmAction">Restart Service</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-scroll functionality
+    let autoScroll = true;
+    let logContainer = document.getElementById('mqtt-log');
+    
+    // Set default dates
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    document.getElementById('start-date').value = yesterday.toISOString().split('T')[0];
+    document.getElementById('end-date').value = today.toISOString().split('T')[0];
+    
+    // Update current time display
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 1000);
+    
+    // Simulate MQTT activity
+    startMqttMonitoring();
+    
+    // Initialize modal
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    
+    // Form validation
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+        const startDate = new Date(document.getElementById('start-date').value);
+        const endDate = new Date(document.getElementById('end-date').value);
+        
+        if (startDate > endDate) {
+            e.preventDefault();
+            showAlert('Start date cannot be later than end date', 'danger');
+        }
+    });
+});
+
+function updateCurrentTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    document.getElementById('last-activity').textContent = timeString;
+}
+
+function startMqttMonitoring() {
+    // Simulate MQTT publish events
+    const topics = ['data/scc', 'data/battery', 'system/heartbeat', 'alarm/scc', 'status/device'];
+    let messageCount = 0;
+    
+    setInterval(() => {
+        if (Math.random() > 0.3) { // 70% chance of activity
+            const topic = topics[Math.floor(Math.random() * topics.length)];
+            const status = Math.random() > 0.1 ? 'success' : 'error';
+            const size = Math.floor(Math.random() * 1000) + 100;
+            
+            addLogEntry(topic, status, size);
+            messageCount++;
+            document.getElementById('message-count').textContent = messageCount;
+        }
+    }, 2000);
+}
+
+function addLogEntry(topic, status, size) {
+    const logContainer = document.getElementById('mqtt-log');
+    const timestamp = new Date().toLocaleTimeString();
+    
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    
+    const statusClass = status === 'success' ? 'status-success' : 'status-error';
+    const statusIcon = status === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const statusText = status === 'success' ? 'Published' : 'Failed';
+    
+    logEntry.innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <span class="timestamp">${timestamp}</span>
+            </div>
+            <div class="col-md-3">
+                <span class="topic">${topic}</span>
+            </div>
+            <div class="col-md-3">
+                <span class="status ${statusClass}">
+                    <i class="fas ${statusIcon} me-1"></i>
+                    ${statusText}
+                </span>
+            </div>
+            <div class="col-md-3">
+                <span class="message-size">${size} bytes</span>
+            </div>
+        </div>
+    `;
+    
+    logContainer.appendChild(logEntry);
+    
+    // Auto-scroll to bottom
+    if (autoScroll) {
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Keep only last 50 entries
+    const entries = logContainer.querySelectorAll('.log-entry');
+    if (entries.length > 50) {
+        entries[0].remove();
+    }
+}
+
+function clearLog() {
+    const logContainer = document.getElementById('mqtt-log');
+    logContainer.innerHTML = '';
+    showAlert('Log cleared successfully', 'success');
+}
+
+function toggleAutoScroll() {
+    autoScroll = !autoScroll;
+    const button = document.getElementById('auto-scroll');
+    
+    if (autoScroll) {
+        button.innerHTML = '<i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-outline-primary');
+    } else {
+        button.innerHTML = '<i class="fas fa-pause me-1"></i> Scroll Off';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-outline-secondary');
+    }
+}
+
+function restartMqttService() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = 'Are you sure you want to restart the MQTT service? This will briefly interrupt message publishing.';
+    
+    document.getElementById('confirmAction').onclick = function() {
+        const button = document.getElementById('restart-service');
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Restarting...';
+        button.disabled = true;
+        
+        // Simulate service restart
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            showAlert('MQTT service restarted successfully', 'success');
+            
+            // Update service status
+            const statusElement = document.getElementById('service-status');
+            statusElement.textContent = 'Restarted';
+            statusElement.classList.remove('active');
+            statusElement.classList.add('inactive');
+            
+            setTimeout(() => {
+                statusElement.textContent = 'Running';
+                statusElement.classList.remove('inactive');
+                statusElement.classList.add('active');
+            }, 3000);
+        }, 3000);
+        
+        modal.hide();
+    };
+    
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    confirmModal.show();
+}
+
+function uploadMqttData(event) {
+    event.preventDefault();
+    
+    const button = document.getElementById('upload-btn');
+    const progressContainer = document.getElementById('upload-progress');
+    const progressBar = progressContainer.querySelector('.progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    // Show progress
+    progressContainer.style.display = 'block';
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Uploading...';
+    button.disabled = true;
+    
+    // Simulate upload progress
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress > 100) progress = 100;
+        
+        progressBar.style.width = progress + '%';
+        progressText.textContent = `Uploading... ${Math.round(progress)}%`;
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+                button.innerHTML = '<i class="fas fa-upload me-2"></i> Upload Data';
+                button.disabled = false;
+                showAlert('Data uploaded successfully to MQTT broker', 'success');
+                
+                // Reset progress
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Preparing upload...';
+            }, 1000);
+        }
+    }, 200);
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class="fas fa-info-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of content
+    const contentArea = document.querySelector('.content-area');
+    contentArea.insertBefore(alertDiv, contentArea.firstChild);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>
+
+<style>
+.mqtt-monitor {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.monitor-header {
+    background: #e9ecef;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.log-entry {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+    animation: slideIn 0.3s ease-out;
+}
+
+.log-entry:hover {
+    background: #f1f3f4;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.timestamp {
+    font-family: monospace;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.topic {
+    font-weight: 500;
+    color: #495057;
+}
+
+.status {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-success {
+    color: #28a745;
+}
+
+.status-error {
+    color: #dc3545;
+}
+
+.message-size {
+    font-family: monospace;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.config-item {
+    margin-bottom: 1rem;
+}
+
+.upload-progress .progress {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+
+.upload-progress .progress-bar {
+    background: linear-gradient(45deg, #17a2b8, #20c997);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.header-actions .btn {
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
