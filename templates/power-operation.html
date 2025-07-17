@@ -15,9 +15,9 @@
             <div class="modern-card-body">
                 <div class="alert alert-warning" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Peringatan:</strong> Operasi daya akan mempengaruhi ketersediaan sistem. Gunakan dengan hati-hati dan pastikan semua pekerjaan yang diperlukan telah disimpan.
+                    <strong>Warning:</strong> Power operations will affect system availability. Use with caution and ensure all necessary work has been saved.
                 </div>
-                <p class="text-muted mb-0">Kontrol operasi daya sistem termasuk restart dan shutdown. Semua operasi memerlukan autentikasi password.</p>
+                <p class="text-muted mb-0">Control system power operations including restart and shutdown. All operations require password authentication.</p>
             </div>
         </div>
     </div>
@@ -110,10 +110,10 @@
                                     <i class="fas fa-redo-alt text-warning" style="font-size: 3rem;"></i>
                                 </div>
                                 <h4 class="mb-3 text-warning">System Reboot</h4>
-                                <p class="text-muted mb-4">Restart sistem untuk menerapkan pembaruan atau mengatasi masalah. Sistem akan sementara tidak tersedia selama proses restart.</p>
+                                <p class="text-muted mb-4">Restart the system to apply updates or resolve issues. The system will be temporarily unavailable during the restart process.</p>
                                 <div class="alert alert-warning" role="alert">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    <small>Perkiraan waktu mati: 2-3 menit</small>
+                                    <small>Estimated downtime: 2-3 minutes</small>
                                 </div>
                                 <button class="btn btn-warning btn-lg w-100" onclick="showRebootModal();">
                                     <i class="fas fa-redo-alt me-2"></i>
@@ -129,10 +129,10 @@
                                     <i class="fas fa-power-off text-danger" style="font-size: 3rem;"></i>
                                 </div>
                                 <h4 class="mb-3 text-danger">System Shutdown</h4>
-                                <p class="text-muted mb-4">Matikan sistem dengan aman. Ini akan menghentikan semua layanan dan mematikan perangkat sepenuhnya.</p>
+                                <p class="text-muted mb-4">Safely shut down the system. This will stop all services and completely power off the device.</p>
                                 <div class="alert alert-danger" role="alert">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <small>Diperlukan power-on manual setelah shutdown</small>
+                                    <small>Manual power-on required after shutdown</small>
                                 </div>
                                 <button class="btn btn-danger btn-lg w-100" onclick="showShutdownModal();">
                                     <i class="fas fa-power-off me-2"></i>
@@ -161,20 +161,20 @@
             <div class="modal-body">
                 <div class="alert alert-warning" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Peringatan:</strong> Ini akan me-restart sistem dan sementara mengganggu semua layanan.
+                    <strong>Warning:</strong> This will restart the system and temporarily disrupt all services.
                 </div>
                 <div class="mb-3">
                     <label for="rebootPassword" class="form-label">
                         <i class="fas fa-key me-2"></i>
-                        Masukkan password Anda untuk konfirmasi:
+                        Enter your password for confirmation:
                     </label>
-                    <input type="password" class="form-control" id="rebootPassword" placeholder="Masukkan password" required>
+                    <input type="password" class="form-control" id="rebootPassword" placeholder="Enter password" required>
                     <div class="invalid-feedback" id="rebootPasswordError"></div>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="rebootConfirm" required>
                     <label class="form-check-label" for="rebootConfirm">
-                        Saya memahami bahwa ini akan me-restart sistem
+                        I understand that this will restart the system
                     </label>
                 </div>
             </div>
@@ -203,26 +203,26 @@
             <div class="modal-body">
                 <div class="alert alert-danger" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Peringatan Kritis:</strong> Ini akan mematikan sistem sepenuhnya. Power-on manual akan diperlukan.
+                    <strong>Critical Warning:</strong> This will completely shut down the system. Manual power-on will be required.
                 </div>
                 <div class="mb-3">
                     <label for="shutdownPassword" class="form-label">
                         <i class="fas fa-key me-2"></i>
-                        Masukkan password Anda untuk konfirmasi:
+                        Enter your password for confirmation:
                     </label>
-                    <input type="password" class="form-control" id="shutdownPassword" placeholder="Masukkan password" required>
+                    <input type="password" class="form-control" id="shutdownPassword" placeholder="Enter password" required>
                     <div class="invalid-feedback" id="shutdownPasswordError"></div>
                 </div>
                 <div class="form-check mb-3">
                     <input class="form-check-input" type="checkbox" id="shutdownConfirm" required>
                     <label class="form-check-label" for="shutdownConfirm">
-                        Saya memahami bahwa ini akan mematikan sistem sepenuhnya
+                        I understand that this will completely shut down the system
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="shutdownFinalConfirm" required>
                     <label class="form-check-label" for="shutdownFinalConfirm">
-                        Saya mengkonfirmasi bahwa saya ingin melanjutkan dengan shutdown
+                        I confirm that I want to proceed with the shutdown
                     </label>
                 </div>
             </div>
