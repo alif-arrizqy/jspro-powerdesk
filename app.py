@@ -25,7 +25,7 @@ class User(UserMixin):
         self.id = username
 
 # PATH = "/var/lib/sundaya/ehub-talis"
-PATH = "E:/sundaya/developments/EhubTalis/ehub-talis"
+PATH = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis"
 
 @login_manager.user_loader
 def load_user(username):
@@ -268,8 +268,8 @@ def site_information():
             'username': username,
             'site_name': site_name,
             'scc_type': scc_type,
-            'site_location': data.get('site_location'),
-            'device_info': data.get('device_model'),
+            'site_information': data.get('site_information'),
+            'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
