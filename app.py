@@ -220,6 +220,32 @@ def mqtt_service():
         }
     return render_template('mqtt-service.html', **context)
 
+@app.route('/systemd-service', methods=['GET'])
+@login_required
+def systemd_service():
+    site_name = ""
+    try:
+        # username login
+        username = current_user.id
+        
+        site_name = red.hget('site_name', 'site_name')
+        context = {
+            'username': username,
+            'site_name': site_name,
+            'scc_type': scc_type,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.1.1'
+        }
+    except Exception as e:
+        print(f"mqtt_service() error: {e}")
+        context = {
+            'username': username,
+            'site_name': 'Site Name',
+            'scc_type': scc_type,
+            # 'ip_address': get_ip_address('eth0'),
+            'ip_address': '192.168.1.1'
+        }
+    return render_template('systemd-service.html', **context)
 
 @app.route('/power-operation', methods=['GET'])
 @login_required
