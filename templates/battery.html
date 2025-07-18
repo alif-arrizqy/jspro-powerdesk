@@ -40,6 +40,9 @@
                         <div class="d-flex align-items-center">
                             <i class="fas fa-heartbeat text-danger me-2"></i>
                             <span class="text-muted" id="heartbeat-{{i}}">Heartbeat: Loading...</span>
+                            <span class="text-muted mx-2">|</span>
+                            <i class="fas fa-clock text-info me-2"></i>
+                            <span class="text-muted small" id="last-update-{{i}}">Last Update: Loading...</span>
                         </div>
                     </h3>
                 </div>
@@ -492,7 +495,16 @@
             envTemp: (25 + Math.random() * 8).toFixed(1),
             topTemp: (28 + Math.random() * 7).toFixed(1),
             midTemp: (27 + Math.random() * 6).toFixed(1),
-            botTemp: (26 + Math.random() * 5).toFixed(1)
+            botTemp: (26 + Math.random() * 5).toFixed(1),
+            lastUpdate: new Date().toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            })
         };
     }
 
@@ -518,7 +530,11 @@
         
         if (pcbCodeEl) pcbCodeEl.textContent = data.pcbCode;
         if (snCodeEl) snCodeEl.textContent = data.snCode;
-        if (heartbeatEl) heartbeatEl.textContent = data.heartbeat;
+        if (heartbeatEl) heartbeatEl.textContent = `Heartbeat: ${data.heartbeat}`;
+
+        // Update last update timestamp
+        const lastUpdateEl = document.getElementById(`last-update-${packNumber}`);
+        if (lastUpdateEl) lastUpdateEl.textContent = `Last Update: ${data.lastUpdate}`;
 
         // Update key metrics
         const currentEl = document.getElementById(`pack${packNumber}-current`);
