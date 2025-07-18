@@ -1,0 +1,784 @@
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}Systemd Service Management{% endblock breadcrumbs %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-cogs text-primary me-2"></i>
+                    Systemd Service Management
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Information:</strong> Monitor and control system services. Actions require authentication and may temporarily affect system functionality.
+                </div>
+                <p class="text-muted mb-0">Monitor and manage systemd services including Redis, MQTT, SCC, and data processing services. Real-time status monitoring with start, stop, enable, and disable controls.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Status Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-pie text-success me-2"></i>
+                    Service Status Overview
+                </h5>
+                <div class="modern-card-actions">
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshAllServices();" id="refresh-all-btn">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        Refresh All
+                    </button>
+                </div>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Active Services</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="active-count">Loading...</h3>
+                            <p class="stats-card-subtitle">Running</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Inactive Services</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-pause-circle"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="inactive-count">Loading...</h3>
+                            <p class="stats-card-subtitle">Stopped</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Failed Services</h6>
+                                <div class="stats-card-icon bg-danger">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="failed-count">Loading...</h3>
+                            <p class="stats-card-subtitle">Error</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Last Update</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="last-update">Loading...</h3>
+                            <p class="stats-card-subtitle">Status Check</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Management -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-list text-primary me-2"></i>
+                    Service Management
+                </h5>
+                <div class="modern-card-actions">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-success btn-sm" onclick="startAllServices();" id="start-all-btn">
+                            <i class="fas fa-play me-1"></i>
+                            Start All
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="stopAllServices();" id="stop-all-btn">
+                            <i class="fas fa-stop me-1"></i>
+                            Stop All
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3" id="services-container">
+                    <!-- Services will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Action Modal -->
+<div class="modal fade" id="serviceActionModal" tabindex="-1" aria-labelledby="serviceActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" id="action-modal-header">
+                <h5 class="modal-title" id="serviceActionModalLabel">
+                    <i class="fas fa-cog me-2"></i>
+                    Confirm Service Action
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" role="alert" id="action-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action will affect the service status.
+                </div>
+                <div class="mb-3">
+                    <label for="action-password" class="form-label">
+                        <i class="fas fa-key me-2"></i>
+                        Enter your password for confirmation:
+                    </label>
+                    <input type="password" class="form-control" id="action-password" placeholder="Enter password" required>
+                    <div class="invalid-feedback" id="action-password-error"></div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="action-confirm" required>
+                    <label class="form-check-label" for="action-confirm">
+                        I understand the consequences of this action
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirm-action-btn" onclick="executeServiceAction();">
+                    <i class="fas fa-cog me-2"></i>
+                    Execute Action
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Log Modal -->
+<div class="modal fade" id="serviceLogModal" tabindex="-1" aria-labelledby="serviceLogModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="serviceLogModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Service Logs
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary btn-sm" onclick="refreshServiceLogs();">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Refresh
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearLogView();">
+                            <i class="fas fa-eraser me-1"></i>
+                            Clear View
+                        </button>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="auto-refresh-logs">
+                        <label class="form-check-label" for="auto-refresh-logs">
+                            Auto Refresh
+                        </label>
+                    </div>
+                </div>
+                <div id="service-log-content" style="height: 400px; overflow-y: auto; background-color: #1e1e1e; color: #ffffff; font-family: 'Courier New', monospace; padding: 15px; font-size: 12px;">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Loading logs...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="downloadServiceLogs();">
+                    <i class="fas fa-download me-2"></i>
+                    Download Logs
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    const currentUser = "{{ username }}";
+    let serviceActionData = {};
+    let logRefreshInterval = null;
+    
+    // List of services to monitor
+    const services = [
+        {
+            name: 'redis.service',
+            displayName: 'Redis Database',
+            description: 'In-memory data structure store',
+            category: 'database',
+            critical: true
+        },
+        {
+            name: 'mqtt_publish.service',
+            displayName: 'MQTT Publisher',
+            description: 'MQTT message publishing service',
+            category: 'communication',
+            critical: true
+        },
+        {
+            name: 'accumulate_energy.service',
+            displayName: 'Energy Accumulator',
+            description: 'Energy data accumulation service',
+            category: 'data',
+            critical: false
+        },
+        {
+            name: 'device_config_loader.service',
+            displayName: 'Device Config Loader',
+            description: 'Device configuration loading service',
+            category: 'config',
+            critical: false
+        },
+        {
+            name: 'device_config_loader.timer',
+            displayName: 'Device Config Timer',
+            description: 'Device configuration timer',
+            category: 'config',
+            critical: false
+        },
+        {
+            name: 'scc.service',
+            displayName: 'Solar Charge Controller',
+            description: 'SCC data collection service',
+            category: 'hardware',
+            critical: true
+        },
+        {
+            name: 'scc_logs.service',
+            displayName: 'SCC Logs',
+            description: 'SCC logging service',
+            category: 'logging',
+            critical: false
+        },
+        {
+            name: 'scc_logs.timer',
+            displayName: 'SCC Logs Timer',
+            description: 'SCC logging timer',
+            category: 'logging',
+            critical: false
+        },
+        {
+            name: 'store_data_5min.service',
+            displayName: 'Data Storage (5min)',
+            description: '5-minute data storage service',
+            category: 'data',
+            critical: false
+        },
+        {
+            name: 'store_data_5min.timer',
+            displayName: 'Data Storage Timer',
+            description: '5-minute data storage timer',
+            category: 'data',
+            critical: false
+        },
+        {
+            name: 'thread_bms.service',
+            displayName: 'BMS Thread',
+            description: 'Battery Management System service',
+            category: 'hardware',
+            critical: true
+        }
+    ];
+    
+    // Get service status
+    async function getServiceStatus(serviceName) {
+        try {
+            const response = await fetch(`/api/systemd/status/${serviceName}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error(`Failed to get status for ${serviceName}:`, error);
+            return { 
+                status: 'unknown', 
+                enabled: false, 
+                active: false, 
+                running: false,
+                error: error.message 
+            };
+        }
+    }
+    
+    // Get service category icon
+    function getCategoryIcon(category) {
+        const icons = {
+            'database': 'fas fa-database',
+            'communication': 'fas fa-satellite-dish',
+            'data': 'fas fa-chart-line',
+            'config': 'fas fa-cog',
+            'hardware': 'fas fa-microchip',
+            'logging': 'fas fa-file-alt'
+        };
+        return icons[category] || 'fas fa-cog';
+    }
+    
+    // Get status badge
+    function getStatusBadge(status, active, running) {
+        if (status === 'active' && running) {
+            return '<span class="badge bg-success">Active</span>';
+        } else if (status === 'inactive') {
+            return '<span class="badge bg-warning">Inactive</span>';
+        } else if (status === 'failed') {
+            return '<span class="badge bg-danger">Failed</span>';
+        } else if (status === 'unknown') {
+            return '<span class="badge bg-secondary">Unknown</span>';
+        } else {
+            return '<span class="badge bg-info">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span>';
+        }
+    }
+    
+    // Render service card
+    function renderServiceCard(service, statusData) {
+        const isActive = statusData.status === 'active' && statusData.running;
+        const isEnabled = statusData.enabled;
+        const isCritical = service.critical;
+        
+        return `
+            <div class="col-lg-6 col-xl-4">
+                <div class="modern-card ${isActive ? 'border-success' : 'border-warning'}">
+                    <div class="modern-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="modern-card-title mb-0">
+                                <i class="${getCategoryIcon(service.category)} me-2"></i>
+                                ${service.displayName}
+                                ${isCritical ? '<i class="fas fa-exclamation-circle text-danger ms-1" title="Critical Service"></i>' : ''}
+                            </h6>
+                            ${getStatusBadge(statusData.status, statusData.active, statusData.running)}
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        <p class="text-muted small mb-2">${service.description}</p>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">Service:</small>
+                                <div class="fw-bold">${service.name}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Enabled:</small>
+                                <div class="fw-bold">
+                                    ${isEnabled ? 
+                                        '<i class="fas fa-check text-success"></i> Yes' : 
+                                        '<i class="fas fa-times text-danger"></i> No'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button class="btn btn-outline-success btn-sm" onclick="showServiceAction('start', '${service.name}');" ${isActive ? 'disabled' : ''}>
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="showServiceAction('stop', '${service.name}');" ${!isActive ? 'disabled' : ''}>
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="showServiceAction('restart', '${service.name}');" ${!isActive ? 'disabled' : ''}>
+                                <i class="fas fa-redo"></i> Restart
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="showServiceAction('${isEnabled ? 'disable' : 'enable'}', '${service.name}');">
+                                <i class="fas fa-${isEnabled ? 'times' : 'check'}"></i> ${isEnabled ? 'Disable' : 'Enable'}
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="showServiceLogs('${service.name}');">
+                                <i class="fas fa-file-alt"></i> Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Load all services
+    async function loadAllServices() {
+        const container = document.getElementById('services-container');
+        const refreshBtn = document.getElementById('refresh-all-btn');
+        
+        if (refreshBtn) {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+        }
+        
+        container.innerHTML = '<div class="col-12 text-center"><i class="fas fa-spinner fa-spin me-2"></i>Loading services...</div>';
+        
+        try {
+            const servicePromises = services.map(service => 
+                getServiceStatus(service.name).then(status => ({ service, status }))
+            );
+            
+            const results = await Promise.all(servicePromises);
+            
+            let activeCount = 0;
+            let inactiveCount = 0;
+            let failedCount = 0;
+            
+            container.innerHTML = '';
+            
+            results.forEach(({ service, status }) => {
+                if (status.status === 'active' && status.running) {
+                    activeCount++;
+                } else if (status.status === 'failed') {
+                    failedCount++;
+                } else {
+                    inactiveCount++;
+                }
+                
+                container.innerHTML += renderServiceCard(service, status);
+            });
+            
+            // Update overview statistics
+            document.getElementById('active-count').textContent = activeCount;
+            document.getElementById('inactive-count').textContent = inactiveCount;
+            document.getElementById('failed-count').textContent = failedCount;
+            
+            updateLastUpdate();
+            
+        } catch (error) {
+            console.error('Failed to load services:', error);
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Failed to load services: ${error.message}
+                    </div>
+                </div>
+            `;
+        } finally {
+            if (refreshBtn) {
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Refresh All';
+            }
+        }
+    }
+    
+    // Update last update time
+    function updateLastUpdate() {
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            const now = new Date().toLocaleTimeString();
+            lastUpdateElement.textContent = now;
+        }
+    }
+    
+    // Refresh all services
+    function refreshAllServices() {
+        loadAllServices();
+    }
+    
+    // Show service action modal
+    function showServiceAction(action, serviceName) {
+        const modal = document.getElementById('serviceActionModal');
+        const header = document.getElementById('action-modal-header');
+        const warning = document.getElementById('action-warning');
+        const confirmBtn = document.getElementById('confirm-action-btn');
+        const passwordInput = document.getElementById('action-password');
+        const confirmCheckbox = document.getElementById('action-confirm');
+        
+        // Store action data
+        serviceActionData = { action, serviceName };
+        
+        // Reset form
+        passwordInput.value = '';
+        confirmCheckbox.checked = false;
+        passwordInput.classList.remove('is-invalid');
+        document.getElementById('action-password-error').textContent = '';
+        
+        // Update modal content based on action
+        const actionColors = {
+            'start': 'success',
+            'stop': 'warning',
+            'restart': 'info',
+            'enable': 'primary',
+            'disable': 'secondary'
+        };
+        
+        const color = actionColors[action] || 'primary';
+        header.className = `modal-header bg-${color} text-white`;
+        confirmBtn.className = `btn btn-${color}`;
+        
+        document.getElementById('serviceActionModalLabel').innerHTML = 
+            `<i class="fas fa-cog me-2"></i>Confirm ${action.charAt(0).toUpperCase() + action.slice(1)} Service`;
+        
+        warning.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This will ${action} the service "${serviceName}". This action may affect system functionality.
+        `;
+        
+        confirmBtn.innerHTML = `<i class="fas fa-cog me-2"></i>${action.charAt(0).toUpperCase() + action.slice(1)} Service`;
+        
+        const serviceModal = new bootstrap.Modal(modal);
+        serviceModal.show();
+    }
+    
+    // Execute service action
+    async function executeServiceAction() {
+        const password = document.getElementById('action-password').value;
+        const confirmed = document.getElementById('action-confirm').checked;
+        const passwordInput = document.getElementById('action-password');
+        const errorElement = document.getElementById('action-password-error');
+        const confirmBtn = document.getElementById('confirm-action-btn');
+        
+        // Reset validation
+        passwordInput.classList.remove('is-invalid');
+        errorElement.textContent = '';
+        
+        // Validate inputs
+        if (!password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Password is required';
+            return;
+        }
+        
+        if (!confirmed) {
+            alert('Please confirm that you understand the consequences of this action.');
+            return;
+        }
+        
+        // Validate password (simple validation)
+        const validPasswords = {
+            'apt': 'apt123',
+            'teknisi': 'teknisi123'
+        };
+        
+        if (validPasswords[currentUser] !== password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Invalid password';
+            return;
+        }
+        
+        // Disable button and show loading
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        try {
+            const response = await fetch(`/api/systemd/${serviceActionData.action}/${serviceActionData.serviceName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                },
+                body: JSON.stringify({
+                    password: password,
+                    user: currentUser
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('serviceActionModal')).hide();
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification(
+                    `Service ${serviceActionData.action} completed successfully!`, 
+                    'success'
+                );
+            } else {
+                alert(`Service ${serviceActionData.action} completed successfully!`);
+            }
+            
+            // Refresh services after a short delay
+            setTimeout(() => {
+                loadAllServices();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Service action failed:', error);
+            
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification(
+                    `Service ${serviceActionData.action} failed: ${error.message}`, 
+                    'error'
+                );
+            } else {
+                alert(`Service ${serviceActionData.action} failed: ${error.message}`);
+            }
+        } finally {
+            // Reset button
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = `<i class="fas fa-cog me-2"></i>${serviceActionData.action.charAt(0).toUpperCase() + serviceActionData.action.slice(1)} Service`;
+        }
+    }
+    
+    // Show service logs
+    async function showServiceLogs(serviceName) {
+        const modal = document.getElementById('serviceLogModal');
+        const title = document.getElementById('serviceLogModalLabel');
+        const content = document.getElementById('service-log-content');
+        
+        title.innerHTML = `<i class="fas fa-file-alt me-2"></i>Service Logs - ${serviceName}`;
+        content.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading logs...</div>';
+        
+        // Store current service for log refresh
+        window.currentLogService = serviceName;
+        
+        const logModal = new bootstrap.Modal(modal);
+        logModal.show();
+        
+        await refreshServiceLogs();
+    }
+    
+    // Refresh service logs
+    async function refreshServiceLogs() {
+        const serviceName = window.currentLogService;
+        const content = document.getElementById('service-log-content');
+        
+        if (!serviceName) return;
+        
+        try {
+            const response = await fetch(`/api/systemd/logs/${serviceName}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.logs) {
+                content.innerHTML = `<pre style="color: #ffffff; margin: 0;">${result.logs}</pre>`;
+                // Auto-scroll to bottom
+                content.scrollTop = content.scrollHeight;
+            } else {
+                content.innerHTML = '<div class="text-center text-muted">No logs available</div>';
+            }
+            
+        } catch (error) {
+            console.error('Failed to load logs:', error);
+            content.innerHTML = `<div class="text-center text-danger">Failed to load logs: ${error.message}</div>`;
+        }
+    }
+    
+    // Clear log view
+    function clearLogView() {
+        document.getElementById('service-log-content').innerHTML = 
+            '<div class="text-center text-muted">Log view cleared</div>';
+    }
+    
+    // Download service logs
+    async function downloadServiceLogs() {
+        const serviceName = window.currentLogService;
+        if (!serviceName) return;
+        
+        try {
+            const response = await fetch(`/api/systemd/logs/${serviceName}?download=true`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${serviceName}-logs-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+        } catch (error) {
+            console.error('Failed to download logs:', error);
+            alert('Failed to download logs: ' + error.message);
+        }
+    }
+    
+    // Start all services
+    function startAllServices() {
+        if (confirm('Are you sure you want to start all services? This may take some time.')) {
+            services.forEach(service => {
+                setTimeout(() => {
+                    showServiceAction('start', service.name);
+                }, Math.random() * 1000); // Stagger the actions
+            });
+        }
+    }
+    
+    // Stop all services
+    function stopAllServices() {
+        if (confirm('⚠️ WARNING: This will stop all services and may affect system functionality. Are you sure?')) {
+            services.forEach(service => {
+                setTimeout(() => {
+                    showServiceAction('stop', service.name);
+                }, Math.random() * 1000); // Stagger the actions
+            });
+        }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAllServices();
+        
+        // Auto-refresh services every 30 seconds
+        setInterval(() => {
+            loadAllServices();
+        }, 30000);
+        
+        // Handle auto-refresh logs
+        document.getElementById('auto-refresh-logs').addEventListener('change', function() {
+            if (this.checked) {
+                logRefreshInterval = setInterval(refreshServiceLogs, 5000);
+            } else {
+                if (logRefreshInterval) {
+                    clearInterval(logRefreshInterval);
+                    logRefreshInterval = null;
+                }
+            }
+        });
+        
+        // Clean up intervals when modal is hidden
+        document.getElementById('serviceLogModal').addEventListener('hidden.bs.modal', function() {
+            if (logRefreshInterval) {
+                clearInterval(logRefreshInterval);
+                logRefreshInterval = null;
+            }
+            document.getElementById('auto-refresh-logs').checked = false;
+        });
+    });
+</script>
+{% endblock scripts %}
