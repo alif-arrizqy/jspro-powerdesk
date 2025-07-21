@@ -65,12 +65,12 @@
                             </div>
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
-                                    <span class="badge bg-primary me-2">MPPT1</span>
-                                    <span class="badge" id="mppt1-status">Loading...</span>
+                                    <span class="badge bg-primary me-2">SCC1</span>
+                                    <span class="badge" id="scc1-status">Loading...</span>
                                 </div>
                                 <div>
-                                    <span class="badge bg-primary me-2">MPPT2</span>
-                                    <span class="badge" id="mppt2-status">Loading...</span>
+                                    <span class="badge bg-primary me-2">SCC2</span>
+                                    <span class="badge" id="scc2-status">Loading...</span>
                                 </div>
                             </div>
                         </div>
@@ -151,10 +151,10 @@
                         <option value="overdischarge">Over Discharge</option>
                         <option value="undervoltage">Under Voltage</option>
                     </select>
-                    <select class="form-select form-select-sm" id="mppt-filter" style="width: auto;">
-                        <option value="">All MPPT</option>
-                        <option value="mppt1">MPPT 1</option>
-                        <option value="mppt2">MPPT 2</option>
+                    <select class="form-select form-select-sm" id="scc-filter" style="width: auto;">
+                        <option value="">All SCC</option>
+                        <option value="scc1">SCC 1</option>
+                        <option value="scc2">SCC 2</option>
                     </select>
                 </div>
             </div>
@@ -313,8 +313,8 @@
             
             const entry = {
                 time: entryTime.toISOString(),
-                mppt1: generateMpptData(i, alarmScenarios),
-                mppt2: generateMpptData(i + 50, alarmScenarios) // Offset for different patterns
+                scc1: generateScctData(i, alarmScenarios),
+                scc2: generateScctData(i + 50, alarmScenarios) // Offset for different patterns
             };
             
             dummyData.push(entry);
@@ -324,8 +324,8 @@
         return dummyData;
     }
     
-    // Helper function to generate MPPT data
-    function generateMpptData(index, alarmScenarios) {
+    // Helper function to generate SCC data
+    function generateScctData(index, alarmScenarios) {
         const hasAlarm = Math.random() < 0.4; // 40% chance of having an alarm
         const voltage = Math.floor(Math.random() * 800) + 1100; // 11.00V to 19.00V
         const batteryTemp = Math.floor(Math.random() * 50) + 15; // 15°C to 65°C
@@ -336,7 +336,7 @@
         if (Math.random() < 0.05) loadStatus = 'modbus error';
         else if (Math.random() < 0.10) loadStatus = 'standby';
         
-        const mpptData = {
+        const sccData = {
             battery_voltage: voltage,
             battery_temperature: batteryTemp,
             device_temperature: deviceTemp,
@@ -374,10 +374,10 @@
                 });
             });
             
-            mpptData.alarm = alarm;
+            sccData.alarm = alarm;
         }
         
-        return mpptData;
+        return sccData;
     }
     
     // Function to use dummy data instead of API call
@@ -398,8 +398,8 @@
         // Reset button states
         resetButtonStates();
         
-        // Update MPPT status indicators
-        updateMpptStatus();
+        // Update SCC status indicators
+        updateScctStatus();
         
         // Process and display alarm data
         filteredAlarmData = extractAlarmData(arrLoggersData);
@@ -474,16 +474,16 @@
         data.forEach(entry => {
             const time = entry.time;
             
-            // Process MPPT1
-            if (entry.mppt1 && entry.mppt1.alarm) {
-                const mppt1Alarms = processAlarmObject(entry.mppt1.alarm, 'mppt1', time, entry.mppt1);
-                alarms.push(...mppt1Alarms);
+            // Process SCC1
+            if (entry.scc1 && entry.scc1.alarm) {
+                const scc1Alarms = processAlarmObject(entry.scc1.alarm, 'scc1', time, entry.scc1);
+                alarms.push(...scc1Alarms);
             }
             
-            // Process MPPT2
-            if (entry.mppt2 && entry.mppt2.alarm) {
-                const mppt2Alarms = processAlarmObject(entry.mppt2.alarm, 'mppt2', time, entry.mppt2);
-                alarms.push(...mppt2Alarms);
+            // Process SCC2
+            if (entry.scc2 && entry.scc2.alarm) {
+                const scc2Alarms = processAlarmObject(entry.scc2.alarm, 'scc2', time, entry.scc2);
+                alarms.push(...scc2Alarms);
             }
         });
         
@@ -491,7 +491,7 @@
     }
 
     // Function to process alarm object and extract individual alarms
-    function processAlarmObject(alarmObj, mpptType, time, mpptData) {
+    function processAlarmObject(alarmObj, sccType, time, sccData) {
         const alarms = [];
         
         function processNestedAlarms(obj, category, parentKey = '') {
@@ -506,15 +506,15 @@
                         const alarmType = fullKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                         
                         alarms.push({
-                            mppt: mpptType,
+                            scc: sccType,
                             category: category,
                             type: alarmType,
                             status: value,
                             time: time,
-                            batteryVoltage: mpptData.battery_voltage || 0,
-                            batteryTemp: mpptData.battery_temperature || 0,
-                            deviceTemp: mpptData.device_temperature || 0,
-                            loadStatus: mpptData.load_status || 'unknown'
+                            batteryVoltage: sccData.battery_voltage || 0,
+                            batteryTemp: sccData.battery_temperature || 0,
+                            deviceTemp: sccData.device_temperature || 0,
+                            loadStatus: sccData.load_status || 'unknown'
                         });
                     }
                 }
@@ -553,7 +553,7 @@
         
         pageAlarms.forEach(alarm => {
             const statusInfo = alarmStatusMap[alarm.status] || alarmStatusMap['unrecognized'];
-            const mpptBadgeColor = alarm.mppt === 'mppt1' ? 'primary' : 'info';
+            const sccBadgeColor = alarm.scc === 'scc1' ? 'primary' : 'info';
             const severityClass = getSeverityClass(alarm.status);
             
             cardsHtml += `
@@ -566,7 +566,7 @@
                                     <span class="badge bg-${statusInfo.color}">${statusInfo.label}</span>
                                 </div>
                                 <div class="d-flex gap-1">
-                                    <span class="badge bg-${mpptBadgeColor}">${alarm.mppt.toUpperCase()}</span>
+                                    <span class="badge bg-${sccBadgeColor}">${alarm.scc.toUpperCase()}</span>
                                     <span class="badge bg-outline-secondary">${alarm.category}</span>
                                 </div>
                             </div>
@@ -659,14 +659,14 @@
     // Function to filter alarms
     function filterAlarms() {
         const alarmFilter = document.getElementById('alarm-filter').value;
-        const mpptFilter = document.getElementById('mppt-filter').value;
+        const sccFilter = document.getElementById('scc-filter').value;
         
         const allAlarms = extractAlarmData(arrLoggersData);
         
         filteredAlarmData = allAlarms.filter(alarm => {
             const matchesAlarmFilter = !alarmFilter || alarm.status === alarmFilter;
-            const matchesMpptFilter = !mpptFilter || alarm.mppt === mpptFilter;
-            return matchesAlarmFilter && matchesMpptFilter;
+            const matchesScctFilter = !sccFilter || alarm.scc === sccFilter;
+            return matchesAlarmFilter && matchesScctFilter;
         });
         
         currentPage = 1;
@@ -730,8 +730,8 @@
                 // Reset button states
                 resetButtonStates();
                 
-                // Update MPPT status indicators
-                updateMpptStatus();
+                // Update SCC status indicators
+                updateScctStatus();
                 
                 // Process and display alarm data
                 filteredAlarmData = extractAlarmData(arrLoggersData);
@@ -759,50 +759,50 @@
         }
     };
 
-    // Function to update MPPT status
-    function updateMpptStatus() {
+    // Function to update SCC status
+    function updateScctStatus() {
         if (arrLoggersData.length > 0) {
             const latestData = arrLoggersData[0];
             
-            // Update MPPT1 status
-            const mppt1Status = document.getElementById('mppt1-status');
-            if (mppt1Status) {
-                const mppt1LoadStatus = latestData.mppt1?.load_status || 'unknown';
-                const mppt1HasAlarm = latestData.mppt1?.alarm !== null;
+            // Update SCC1 status
+            const scc1Status = document.getElementById('scc1-status');
+            if (scc1Status) {
+                const scc1LoadStatus = latestData.scc1?.load_status || 'unknown';
+                const scc1HasAlarm = latestData.scc1?.alarm !== null;
                 
-                if (mppt1LoadStatus === 'is running' && !mppt1HasAlarm) {
-                    mppt1Status.textContent = 'Running';
-                    mppt1Status.className = 'badge bg-success';
-                } else if (mppt1LoadStatus === 'modbus error') {
-                    mppt1Status.textContent = 'Modbus Error';
-                    mppt1Status.className = 'badge bg-danger';
-                } else if (mppt1HasAlarm) {
-                    mppt1Status.textContent = 'Alarm';
-                    mppt1Status.className = 'badge bg-warning';
+                if (scc1LoadStatus === 'is running' && !scc1HasAlarm) {
+                    scc1Status.textContent = 'Running';
+                    scc1Status.className = 'badge bg-success';
+                } else if (scc1LoadStatus === 'modbus error') {
+                    scc1Status.textContent = 'Modbus Error';
+                    scc1Status.className = 'badge bg-danger';
+                } else if (scc1HasAlarm) {
+                    scc1Status.textContent = 'Alarm';
+                    scc1Status.className = 'badge bg-warning';
                 } else {
-                    mppt1Status.textContent = 'Unknown';
-                    mppt1Status.className = 'badge bg-secondary';
+                    scc1Status.textContent = 'Unknown';
+                    scc1Status.className = 'badge bg-secondary';
                 }
             }
             
-            // Update MPPT2 status
-            const mppt2Status = document.getElementById('mppt2-status');
-            if (mppt2Status) {
-                const mppt2LoadStatus = latestData.mppt2?.load_status || 'unknown';
-                const mppt2HasAlarm = latestData.mppt2?.alarm !== null;
+            // Update SCC2 status
+            const scc2Status = document.getElementById('scc2-status');
+            if (scc2Status) {
+                const scc2LoadStatus = latestData.scc2?.load_status || 'unknown';
+                const scc2HasAlarm = latestData.scc2?.alarm !== null;
                 
-                if (mppt2LoadStatus === 'is running' && !mppt2HasAlarm) {
-                    mppt2Status.textContent = 'Running';
-                    mppt2Status.className = 'badge bg-success';
-                } else if (mppt2LoadStatus === 'modbus error') {
-                    mppt2Status.textContent = 'Modbus Error';
-                    mppt2Status.className = 'badge bg-danger';
-                } else if (mppt2HasAlarm) {
-                    mppt2Status.textContent = 'Alarm';
-                    mppt2Status.className = 'badge bg-warning';
+                if (scc2LoadStatus === 'is running' && !scc2HasAlarm) {
+                    scc2Status.textContent = 'Running';
+                    scc2Status.className = 'badge bg-success';
+                } else if (scc2LoadStatus === 'modbus error') {
+                    scc2Status.textContent = 'Modbus Error';
+                    scc2Status.className = 'badge bg-danger';
+                } else if (scc2HasAlarm) {
+                    scc2Status.textContent = 'Alarm';
+                    scc2Status.className = 'badge bg-warning';
                 } else {
-                    mppt2Status.textContent = 'Unknown';
-                    mppt2Status.className = 'badge bg-secondary';
+                    scc2Status.textContent = 'Unknown';
+                    scc2Status.className = 'badge bg-secondary';
                 }
             }
         }
@@ -999,7 +999,7 @@
         
         // Add event listeners for filters
         document.getElementById('alarm-filter').addEventListener('change', filterAlarms);
-        document.getElementById('mppt-filter').addEventListener('change', filterAlarms);
+        document.getElementById('scc-filter').addEventListener('change', filterAlarms);
         
         // Update last update time every minute
         setInterval(updateLastUpdate, 60000);
