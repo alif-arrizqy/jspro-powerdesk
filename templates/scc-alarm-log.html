@@ -1,5 +1,5 @@
 {% extends 'modern-layout.html' %}
-{% block breadcrumbs %}SCC Alarm Log{% endblock breadcrumbs %}
+{% block breadcrumbs %}SCC Alarm Log - {{ scc_type.upper().replace('-', ' ') }}{% endblock breadcrumbs %}
 
 {% block content %}
 <!-- Page Header -->
@@ -9,11 +9,15 @@
             <div class="modern-card-header">
                 <h3 class="modern-card-title">
                     <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                    SCC Alarm Log Management
+                    SCC Alarm Log Management - {{ scc_type.upper().replace('-', ' ') }}
                 </h3>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary me-2">{{ scc_type.upper().replace('-', ' ') }}</span>
+                    <span class="text-muted">{{ site_name }} | {{ ip_address }}</span>
+                </div>
             </div>
             <div class="modern-card-body">
-                <p class="text-muted mb-0">Monitor and manage Solar Charge Controller alarm logs and system events.</p>
+                <p class="text-muted mb-0">Monitor and manage Solar Charge Controller alarm logs and system events for {{ scc_type.upper().replace('-', ' ') }} type.</p>
             </div>
         </div>
     </div>
@@ -63,15 +67,13 @@
                                     <i class="fas fa-heartbeat"></i>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <span class="badge bg-primary me-2">SCC1</span>
-                                    <span class="badge" id="scc1-status">Loading...</span>
+                            <div class="scc-status-container">
+                                {% for i in range(1, number_of_scc+1) %}
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">SCC{{i}}</span>
+                                    <span class="badge" id="scc{{i}}-status">Loading...</span>
                                 </div>
-                                <div>
-                                    <span class="badge bg-primary me-2">SCC2</span>
-                                    <span class="badge" id="scc2-status">Loading...</span>
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -134,6 +136,20 @@
                 <div class="d-flex gap-2">
                     <select class="form-select form-select-sm" id="alarm-filter" style="width: auto;">
                         <option value="">All Alarms</option>
+                        {% if scc_type == 'scc-srne' %}
+                        <option value="batt-hi-temp-1">Battery High Temp 1</option>
+                        <option value="batt-hi-temp-2">Battery High Temp 2</option>
+                        <option value="batt-lo-temp-1">Battery Low Temp 1</option>
+                        <option value="batt-lo-temp-2">Battery Low Temp 2</option>
+                        <option value="batt-overdisc">Battery Over Discharge</option>
+                        <option value="batt-overvolt">Battery Overvoltage</option>
+                        <option value="batt-reversed">Battery Reversed</option>
+                        <option value="batt-undervolt">Battery Undervoltage</option>
+                        <option value="controller-temp-high">Controller High Temperature</option>
+                        <option value="load-over-current">Load Over Current</option>
+                        <option value="pv-overpower">PV Input Overpower</option>
+                        <option value="pv-overvolt">PV Input Overvoltage</option>
+                        {% elif scc_type == 'scc-epveper' %}
                         <option value="standby">Standby</option>
                         <option value="unrecognized">Unrecognized</option>
                         <option value="fault">Fault</option>
@@ -150,11 +166,13 @@
                         <option value="lowtemp">Low Temperature</option>
                         <option value="overdischarge">Over Discharge</option>
                         <option value="undervoltage">Under Voltage</option>
+                        {% endif %}
                     </select>
                     <select class="form-select form-select-sm" id="scc-filter" style="width: auto;">
                         <option value="">All SCC</option>
-                        <option value="scc1">SCC 1</option>
-                        <option value="scc2">SCC 2</option>
+                        {% for i in range(1, number_of_scc+1) %}
+                        <option value="scc{{i}}">SCC {{i}}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -199,6 +217,8 @@
 {% block scripts %}
 <script>
     const siteName = "{{ site_name }}";
+    const sccType = "{{ scc_type }}";
+    const numberOfScc = {{ number_of_scc }};
     
     // Helper function to update status indicators
     function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'critical']) {
@@ -292,35 +312,62 @@
         const dummyData = [];
         const currentTime = new Date();
         
-        // Sample alarm types and scenarios
-        const alarmScenarios = [
-            { type: 'battery', subtype: 'overvoltage', status: 'fault', probability: 0.15 },
-            { type: 'battery', subtype: 'undervoltage', status: 'fault', probability: 0.12 },
-            { type: 'battery', subtype: 'overdischarge', status: 'warning', probability: 0.08 },
-            { type: 'battery', subtype: 'low_voltage', status: 'warning', probability: 0.10 },
-            { type: 'controller', subtype: 'overtemp', status: 'fault', probability: 0.20 },
-            { type: 'controller', subtype: 'short_circuit', status: 'fault', probability: 0.05 },
-            { type: 'controller', subtype: 'abnormal', status: 'warning', probability: 0.08 },
-            { type: 'load', subtype: 'overload', status: 'fault', probability: 0.12 },
-            { type: 'load', subtype: 'short_circuit', status: 'fault', probability: 0.06 },
-            { type: 'pv', subtype: 'overvoltage', status: 'fault', probability: 0.07 },
-            { type: 'pv', subtype: 'short_circuit', status: 'fault', probability: 0.04 }
-        ];
+        // Define alarm scenarios based on SCC type
+        let alarmScenarios = [];
+        
+        if (sccType === 'scc-srne') {
+            alarmScenarios = [
+                { type: 'battery', subtype: 'batt-hi-temp-1', status: 'active', probability: 0.10 },
+                { type: 'battery', subtype: 'batt-hi-temp-2', status: 'active', probability: 0.08 },
+                { type: 'battery', subtype: 'batt-lo-temp-1', status: 'active', probability: 0.05 },
+                { type: 'battery', subtype: 'batt-lo-temp-2', status: 'active', probability: 0.05 },
+                { type: 'battery', subtype: 'batt-overdisc', status: 'active', probability: 0.12 },
+                { type: 'battery', subtype: 'batt-overvolt', status: 'active', probability: 0.15 },
+                { type: 'battery', subtype: 'batt-reversed', status: 'active', probability: 0.02 },
+                { type: 'battery', subtype: 'batt-undervolt', status: 'active', probability: 0.10 },
+                { type: 'controller', subtype: 'controller-temp-high', status: 'active', probability: 0.18 },
+                { type: 'load', subtype: 'load-over-current', status: 'active', probability: 0.12 },
+                { type: 'pv', subtype: 'pv-overpower', status: 'active', probability: 0.08 },
+                { type: 'pv', subtype: 'pv-overvolt', status: 'active', probability: 0.10 }
+            ];
+        } else if (sccType === 'scc-epveper') {
+            alarmScenarios = [
+                { type: 'battery', subtype: 'overvoltage', status: 'fault', probability: 0.15 },
+                { type: 'battery', subtype: 'undervoltage', status: 'fault', probability: 0.12 },
+                { type: 'battery', subtype: 'overdischarge', status: 'warning', probability: 0.08 },
+                { type: 'battery', subtype: 'low_voltage', status: 'warning', probability: 0.10 },
+                { type: 'controller', subtype: 'overtemp', status: 'fault', probability: 0.20 },
+                { type: 'controller', subtype: 'short_circuit', status: 'fault', probability: 0.05 },
+                { type: 'controller', subtype: 'abnormal', status: 'warning', probability: 0.08 },
+                { type: 'load', subtype: 'overload', status: 'fault', probability: 0.12 },
+                { type: 'load', subtype: 'short_circuit', status: 'fault', probability: 0.06 },
+                { type: 'pv', subtype: 'overvoltage', status: 'fault', probability: 0.07 },
+                { type: 'pv', subtype: 'short_circuit', status: 'fault', probability: 0.04 },
+                { type: 'system', subtype: 'standby', status: 'standby', probability: 0.05 },
+                { type: 'system', subtype: 'unrecognized', status: 'unrecognized', probability: 0.03 },
+                { type: 'system', subtype: 'unable', status: 'unable', probability: 0.02 },
+                { type: 'system', subtype: 'no_access', status: 'no_access', probability: 0.02 },
+                { type: 'system', subtype: 'wrong', status: 'wrong', probability: 0.03 }
+            ];
+        }
         
         // Generate 100 dummy alarm entries for more comprehensive testing
         for (let i = 0; i < 100; i++) {
             const entryTime = new Date(currentTime.getTime() - (i * 1800000)); // 30 min intervals
             
             const entry = {
-                time: entryTime.toISOString(),
-                scc1: generateScctData(i, alarmScenarios),
-                scc2: generateScctData(i + 50, alarmScenarios) // Offset for different patterns
+                time: entryTime.toISOString()
             };
+            
+            // Generate data for each SCC dynamically
+            for (let sccIndex = 1; sccIndex <= numberOfScc; sccIndex++) {
+                entry[`scc${sccIndex}`] = generateScctData(i + (sccIndex * 25), alarmScenarios);
+            }
             
             dummyData.push(entry);
         }
         
-        console.log('Generated dummy alarm data:', dummyData.length, 'entries');
+        console.log(`Generated ${sccType} dummy alarm data:`, dummyData.length, 'entries');
         return dummyData;
     }
     
@@ -474,16 +521,13 @@
         data.forEach(entry => {
             const time = entry.time;
             
-            // Process SCC1
-            if (entry.scc1 && entry.scc1.alarm) {
-                const scc1Alarms = processAlarmObject(entry.scc1.alarm, 'scc1', time, entry.scc1);
-                alarms.push(...scc1Alarms);
-            }
-            
-            // Process SCC2
-            if (entry.scc2 && entry.scc2.alarm) {
-                const scc2Alarms = processAlarmObject(entry.scc2.alarm, 'scc2', time, entry.scc2);
-                alarms.push(...scc2Alarms);
+            // Process all SCCs dynamically
+            for (let i = 1; i <= numberOfScc; i++) {
+                const sccKey = `scc${i}`;
+                if (entry[sccKey] && entry[sccKey].alarm) {
+                    const sccAlarms = processAlarmObject(entry[sccKey].alarm, sccKey, time, entry[sccKey]);
+                    alarms.push(...sccAlarms);
+                }
             }
         });
         
@@ -553,7 +597,12 @@
         
         pageAlarms.forEach(alarm => {
             const statusInfo = alarmStatusMap[alarm.status] || alarmStatusMap['unrecognized'];
-            const sccBadgeColor = alarm.scc === 'scc1' ? 'primary' : 'info';
+            
+            // Dynamic SCC badge color based on SCC number
+            const sccNumber = parseInt(alarm.scc.replace('scc', ''));
+            const sccBadgeColors = ['primary', 'info', 'success', 'warning', 'danger', 'secondary'];
+            const sccBadgeColor = sccBadgeColors[(sccNumber - 1) % sccBadgeColors.length];
+            
             const severityClass = getSeverityClass(alarm.status);
             
             cardsHtml += `
@@ -764,45 +813,45 @@
         if (arrLoggersData.length > 0) {
             const latestData = arrLoggersData[0];
             
-            // Update SCC1 status
-            const scc1Status = document.getElementById('scc1-status');
-            if (scc1Status) {
-                const scc1LoadStatus = latestData.scc1?.load_status || 'unknown';
-                const scc1HasAlarm = latestData.scc1?.alarm !== null;
-                
-                if (scc1LoadStatus === 'is running' && !scc1HasAlarm) {
-                    scc1Status.textContent = 'Running';
-                    scc1Status.className = 'badge bg-success';
-                } else if (scc1LoadStatus === 'modbus error') {
-                    scc1Status.textContent = 'Modbus Error';
-                    scc1Status.className = 'badge bg-danger';
-                } else if (scc1HasAlarm) {
-                    scc1Status.textContent = 'Alarm';
-                    scc1Status.className = 'badge bg-warning';
-                } else {
-                    scc1Status.textContent = 'Unknown';
-                    scc1Status.className = 'badge bg-secondary';
+            // Update all SCC status dynamically
+            for (let i = 1; i <= numberOfScc; i++) {
+                const sccStatusElement = document.getElementById(`scc${i}-status`);
+                if (sccStatusElement) {
+                    const sccData = latestData[`scc${i}`];
+                    
+                    if (sccData) {
+                        const loadStatus = sccData.load_status || 'unknown';
+                        const hasAlarm = sccData.alarm !== null;
+                        
+                        if (loadStatus === 'is running' && !hasAlarm) {
+                            sccStatusElement.textContent = 'Running';
+                            sccStatusElement.className = 'badge bg-success';
+                        } else if (loadStatus === 'modbus error') {
+                            sccStatusElement.textContent = 'Modbus Error';
+                            sccStatusElement.className = 'badge bg-danger';
+                        } else if (hasAlarm) {
+                            sccStatusElement.textContent = 'Alarm';
+                            sccStatusElement.className = 'badge bg-warning';
+                        } else if (loadStatus === 'standby') {
+                            sccStatusElement.textContent = 'Standby';
+                            sccStatusElement.className = 'badge bg-info';
+                        } else {
+                            sccStatusElement.textContent = 'Unknown';
+                            sccStatusElement.className = 'badge bg-secondary';
+                        }
+                    } else {
+                        sccStatusElement.textContent = 'No Data';
+                        sccStatusElement.className = 'badge bg-secondary';
+                    }
                 }
             }
-            
-            // Update SCC2 status
-            const scc2Status = document.getElementById('scc2-status');
-            if (scc2Status) {
-                const scc2LoadStatus = latestData.scc2?.load_status || 'unknown';
-                const scc2HasAlarm = latestData.scc2?.alarm !== null;
-                
-                if (scc2LoadStatus === 'is running' && !scc2HasAlarm) {
-                    scc2Status.textContent = 'Running';
-                    scc2Status.className = 'badge bg-success';
-                } else if (scc2LoadStatus === 'modbus error') {
-                    scc2Status.textContent = 'Modbus Error';
-                    scc2Status.className = 'badge bg-danger';
-                } else if (scc2HasAlarm) {
-                    scc2Status.textContent = 'Alarm';
-                    scc2Status.className = 'badge bg-warning';
-                } else {
-                    scc2Status.textContent = 'Unknown';
-                    scc2Status.className = 'badge bg-secondary';
+        } else {
+            // Set all SCC status to loading when no data
+            for (let i = 1; i <= numberOfScc; i++) {
+                const sccStatusElement = document.getElementById(`scc${i}-status`);
+                if (sccStatusElement) {
+                    sccStatusElement.textContent = 'Loading...';
+                    sccStatusElement.className = 'badge bg-secondary';
                 }
             }
         }
