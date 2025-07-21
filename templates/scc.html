@@ -99,112 +99,117 @@
 </div>
 
 <!-- SCC Real-time Data -->
-{% if number_of_scc == 2 %}
 <div class="row g-4">
     {% for i in range(1, number_of_scc+1) %}
+    {% if number_of_scc == 2 %}
     <div class="col-lg-6">
-        <div class="modern-card">
+    {% elif number_of_scc == 3 %}
+    <div class="col-xl-4 col-lg-6 col-md-12">
+    {% else %}
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+    {% endif %}
+        <div class="modern-card h-100">
             <div class="modern-card-header">
                 <h3 class="modern-card-title">
                     <i class="fas fa-solar-panel"></i>
                     SCC {{i}} Status
                 </h3>
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center flex-wrap">
                     <i class="fas fa-info-circle text-primary me-2"></i>
-                    <span class="text-muted" id="scc{{i}}-device-id">SCC ID: Loading...</span>
-                    <span class="text-muted mx-2">|</span>
-                    <i class="fas fa-heartbeat text-danger me-2"></i>
-                    <span class="text-muted" id="scc{{i}}-counter-heartbeat">Heartbeat: Loading...</span>
-                    <span class="text-muted mx-2">|</span>
-                    <i class="fas fa-clock text-info me-2"></i>
+                    <span class="text-muted small" id="scc{{i}}-device-id">SCC ID: Loading...</span>
+                    <span class="text-muted mx-1">|</span>
+                    <i class="fas fa-heartbeat text-danger me-1"></i>
+                    <span class="text-muted small" id="scc{{i}}-counter-heartbeat">Heartbeat: Loading...</span>
+                    <span class="text-muted mx-1">|</span>
+                    <i class="fas fa-clock text-info me-1"></i>
                     <span class="text-muted small" id="last-update-{{i}}">Last Update: Loading...</span>
                 </div>
             </div>
             <div class="modern-card-body">
-                <div class="row g-3">
+                <div class="row g-2">
                     <!-- SCC Status -->
-                    <div class="col-md-6">
+                    <div class="col-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">Controller Status</h6>
+                                <h6 class="stats-card-title small">Controller Status</h6>
                                 <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-power-off"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value">
+                            <h5 class="stats-card-value">
                                 <span class="status-indicator" id="scc{{i}}-status">Loading...</span>
-                            </h4>
-                            <p class="stats-card-subtitle">Current Operation Mode</p>
+                            </h5>
+                            <p class="stats-card-subtitle small">Operation Mode</p>
                         </div>
                     </div>
                     
                     <!-- PV Voltage -->
-                    <div class="col-md-6">
+                    <div class="col-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">PV {{i}} Voltage</h6>
+                                <h6 class="stats-card-title small">PV {{i}} Voltage</h6>
                                 <div class="stats-card-icon bg-success">
                                     <i class="fas fa-sun"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="pv{{i}}-voltage">Loading...</h4>
-                            <p class="stats-card-subtitle">Photovoltaic Input</p>
+                            <h5 class="stats-card-value" id="pv{{i}}-voltage">Loading...</h5>
+                            <p class="stats-card-subtitle small">Solar Input</p>
                         </div>
                     </div>
                     
                     <!-- PV Current -->
-                    <div class="col-md-6">
+                    <div class="col-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">PV {{i}} Current</h6>
+                                <h6 class="stats-card-title small">PV {{i}} Current</h6>
                                 <div class="stats-card-icon bg-info">
                                     <i class="fas fa-tachometer-alt"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="pv{{i}}-current">Loading...</h4>
-                            <p class="stats-card-subtitle">Charging Input</p>
+                            <h5 class="stats-card-value" id="pv{{i}}-current">Loading...</h5>
+                            <p class="stats-card-subtitle small">Charging Input</p>
                         </div>
                     </div>
                     
                     <!-- Load Voltage -->
-                    <div class="col-md-6">
+                    <div class="col-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">Load Voltage</h6>
+                                <h6 class="stats-card-title small">Load Voltage</h6>
                                 <div class="stats-card-icon bg-info">
                                     <i class="fas fa-plug"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
-                            <p class="stats-card-subtitle">Load Voltage</p>
+                            <h5 class="stats-card-value" id="load{{i}}-voltage">Loading...</h5>
+                            <p class="stats-card-subtitle small">Output Voltage</p>
                         </div>
                     </div>
                     
                     <!-- Load Current -->
-                    <div class="col-md-6">
+                    <div class="col-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">Load Current</h6>
+                                <h6 class="stats-card-title small">Load Current</h6>
                                 <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-arrow-left"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="load{{i}}-current">Loading...</h4>
-                            <p class="stats-card-subtitle">Load Current</p>
+                            <h5 class="stats-card-value" id="load{{i}}-current">Loading...</h5>
+                            <p class="stats-card-subtitle small">Output Current</p>
                         </div>
                     </div>
 
                     <!-- Load Power -->
-                    <div class="col-md-6">
+                    <div class="col-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">Load Power</h6>
+                                <h6 class="stats-card-title small">Load Power</h6>
                                 <div class="stats-card-icon bg-warning">
                                     <i class="fas fa-bolt"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="load{{i}}-power">Loading...</h4>
-                            <p class="stats-card-subtitle">Load Power</p>
+                            <h5 class="stats-card-value" id="load{{i}}-power">Loading...</h5>
+                            <p class="stats-card-subtitle small">Total Power</p>
                         </div>
                     </div>
                 </div>
@@ -258,6 +263,30 @@
                                     <h6><i class="fas fa-shield-alt"></i> Protection Status</h6>
                                     <div id="scc{{i}}-alarm-summary" class="fw-bold">Checking alarms...</div>
                                 </div>
+
+                                <!-- SRNE Additional Data -->
+                                <div class="mb-3">
+                                    <h6 class="text-primary"><i class="fas fa-info-circle"></i> System Information</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <small class="text-muted">Battery Temperature</small>
+                                            <div><span id="scc{{i}}-battery-temp" class="badge bg-info">Loading...</span></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Controller Temperature</small>
+                                            <div><span id="scc{{i}}-controller-temp" class="badge bg-info">Loading...</span></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Charging Mode</small>
+                                            <div><span id="scc{{i}}-charging-mode" class="badge bg-success">Loading...</span></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Battery Type</small>
+                                            <div><span id="scc{{i}}-battery-type" class="badge bg-secondary">Loading...</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="table-responsive">
                                     <table class="modern-table table-sm">
                                         <thead>
@@ -466,42 +495,6 @@
     </div>
 </div>
 
-{% else %}
-<!-- Handle different numbers of SCCs -->
-<div class="row g-4">
-    {% for i in range(1, number_of_scc+1) %}
-    <div class="col-lg-{{ 12 // number_of_scc }}">
-        <div class="modern-card">
-            <div class="modern-card-header">
-                <h3 class="modern-card-title">
-                    <i class="fas fa-solar-panel"></i>
-                    SCC {{i}}
-                </h3>
-            </div>
-            <div class="modern-card-body">
-                <div class="row g-3">
-                    <div class="col-md-12">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Status</h6>
-                                <div class="stats-card-icon bg-primary">
-                                    <i class="fas fa-power-off"></i>
-                                </div>
-                            </div>
-                            <h4 class="stats-card-value">
-                                <span class="status-indicator" id="scc{{i}}-status">Loading...</span>
-                            </h4>
-                            <p class="stats-card-subtitle">SCC {{i}} Status</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-
 {% endblock %}
 
 {% block scripts %}
@@ -554,26 +547,18 @@
                 data: {
                     labels: generateTimeLabels(),
                     datasets: [
+                        {% for i in range(1, number_of_scc+1) %}
                         {
-                            label: 'SCC 1 Power (W)',
-                            data: generatePowerData(150, 25),
-                            borderColor: 'rgb(37, 99, 235)',
-                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            label: 'SCC {{i}} Power (W)',
+                            data: generatePowerData({{ 120 + (i * 30) }}, {{ 20 + (i * 5) }}),
+                            borderColor: '{% if i == 1 %}rgb(37, 99, 235){% elif i == 2 %}rgb(16, 185, 129){% elif i == 3 %}rgb(245, 101, 101){% elif i == 4 %}rgb(251, 146, 60){% else %}rgb(168, 85, 247){% endif %}',
+                            backgroundColor: '{% if i == 1 %}rgba(37, 99, 235, 0.1){% elif i == 2 %}rgba(16, 185, 129, 0.1){% elif i == 3 %}rgba(245, 101, 101, 0.1){% elif i == 4 %}rgba(251, 146, 60, 0.1){% else %}rgba(168, 85, 247, 0.1){% endif %}',
                             tension: 0.4,
                             fill: true,
                             pointRadius: 3,
                             pointHoverRadius: 6
-                        },
-                        {
-                            label: 'SCC 2 Power (W)',
-                            data: generatePowerData(120, 20),
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 3,
-                            pointHoverRadius: 6
-                        }
+                        }{% if not loop.last %},{% endif %}
+                        {% endfor %}
                     ]
                 },
                 options: {
@@ -672,6 +657,7 @@
                 if (chart) {
                     const now = new Date();
                     const currentHour = now.getHours();
+                    const numberOfScc = {{ number_of_scc }};
                     
                     // Generate new data point
                     const generateCurrentPower = (baseValue) => {
@@ -692,11 +678,12 @@
                     chart.data.labels.shift();
                     chart.data.labels.push(newTimeLabel);
                     
-                    chart.data.datasets[0].data.shift();
-                    chart.data.datasets[0].data.push(generateCurrentPower(150));
-                    
-                    chart.data.datasets[1].data.shift();
-                    chart.data.datasets[1].data.push(generateCurrentPower(120));
+                    // Update data for each SCC dataset
+                    for (let i = 0; i < numberOfScc && i < chart.data.datasets.length; i++) {
+                        const baseValue = 120 + (i * 30); // Different base values for each SCC
+                        chart.data.datasets[i].data.shift();
+                        chart.data.datasets[i].data.push(generateCurrentPower(baseValue));
+                    }
                     
                     chart.update('none'); // Update without animation for real-time feel
                 }
@@ -712,49 +699,141 @@
         const now = new Date();
         const currentHour = now.getHours();
         const isDaytime = currentHour >= 6 && currentHour <= 18;
+        const numberOfScc = {{ number_of_scc }};
+        const sccType = '{{ scc_type }}';
         
-        // Update SCC 1 and 2 data
-        for (let i = 1; i <= 2; i++) {
-            // PV Voltage (higher during daytime)
-            const pvVoltage = isDaytime ? 
-                (45 + Math.random() * 10).toFixed(1) : 
-                (10 + Math.random() * 5).toFixed(1);
-            document.getElementById(`pv${i}-voltage`).textContent = pvVoltage + ' V';
+        // Update SCC data dynamically based on number_of_scc
+        for (let i = 1; i <= numberOfScc; i++) {
+            // Device ID
+            const deviceIdElement = document.getElementById(`scc${i}-device-id`);
+            if (deviceIdElement) {
+                const deviceId = sccType === 'scc-srne' ? 
+                    `SRNE-${i}-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}` :
+                    `EPV-${i}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
+                deviceIdElement.textContent = `SCC ID: ${deviceId}`;
+            }
+
+            // Generate realistic voltage and current based on SCC type
+            let pvVoltage, pvCurrent, loadVoltage, loadCurrent;
             
-            // PV Current (higher during daytime)
-            const pvCurrent = isDaytime ? 
-                (8 + Math.random() * 4).toFixed(2) : 
-                (0.1 + Math.random() * 0.5).toFixed(2);
-            document.getElementById(`pv${i}-current`).textContent = pvCurrent + ' A';
+            if (sccType === 'scc-srne') {
+                // SRNE typically has different voltage ranges
+                pvVoltage = isDaytime ? 
+                    (35 + Math.random() * 20).toFixed(1) : // 35-55V during day
+                    (5 + Math.random() * 10).toFixed(1);   // 5-15V at night
+                    
+                pvCurrent = isDaytime ? 
+                    (10 + Math.random() * 15).toFixed(2) : // 10-25A during day
+                    (0.1 + Math.random() * 1).toFixed(2);  // 0.1-1.1A at night
+                    
+                loadVoltage = (48.0 + (Math.random() - 0.5) * 2).toFixed(1); // 47-49V
+                loadCurrent = (8 + Math.random() * 7).toFixed(2); // 8-15A
+            } else {
+                // EPVEPER has different characteristics
+                pvVoltage = isDaytime ? 
+                    (45 + Math.random() * 10).toFixed(1) : 
+                    (10 + Math.random() * 5).toFixed(1);
+                    
+                pvCurrent = isDaytime ? 
+                    (8 + Math.random() * 4).toFixed(2) : 
+                    (0.1 + Math.random() * 0.5).toFixed(2);
+                    
+                loadVoltage = (47.8 + (Math.random() - 0.5) * 1.5).toFixed(1);
+                loadCurrent = (5 + Math.random() * 3).toFixed(2);
+            }
             
-            // Load Voltage
-            const loadVoltage = (47.8 + (Math.random() - 0.5) * 1.5).toFixed(1);
-            document.getElementById(`load${i}-voltage`).textContent = loadVoltage + ' V';
+            // Update PV Voltage
+            const pvVoltageElement = document.getElementById(`pv${i}-voltage`);
+            if (pvVoltageElement) {
+                pvVoltageElement.textContent = pvVoltage + ' V';
+                // Add color coding based on voltage level
+                const voltageValue = parseFloat(pvVoltage);
+                if (voltageValue > 50) {
+                    pvVoltageElement.className = 'stats-card-value text-success';
+                } else if (voltageValue > 20) {
+                    pvVoltageElement.className = 'stats-card-value text-warning';
+                } else {
+                    pvVoltageElement.className = 'stats-card-value text-secondary';
+                }
+            }
             
-            // Load Current
-            const loadCurrent = (5 + Math.random() * 3).toFixed(2);
-            document.getElementById(`load${i}-current`).textContent = loadCurrent + ' A';
+            // Update PV Current
+            const pvCurrentElement = document.getElementById(`pv${i}-current`);
+            if (pvCurrentElement) {
+                pvCurrentElement.textContent = pvCurrent + ' A';
+                // Add color coding based on current level
+                const currentValue = parseFloat(pvCurrent);
+                if (currentValue > 10) {
+                    pvCurrentElement.className = 'stats-card-value text-success';
+                } else if (currentValue > 2) {
+                    pvCurrentElement.className = 'stats-card-value text-warning';
+                } else {
+                    pvCurrentElement.className = 'stats-card-value text-secondary';
+                }
+            }
             
-            // Load Power (calculated from V * I)
+            // Update Load Voltage
+            const loadVoltageElement = document.getElementById(`load${i}-voltage`);
+            if (loadVoltageElement) {
+                loadVoltageElement.textContent = loadVoltage + ' V';
+            }
+            
+            // Update Load Current
+            const loadCurrentElement = document.getElementById(`load${i}-current`);
+            if (loadCurrentElement) {
+                loadCurrentElement.textContent = loadCurrent + ' A';
+            }
+            
+            // Calculate and update Load Power
             const loadPower = (parseFloat(loadVoltage) * parseFloat(loadCurrent)).toFixed(1);
-            document.getElementById(`load${i}-power`).textContent = loadPower + ' W';
+            const loadPowerElement = document.getElementById(`load${i}-power`);
+            if (loadPowerElement) {
+                loadPowerElement.textContent = loadPower + ' W';
+            }
             
-            // SCC Status
-            const statuses = ['is running', 'is charging', 'is standby'];
+            // Update SCC Status with more realistic states
+            const statuses = sccType === 'scc-srne' ? 
+                ['Normal', 'Charging', 'Float', 'Boost', 'MPPT'] :
+                ['is running', 'is charging', 'is standby'];
             const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            document.getElementById(`scc${i}-status`).textContent = randomStatus;
+            const statusElement = document.getElementById(`scc${i}-status`);
+            if (statusElement) {
+                statusElement.textContent = randomStatus;
+                // Update status badge color based on SCC type and status
+                if (sccType === 'scc-srne') {
+                    statusElement.className = 
+                        randomStatus === 'Normal' ? 'badge bg-success' : 
+                        randomStatus === 'Charging' || randomStatus === 'MPPT' ? 'badge bg-primary' : 
+                        randomStatus === 'Boost' ? 'badge bg-info' :
+                        'badge bg-warning';
+                } else {
+                    statusElement.className = 
+                        randomStatus === 'is running' ? 'badge bg-success' : 
+                        randomStatus === 'is charging' ? 'badge bg-primary' : 'badge bg-warning';
+                }
+            }
             
-            // Heartbeat counter
-            const heartbeat = Math.floor(Math.random() * 1000);
-            document.getElementById(`scc${i}-counter-heartbeat`).textContent = `Heartbeat: ${heartbeat}`;
+            // Update Heartbeat counter with realistic values
+            const heartbeat = Math.floor(Math.random() * 10000) + 1000;
+            const heartbeatElement = document.getElementById(`scc${i}-counter-heartbeat`);
+            if (heartbeatElement) {
+                heartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
+            }
+
+            // Update Last update time
+            const lastUpdateElement = document.getElementById(`last-update-${i}`);
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = `Last Update: ${now.toLocaleTimeString()}`;
+            }
         }
     };
 
     // Function to update SCC alarm data
     const updateSCCAlarms = () => {
         const sccType = '{{ scc_type }}'; // Get SCC type from template
+        const numberOfScc = {{ number_of_scc }};
         
-        for (let i = 1; i <= 2; i++) {
+        for (let i = 1; i <= numberOfScc; i++) {
             if (sccType === 'scc-srne') {
                 updateSRNEAlarms(i);
             } else if (sccType === 'scc-epveper') {
@@ -781,6 +860,46 @@
         };
 
         let activeAlarms = [];
+        
+        // Update additional SRNE system information
+        const batteryTemp = (25 + Math.random() * 20).toFixed(1); // 25-45°C
+        const controllerTemp = (30 + Math.random() * 15).toFixed(1); // 30-45°C
+        const chargingModes = ['MPPT', 'Boost', 'Float', 'Equalize'];
+        const batteryTypes = ['Sealed', 'Gel', 'Flooded', 'LiFePO4'];
+        
+        // Update system info elements
+        const batteryTempElement = document.getElementById(`scc${sccNumber}-battery-temp`);
+        if (batteryTempElement) {
+            batteryTempElement.textContent = `${batteryTemp}°C`;
+            batteryTempElement.className = 
+                parseFloat(batteryTemp) > 40 ? 'badge bg-danger' :
+                parseFloat(batteryTemp) > 35 ? 'badge bg-warning' : 'badge bg-info';
+        }
+
+        const controllerTempElement = document.getElementById(`scc${sccNumber}-controller-temp`);
+        if (controllerTempElement) {
+            controllerTempElement.textContent = `${controllerTemp}°C`;
+            controllerTempElement.className = 
+                parseFloat(controllerTemp) > 40 ? 'badge bg-danger' :
+                parseFloat(controllerTemp) > 35 ? 'badge bg-warning' : 'badge bg-info';
+        }
+
+        const chargingModeElement = document.getElementById(`scc${sccNumber}-charging-mode`);
+        if (chargingModeElement) {
+            const randomMode = chargingModes[Math.floor(Math.random() * chargingModes.length)];
+            chargingModeElement.textContent = randomMode;
+            chargingModeElement.className = 
+                randomMode === 'MPPT' ? 'badge bg-success' :
+                randomMode === 'Boost' ? 'badge bg-primary' :
+                randomMode === 'Float' ? 'badge bg-info' : 'badge bg-warning';
+        }
+
+        const batteryTypeElement = document.getElementById(`scc${sccNumber}-battery-type`);
+        if (batteryTypeElement) {
+            const randomType = batteryTypes[Math.floor(Math.random() * batteryTypes.length)];
+            batteryTypeElement.textContent = randomType;
+            batteryTypeElement.className = 'badge bg-secondary';
+        }
         
         // Simulate alarm data (mostly 0 with occasional 1)
         Object.keys(alarmTypes).forEach(alarmKey => {
