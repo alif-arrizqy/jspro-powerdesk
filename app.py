@@ -46,7 +46,7 @@ def index():
         username = current_user.id
         
         # get site name
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -76,7 +76,7 @@ def scc():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -108,7 +108,7 @@ def battery():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -140,7 +140,7 @@ def datalog():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -168,11 +168,12 @@ def scc_alarm_log():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
             'scc_type': scc_type,
+            'number_of_scc': number_of_scc,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4'
         }
@@ -182,6 +183,7 @@ def scc_alarm_log():
             'username': username,
             'site_name': 'Site Name',
             'scc_type': scc_type,
+            'number_of_scc': number_of_scc,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4'
         }
@@ -199,7 +201,7 @@ def mqtt_service():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -228,7 +230,7 @@ def systemd_service():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -255,7 +257,7 @@ def power_operation():
         # username login
         username = current_user.id
         
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
             'site_name': site_name,
@@ -288,7 +290,7 @@ def site_information():
             data = json.load(file)
         
         # get site name
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         
         context = {
             'username': username,
@@ -375,7 +377,7 @@ def setting_device():
             data = json.load(file)
 
         # get site name
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
 
         context = {
             'username': username,
@@ -440,7 +442,7 @@ def setting_ip():
             return redirect(url_for('setting_ip'))
     try:
         # get site name
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
         
         # open data site
         with open('./data_site.json', 'r') as f:
@@ -551,7 +553,7 @@ def setting_scc():
             return redirect(url_for('setting_scc'))
     try:
         # get site name
-        site_name = red.hget('site_name', 'site_name')
+        site_name = red.hget('device_config', 'site_name')
     except Exception as e:
         print(f"setting_scc() error: {e}")
         site_name = 'Site Name'
