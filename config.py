@@ -2,7 +2,7 @@ from api.redisconnection import connection as red
 import json
 
 try:
-    device = red.hget('device_version', 'device_version')
+    device = red.hget('device_config', 'device_version')
     if device is not None:
         device = json.loads(device)
     else:
