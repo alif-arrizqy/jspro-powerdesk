@@ -21,8 +21,8 @@
 
 <!-- Statistics Overview -->
 <div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
+    <div class="col-lg-8">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-chart-bar text-info me-2"></i>
@@ -31,7 +31,7 @@
             </div>
             <div class="modern-card-body">
                 <div class="row g-4">
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Total Alarm Logs</h6>
@@ -43,21 +43,7 @@
                             <p class="stats-card-subtitle">System Events</p>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">System Status</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-shield-alt"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="alarm-status">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">Current State</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Last Update</h6>
@@ -69,74 +55,145 @@
                             <p class="stats-card-subtitle">Data Refresh</p>
                         </div>
                     </div>
+                    <div class="col-12">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">System Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="badge bg-primary me-2">MPPT1</span>
+                                    <span class="badge" id="mppt1-status">Loading...</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-primary me-2">MPPT2</span>
+                                    <span class="badge" id="mppt2-status">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="modern-card h-100">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-tools text-primary me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="d-grid gap-3">
+                    <button class="btn btn-modern btn-primary" id="scc-alarm-download" onclick="downloadSccLoggers();">
+                        <i class="fas fa-download me-2"></i>
+                        Download Logs
+                    </button>
+                    <button class="btn btn-modern btn-outline-primary" id="refresh-alarm" onclick="refreshAlarmData();">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Refresh Data
+                    </button>
+                    <button class="btn btn-modern btn-info" id="load-dummy" onclick="loadDummyData();">
+                        <i class="fas fa-vial me-2"></i>
+                        Load Test Data
+                    </button>
+                    <button class="btn btn-modern btn-danger" id="scc-alarm-clear" onclick="clearSccLoggers();">
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Clear Alarms
+                    </button>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Actions will process all alarm data
+                    </small>
+                    <br>
+                    <small class="text-info">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        Use "Load Test Data" to see demo alarm logs
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Alarm Operations -->
-<div class="row">
+<!-- Alarm Data View -->
+<div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
-            <div class="modern-card-header">
+            <div class="modern-card-header d-flex justify-content-between align-items-center">
                 <h5 class="modern-card-title">
-                    <i class="fas fa-tools text-primary me-2"></i>
-                    Alarm Operations
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Alarm Log Details
                 </h5>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" id="alarm-filter" style="width: auto;">
+                        <option value="">All Alarms</option>
+                        <option value="standby">Standby</option>
+                        <option value="unrecognized">Unrecognized</option>
+                        <option value="fault">Fault</option>
+                        <option value="overvoltage">Overvoltage</option>
+                        <option value="short_circuit">Short Circuit</option>
+                        <option value="abnormal">Abnormal</option>
+                        <option value="unable">Unable</option>
+                        <option value="overload">Overload</option>
+                        <option value="low_voltage">Low Voltage</option>
+                        <option value="high_voltage">High Voltage</option>
+                        <option value="no_access">No Access</option>
+                        <option value="wrong">Wrong</option>
+                        <option value="overtemp">Over Temperature</option>
+                        <option value="lowtemp">Low Temperature</option>
+                        <option value="overdischarge">Over Discharge</option>
+                        <option value="undervoltage">Under Voltage</option>
+                    </select>
+                    <select class="form-select form-select-sm" id="mppt-filter" style="width: auto;">
+                        <option value="">All MPPT</option>
+                        <option value="mppt1">MPPT 1</option>
+                        <option value="mppt2">MPPT 2</option>
+                    </select>
+                </div>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
-                    <div class="col-lg-4 col-md-6">
-                        <div class="modern-card">
-                            <div class="modern-card-body text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-sync-alt text-info" style="font-size: 2rem;"></i>
-                                </div>
-                                <h5 class="mb-3">Refresh Data</h5>
-                                <p class="text-muted mb-3">Update alarm log information</p>
-                                <button class="btn btn-modern btn-info w-100" id="refresh-alarm" onclick="refreshAlarmData();">
-                                    <i class="fas fa-sync-alt"></i>
-                                    Refresh Alarms
-                                </button>
-                            </div>
-                        </div>
+                <div id="alarm-loading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="modern-card">
-                            <div class="modern-card-body text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-download text-primary" style="font-size: 2rem;"></i>
-                                </div>
-                                <h5 class="mb-3">Download Alarm Logs</h5>
-                                <p class="text-muted mb-3">Export alarm data to JSON files</p>
-                                <button class="btn btn-modern btn-primary w-100" id="scc-alarm-download" onclick="downloadSccLoggers();">
-                                    <i class="fas fa-download"></i>
-                                    Download Logs
-                                </button>
-                            </div>
-                        </div>
+                    <p class="mt-3 text-muted">Loading alarm data...</p>
+                </div>
+                <div id="alarm-no-data" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Alarm Data Found</h5>
+                    <p class="text-muted">There are currently no alarm logs to display.</p>
+                </div>
+                <div id="alarm-list" class="row g-3" style="display: none;">
+                    <!-- Alarm cards will be populated here -->
+                </div>
+                <div id="alarm-pagination" class="d-flex justify-content-between align-items-center mt-4" style="display: none;">
+                    <div>
+                        <span class="text-muted">Showing <span id="showing-from">1</span> to <span id="showing-to">10</span> of <span id="total-items">0</span> entries</span>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="modern-card">
-                            <div class="modern-card-body text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-trash-alt text-danger" style="font-size: 2rem;"></i>
-                                </div>
-                                <h5 class="mb-3">Clear Alarm Data</h5>
-                                <p class="text-muted mb-3">Remove all alarm log entries</p>
-                                <button class="btn btn-modern btn-danger w-100" id="scc-alarm-clear" onclick="clearSccLoggers();">
-                                    <i class="fas fa-trash-alt"></i>
-                                    Clear Alarms
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" id="prev-page">
+                                <a class="page-link" href="#" onclick="changePage('prev')">Previous</a>
+                            </li>
+                            <li class="page-item" id="next-page">
+                                <a class="page-link" href="#" onclick="changePage('next')">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
 {% endblock content %}
 
 {% block scripts %}
@@ -224,7 +281,397 @@
         }
     }
     
+    
     const arrLoggersData = [];
+    let currentPage = 1;
+    const itemsPerPage = 12;
+    let filteredAlarmData = [];
+    
+    // Function to generate dummy data for testing
+    function generateDummyAlarmData() {
+        const dummyData = [];
+        const currentTime = new Date();
+        
+        // Sample alarm types and scenarios
+        const alarmScenarios = [
+            { type: 'battery', subtype: 'overvoltage', status: 'fault', probability: 0.15 },
+            { type: 'battery', subtype: 'undervoltage', status: 'fault', probability: 0.12 },
+            { type: 'battery', subtype: 'overdischarge', status: 'warning', probability: 0.08 },
+            { type: 'battery', subtype: 'low_voltage', status: 'warning', probability: 0.10 },
+            { type: 'controller', subtype: 'overtemp', status: 'fault', probability: 0.20 },
+            { type: 'controller', subtype: 'short_circuit', status: 'fault', probability: 0.05 },
+            { type: 'controller', subtype: 'abnormal', status: 'warning', probability: 0.08 },
+            { type: 'load', subtype: 'overload', status: 'fault', probability: 0.12 },
+            { type: 'load', subtype: 'short_circuit', status: 'fault', probability: 0.06 },
+            { type: 'pv', subtype: 'overvoltage', status: 'fault', probability: 0.07 },
+            { type: 'pv', subtype: 'short_circuit', status: 'fault', probability: 0.04 }
+        ];
+        
+        // Generate 100 dummy alarm entries for more comprehensive testing
+        for (let i = 0; i < 100; i++) {
+            const entryTime = new Date(currentTime.getTime() - (i * 1800000)); // 30 min intervals
+            
+            const entry = {
+                time: entryTime.toISOString(),
+                mppt1: generateMpptData(i, alarmScenarios),
+                mppt2: generateMpptData(i + 50, alarmScenarios) // Offset for different patterns
+            };
+            
+            dummyData.push(entry);
+        }
+        
+        console.log('Generated dummy alarm data:', dummyData.length, 'entries');
+        return dummyData;
+    }
+    
+    // Helper function to generate MPPT data
+    function generateMpptData(index, alarmScenarios) {
+        const hasAlarm = Math.random() < 0.4; // 40% chance of having an alarm
+        const voltage = Math.floor(Math.random() * 800) + 1100; // 11.00V to 19.00V
+        const batteryTemp = Math.floor(Math.random() * 50) + 15; // 15°C to 65°C
+        const deviceTemp = Math.floor(Math.random() * 40) + 20; // 20°C to 60°C
+        
+        // Load status logic
+        let loadStatus = 'is running';
+        if (Math.random() < 0.05) loadStatus = 'modbus error';
+        else if (Math.random() < 0.10) loadStatus = 'standby';
+        
+        const mpptData = {
+            battery_voltage: voltage,
+            battery_temperature: batteryTemp,
+            device_temperature: deviceTemp,
+            load_status: loadStatus,
+            alarm: null
+        };
+        
+        if (hasAlarm) {
+            const alarm = {};
+            
+            // Generate random alarms based on scenarios
+            alarmScenarios.forEach(scenario => {
+                if (Math.random() < scenario.probability) {
+                    if (!alarm[scenario.type]) {
+                        alarm[scenario.type] = {};
+                    }
+                    alarm[scenario.type][scenario.subtype] = scenario.status;
+                }
+            });
+            
+            // Ensure at least one alarm if hasAlarm is true
+            if (Object.keys(alarm).length === 0) {
+                const randomScenario = alarmScenarios[Math.floor(Math.random() * alarmScenarios.length)];
+                alarm[randomScenario.type] = {};
+                alarm[randomScenario.type][randomScenario.subtype] = randomScenario.status;
+            }
+            
+            // Add 'normal' states for some alarm types
+            Object.keys(alarm).forEach(type => {
+                const subTypes = ['overvoltage', 'undervoltage', 'overtemp', 'short_circuit', 'overload', 'abnormal'];
+                subTypes.forEach(subType => {
+                    if (!alarm[type][subType] && Math.random() < 0.3) {
+                        alarm[type][subType] = 'normal';
+                    }
+                });
+            });
+            
+            mpptData.alarm = alarm;
+        }
+        
+        return mpptData;
+    }
+    
+    // Function to use dummy data instead of API call
+    function loadDummyData() {
+        arrLoggersData.length = 0; // Clear existing data
+        arrLoggersData.push(...generateDummyAlarmData());
+        
+        // Update UI with dummy data
+        const alarmLengthElement = document.getElementById('scc-alarm-length');
+        if (alarmLengthElement) {
+            alarmLengthElement.textContent = arrLoggersData.length.toLocaleString();
+            alarmLengthElement.classList.add('text-info');
+        }
+        
+        // Update last update time
+        updateLastUpdate();
+        
+        // Reset button states
+        resetButtonStates();
+        
+        // Update MPPT status indicators
+        updateMpptStatus();
+        
+        // Process and display alarm data
+        filteredAlarmData = extractAlarmData(arrLoggersData);
+        renderAlarmCards(filteredAlarmData);
+        
+        console.log('Loaded dummy data successfully');
+    }
+    
+    // Function to get severity class based on alarm status
+    function getSeverityClass(status) {
+        if (['fault', 'overvoltage', 'short_circuit', 'overload', 'high_voltage', 'wrong', 'overtemp', 'overdischarge'].includes(status)) {
+            return 'alarm-severity-critical';
+        } else if (['warning', 'unrecognized', 'abnormal', 'low_voltage', 'undervoltage', 'lowtemp'].includes(status)) {
+            return 'alarm-severity-warning';
+        } else {
+            return 'alarm-severity-info';
+        }
+    }
+    
+    // Function to get battery voltage color
+    function getBatteryVoltageColor(voltage) {
+        const volts = voltage / 100;
+        if (volts < 11.5) return 'danger';
+        if (volts < 12.0) return 'warning';
+        if (volts > 14.5) return 'warning';
+        if (volts > 15.0) return 'danger';
+        return 'success';
+    }
+    
+    // Function to get temperature color
+    function getTemperatureColor(temp) {
+        if (temp < 10 || temp > 55) return 'danger';
+        if (temp < 15 || temp > 45) return 'warning';
+        return 'success';
+    }
+    
+    // Function to get load status color
+    function getLoadStatusColor(status) {
+        switch (status) {
+            case 'is running': return 'success';
+            case 'modbus error': return 'danger';
+            case 'standby': return 'warning';
+            default: return 'secondary';
+        }
+    }
+    
+    // Alarm status mapping
+    const alarmStatusMap = {
+        'standby': { icon: 'fas fa-pause-circle', color: 'secondary', label: 'Standby' },
+        'unrecognized': { icon: 'fas fa-question-circle', color: 'warning', label: 'Unrecognized' },
+        'fault': { icon: 'fas fa-exclamation-triangle', color: 'danger', label: 'Fault' },
+        'overvoltage': { icon: 'fas fa-bolt', color: 'danger', label: 'Overvoltage' },
+        'short_circuit': { icon: 'fas fa-flash', color: 'danger', label: 'Short Circuit' },
+        'abnormal': { icon: 'fas fa-exclamation', color: 'warning', label: 'Abnormal' },
+        'unable': { icon: 'fas fa-times-circle', color: 'secondary', label: 'Unable' },
+        'overload': { icon: 'fas fa-weight-hanging', color: 'danger', label: 'Overload' },
+        'low_voltage': { icon: 'fas fa-battery-quarter', color: 'warning', label: 'Low Voltage' },
+        'high_voltage': { icon: 'fas fa-battery-full', color: 'danger', label: 'High Voltage' },
+        'no_access': { icon: 'fas fa-ban', color: 'secondary', label: 'No Access' },
+        'wrong': { icon: 'fas fa-times', color: 'danger', label: 'Wrong' },
+        'overtemp': { icon: 'fas fa-thermometer-full', color: 'danger', label: 'Over Temperature' },
+        'lowtemp': { icon: 'fas fa-thermometer-empty', color: 'info', label: 'Low Temperature' },
+        'overdischarge': { icon: 'fas fa-battery-empty', color: 'danger', label: 'Over Discharge' },
+        'undervoltage': { icon: 'fas fa-battery-quarter', color: 'warning', label: 'Under Voltage' },
+        'normal': { icon: 'fas fa-check-circle', color: 'success', label: 'Normal' }
+    };
+
+    // Function to extract alarm data from JSON
+    function extractAlarmData(data) {
+        const alarms = [];
+        
+        data.forEach(entry => {
+            const time = entry.time;
+            
+            // Process MPPT1
+            if (entry.mppt1 && entry.mppt1.alarm) {
+                const mppt1Alarms = processAlarmObject(entry.mppt1.alarm, 'mppt1', time, entry.mppt1);
+                alarms.push(...mppt1Alarms);
+            }
+            
+            // Process MPPT2
+            if (entry.mppt2 && entry.mppt2.alarm) {
+                const mppt2Alarms = processAlarmObject(entry.mppt2.alarm, 'mppt2', time, entry.mppt2);
+                alarms.push(...mppt2Alarms);
+            }
+        });
+        
+        return alarms;
+    }
+
+    // Function to process alarm object and extract individual alarms
+    function processAlarmObject(alarmObj, mpptType, time, mpptData) {
+        const alarms = [];
+        
+        function processNestedAlarms(obj, category, parentKey = '') {
+            for (const [key, value] of Object.entries(obj)) {
+                const fullKey = parentKey ? `${parentKey}_${key}` : key;
+                
+                if (typeof value === 'object' && value !== null) {
+                    processNestedAlarms(value, category, fullKey);
+                } else {
+                    // Include both non-normal values and notable conditions
+                    if (value !== 'normal' && value !== null && value !== '') {
+                        const alarmType = fullKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        alarms.push({
+                            mppt: mpptType,
+                            category: category,
+                            type: alarmType,
+                            status: value,
+                            time: time,
+                            batteryVoltage: mpptData.battery_voltage || 0,
+                            batteryTemp: mpptData.battery_temperature || 0,
+                            deviceTemp: mpptData.device_temperature || 0,
+                            loadStatus: mpptData.load_status || 'unknown'
+                        });
+                    }
+                }
+            }
+        }
+        
+        processNestedAlarms(alarmObj, 'System Alarm');
+        return alarms;
+    }
+
+    // Function to render alarm cards
+    function renderAlarmCards(alarms) {
+        const alarmList = document.getElementById('alarm-list');
+        const alarmLoading = document.getElementById('alarm-loading');
+        const alarmNoData = document.getElementById('alarm-no-data');
+        const alarmPagination = document.getElementById('alarm-pagination');
+        
+        alarmLoading.style.display = 'none';
+        
+        if (alarms.length === 0) {
+            alarmNoData.style.display = 'block';
+            alarmList.style.display = 'none';
+            alarmPagination.style.display = 'none';
+            return;
+        }
+        
+        alarmNoData.style.display = 'none';
+        alarmList.style.display = 'flex';
+        alarmPagination.style.display = 'flex';
+        
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageAlarms = alarms.slice(startIndex, endIndex);
+        
+        let cardsHtml = '';
+        
+        pageAlarms.forEach(alarm => {
+            const statusInfo = alarmStatusMap[alarm.status] || alarmStatusMap['unrecognized'];
+            const mpptBadgeColor = alarm.mppt === 'mppt1' ? 'primary' : 'info';
+            const severityClass = getSeverityClass(alarm.status);
+            
+            cardsHtml += `
+                <div class="col-xl-4 col-md-6">
+                    <div class="modern-card alarm-card ${severityClass}">
+                        <div class="modern-card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="${statusInfo.icon} text-${statusInfo.color} me-2 fs-5"></i>
+                                    <span class="badge bg-${statusInfo.color}">${statusInfo.label}</span>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <span class="badge bg-${mpptBadgeColor}">${alarm.mppt.toUpperCase()}</span>
+                                    <span class="badge bg-outline-secondary">${alarm.category}</span>
+                                </div>
+                            </div>
+                            
+                            <h6 class="mb-3 fw-bold">${alarm.type}</h6>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="alarm-detail-row">
+                                        <span class="alarm-detail-label">Battery Voltage</span>
+                                        <span class="alarm-detail-value text-${getBatteryVoltageColor(alarm.batteryVoltage)}">${(alarm.batteryVoltage/100).toFixed(2)}V</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="alarm-detail-row">
+                                        <span class="alarm-detail-label">Battery Temp</span>
+                                        <span class="alarm-detail-value text-${getTemperatureColor(alarm.batteryTemp)}">${alarm.batteryTemp}°C</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="alarm-detail-row">
+                                        <span class="alarm-detail-label">Device Temp</span>
+                                        <span class="alarm-detail-value text-${getTemperatureColor(alarm.deviceTemp)}">${alarm.deviceTemp}°C</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="alarm-detail-row">
+                                        <span class="alarm-detail-label">Load Status</span>
+                                        <span class="alarm-detail-value">
+                                            <span class="badge bg-${getLoadStatusColor(alarm.loadStatus)} badge-sm">
+                                                ${alarm.loadStatus}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-top pt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${new Date(alarm.time).toLocaleString('id-ID', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        alarmList.innerHTML = cardsHtml;
+        updatePagination(alarms.length);
+    }
+
+    // Function to update pagination
+    function updatePagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const startItem = (currentPage - 1) * itemsPerPage + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+        
+        document.getElementById('showing-from').textContent = startItem;
+        document.getElementById('showing-to').textContent = endItem;
+        document.getElementById('total-items').textContent = totalItems;
+        
+        const prevPage = document.getElementById('prev-page');
+        const nextPage = document.getElementById('next-page');
+        
+        prevPage.classList.toggle('disabled', currentPage <= 1);
+        nextPage.classList.toggle('disabled', currentPage >= totalPages);
+    }
+
+    // Function to change page
+    function changePage(direction) {
+        const totalPages = Math.ceil(filteredAlarmData.length / itemsPerPage);
+        
+        if (direction === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (direction === 'next' && currentPage < totalPages) {
+            currentPage++;
+        }
+        
+        renderAlarmCards(filteredAlarmData);
+    }
+
+    // Function to filter alarms
+    function filterAlarms() {
+        const alarmFilter = document.getElementById('alarm-filter').value;
+        const mpptFilter = document.getElementById('mppt-filter').value;
+        
+        const allAlarms = extractAlarmData(arrLoggersData);
+        
+        filteredAlarmData = allAlarms.filter(alarm => {
+            const matchesAlarmFilter = !alarmFilter || alarm.status === alarmFilter;
+            const matchesMpptFilter = !mpptFilter || alarm.mppt === mpptFilter;
+            return matchesAlarmFilter && matchesMpptFilter;
+        });
+        
+        currentPage = 1;
+        renderAlarmCards(filteredAlarmData);
+    }
     const handleLoggers = async (cursorValue = "") => {
         try {
             const response = await fetch(`/api/loggers/scc-alarm?cursor=${cursorValue}&page_size=500`, {
@@ -282,6 +729,13 @@
                 
                 // Reset button states
                 resetButtonStates();
+                
+                // Update MPPT status indicators
+                updateMpptStatus();
+                
+                // Process and display alarm data
+                filteredAlarmData = extractAlarmData(arrLoggersData);
+                renderAlarmCards(filteredAlarmData);
             }
         } catch (error) {
             console.error(`Failed to fetch data: ${error.message}`);
@@ -305,9 +759,67 @@
         }
     };
 
+    // Function to update MPPT status
+    function updateMpptStatus() {
+        if (arrLoggersData.length > 0) {
+            const latestData = arrLoggersData[0];
+            
+            // Update MPPT1 status
+            const mppt1Status = document.getElementById('mppt1-status');
+            if (mppt1Status) {
+                const mppt1LoadStatus = latestData.mppt1?.load_status || 'unknown';
+                const mppt1HasAlarm = latestData.mppt1?.alarm !== null;
+                
+                if (mppt1LoadStatus === 'is running' && !mppt1HasAlarm) {
+                    mppt1Status.textContent = 'Running';
+                    mppt1Status.className = 'badge bg-success';
+                } else if (mppt1LoadStatus === 'modbus error') {
+                    mppt1Status.textContent = 'Modbus Error';
+                    mppt1Status.className = 'badge bg-danger';
+                } else if (mppt1HasAlarm) {
+                    mppt1Status.textContent = 'Alarm';
+                    mppt1Status.className = 'badge bg-warning';
+                } else {
+                    mppt1Status.textContent = 'Unknown';
+                    mppt1Status.className = 'badge bg-secondary';
+                }
+            }
+            
+            // Update MPPT2 status
+            const mppt2Status = document.getElementById('mppt2-status');
+            if (mppt2Status) {
+                const mppt2LoadStatus = latestData.mppt2?.load_status || 'unknown';
+                const mppt2HasAlarm = latestData.mppt2?.alarm !== null;
+                
+                if (mppt2LoadStatus === 'is running' && !mppt2HasAlarm) {
+                    mppt2Status.textContent = 'Running';
+                    mppt2Status.className = 'badge bg-success';
+                } else if (mppt2LoadStatus === 'modbus error') {
+                    mppt2Status.textContent = 'Modbus Error';
+                    mppt2Status.className = 'badge bg-danger';
+                } else if (mppt2HasAlarm) {
+                    mppt2Status.textContent = 'Alarm';
+                    mppt2Status.className = 'badge bg-warning';
+                } else {
+                    mppt2Status.textContent = 'Unknown';
+                    mppt2Status.className = 'badge bg-secondary';
+                }
+            }
+        }
+    }
+
     // Refresh alarm data function
     function refreshAlarmData() {
         arrLoggersData.length = 0; // Clear existing data
+        filteredAlarmData.length = 0; // Clear filtered data
+        currentPage = 1;
+        
+        // Show loading state
+        document.getElementById('alarm-loading').style.display = 'block';
+        document.getElementById('alarm-list').style.display = 'none';
+        document.getElementById('alarm-no-data').style.display = 'none';
+        document.getElementById('alarm-pagination').style.display = 'none';
+        
         showLoadingState();
         handleLoggers();
     }
@@ -443,17 +955,21 @@
                 alert('SCC Alarm logs cleared successfully!');
             }
             
-            // Update UI
-            const alarmLengthElement = document.getElementById('scc-alarm-length');
-            if (alarmLengthElement) {
-                alarmLengthElement.textContent = 'No Data';
-                alarmLengthElement.classList.add('text-muted');
-            }
-            
-            updateStatusIndicator('alarm-status', 'No Data');
-            disableButtonsNoData();
-            
-        } catch (error) {
+                // Update UI
+                const alarmLengthElement = document.getElementById('scc-alarm-length');
+                if (alarmLengthElement) {
+                    alarmLengthElement.textContent = 'No Data';
+                    alarmLengthElement.classList.add('text-muted');
+                }
+                
+                // Clear alarm display
+                document.getElementById('alarm-loading').style.display = 'none';
+                document.getElementById('alarm-no-data').style.display = 'block';
+                document.getElementById('alarm-list').style.display = 'none';
+                document.getElementById('alarm-pagination').style.display = 'none';
+                
+                updateStatusIndicator('alarm-status', 'No Data');
+                disableButtonsNoData();        } catch (error) {
             console.error(`Failed to clear data: ${error.message}`);
             
             // Show error message
@@ -473,7 +989,17 @@
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-        handleLoggers();
+        // Check if we should load dummy data (for development/testing)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('demo') === 'true') {
+            loadDummyData();
+        } else {
+            handleLoggers();
+        }
+        
+        // Add event listeners for filters
+        document.getElementById('alarm-filter').addEventListener('change', filterAlarms);
+        document.getElementById('mppt-filter').addEventListener('change', filterAlarms);
         
         // Update last update time every minute
         setInterval(updateLastUpdate, 60000);

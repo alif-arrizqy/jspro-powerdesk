@@ -1112,3 +1112,99 @@ body {
         display: none;
     }
 }
+
+/* SCC Alarm Log Specific Styles */
+.alarm-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.alarm-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.badge-sm {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.form-select-sm {
+    font-size: 0.875rem;
+    min-width: 150px;
+}
+
+.pagination-sm .page-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Alarm Card Enhancements */
+.alarm-card .modern-card-body {
+    padding: 1rem;
+}
+
+.alarm-severity-critical {
+    border-left: 4px solid var(--danger-color);
+}
+
+.alarm-severity-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.alarm-severity-info {
+    border-left: 4px solid var(--info-color);
+}
+
+.alarm-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.alarm-detail-row:last-child {
+    border-bottom: none;
+}
+
+.alarm-detail-label {
+    font-weight: 500;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.alarm-detail-value {
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 0.875rem;
+}
+
+/* Status indicator enhancements for alarms */
+.status-indicator.normal {
+    background-color: var(--success-light);
+    color: var(--success-color);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-indicator.critical {
+    background-color: var(--danger-light);
+    color: var(--danger-color);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Mobile responsive adjustments for alarm cards */
+@media (max-width: 768px) {
+    .alarm-card .row.g-2 {
+        --bs-gutter-x: 0.5rem;
+    }
+    
+    .alarm-detail-row {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .alarm-detail-label,
+    .alarm-detail-value {
+        font-size: 0.8rem;
+    }
+}
