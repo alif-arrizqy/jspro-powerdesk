@@ -77,7 +77,7 @@ All API responses follow a consistent structure:
 
 ### 3. Systemd Service Status
 
-**Endpoint:** `GET /api/v1/systemd-status`
+**Endpoint:** `GET /api/v1/device/systemd-status`
 
 **Response:**
 ```json
@@ -344,7 +344,7 @@ All API responses follow a consistent structure:
 ### 7. Historical Data - Redis Storage
 
 #### 7.1. Get Redis Data Logs
-**Endpoint:** `GET /api/v1/loggers/redis/data`
+**Endpoint:** `GET /api/v1/loggers/data/redis`
 
 **Query Parameters:**
 - `start_date` (optional): Start date for filtering (ISO 8601 format)
@@ -389,7 +389,10 @@ All API responses follow a consistent structure:
 ```
 
 #### 7.2. Store Data to Redis
-**Endpoint:** `POST /api/v1/loggers/redis/data`
+**Endpoint:** `POST /api/v1/loggers/data/redis`
+
+***notes***: Endpoint will adjust to the server
+
 
 **Request Body:**
 ```json
@@ -428,7 +431,7 @@ All API responses follow a consistent structure:
 ```
 
 #### 7.3. Delete Redis Data
-**Endpoint:** `DELETE /api/v1/loggers/redis/data/:timestamp`
+**Endpoint:** `DELETE /api/v1/loggers/data/redis/:timestamp`
 
 **Response:**
 ```json
@@ -442,7 +445,7 @@ All API responses follow a consistent structure:
 ### 8. Historical Data - SQLite Storage
 
 #### 8.1. Get SQLite Data Logs
-**Endpoint:** `GET /api/v1/loggers/sqlite/data`
+**Endpoint:** `GET /api/v1/loggers/data/sqlite`
 
 **Query Parameters:**
 - `start_date` (optional): Start date for filtering (ISO 8601 format)
@@ -490,7 +493,7 @@ All API responses follow a consistent structure:
 ```
 
 #### 8.2. Store Data to SQLite
-**Endpoint:** `POST /api/v1/loggers/sqlite/data`
+**Endpoint:** `POST /api/v1/loggers/data/sqlite`
 
 **Request Body:**
 ```json
@@ -530,7 +533,7 @@ All API responses follow a consistent structure:
 ```
 
 #### 8.3. Delete SQLite Data
-**Endpoint:** `DELETE /api/v1/loggers/sqlite/data/:id`
+**Endpoint:** `DELETE /api/v1/loggers/data/sqlite/:id`
 
 **Response:**
 ```json
@@ -543,7 +546,7 @@ All API responses follow a consistent structure:
 
 ### 9. Historical Data - Storage Overview
 
-**Endpoint** `GET /api/v1/loggers/overview`
+**Endpoint** `GET /api/v1/loggers/data/overview`
 
 **Response**
 ```json
@@ -571,7 +574,7 @@ All API responses follow a consistent structure:
 
 ### 10. SCC Alarm Log - Overview
 
-**Endpoint** `GET /api/v1/scc-alarm/overview`
+**Endpoint** `GET /api/v1/loggers/scc-alarm/overview`
 
 **Response**
 ```json
@@ -589,7 +592,7 @@ All API responses follow a consistent structure:
 
 ### 11. SCC Alarm Log - Alarm Log History
 
-**Endpoint** `GET /api/v1/scc-alarm/history`
+**Endpoint** `GET /api/v1/loggers/scc-alarm/history`
 
 **Response**
 ```json
@@ -630,7 +633,7 @@ All API responses follow a consistent structure:
 
 ### 12. SCC Alarm Log - Download Alarm Logs
 
-**Endpoint** `GET /api/v1/scc-alarm/logs`
+**Endpoint** `GET /api/v1/loggers/scc-alarm`
 
 **Response**
 ```json
@@ -684,7 +687,7 @@ All API responses follow a consistent structure:
 
 ### 12. SCC Alarm Logs - Clear Alarms
 
-**Endpoint** `DELETE /api/v1/scc-alarm/logs`
+**Endpoint** `DELETE /api/v1/loggers/scc-alarm`
 
 **Response**
 ```json
