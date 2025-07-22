@@ -215,136 +215,78 @@
     </div>
 </div>
 
-<!-- Power & LVD Status -->
+<!-- SCC Relay Configuration -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-bolt"></i>
-                    Power System Status
-                </h2>
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-heartbeat text-danger me-2"></i>
-                    <span class="text-muted" id="lvd-counter-heartbeat">Heartbeat: Loading...</span>
-                </div>
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-bar text-info me-2"></i>
+                    SCC Relay Configuration
+                </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-3">
-                    <!-- LVD Status -->
-                    <div class="col-md-6">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">VSAT LVD</h6>
-                                <div class="stats-card-icon bg-primary">
+                                <h6 class="stats-card-title">Vsat Reconnect</h6>
+                                <div class="stats-card-icon bg-success">
                                     <i class="fas fa-satellite"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="vsat-lvd">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">VSAT Low Voltage Disconnect</p>
+                            <h3 class="stats-card-value">4700</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-up me-2"></i>
+                                Vsat Reconnect (mV)
+                            </p>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-lg-3 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">BTS LVD</h6>
+                                <h6 class="stats-card-title">Vsat Cut Off</h6>
                                 <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-satellite"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">4600</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-down me-2"></i>
+                                Vsat Cut Off (mV)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">BTS Reconnect</h6>
+                                <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-broadcast-tower"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="bts-lvd">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">BTS Low Voltage Disconnect</p>
+                            <h3 class="stats-card-value">4900</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-up me-2"></i>
+                                BTS Reconnect (mV)
+                            </p>
                         </div>
                     </div>
-                    
-                    <!-- MCB Status -->
-                    <div class="col-md-4">
+                    <div class="col-lg-3 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">MCB 1</h6>
-                                <div class="stats-card-icon bg-info">
-                                    <i class="fas fa-toggle-on"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="mcb1">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">Circuit Breaker 1</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">MCB 2</h6>
-                                <div class="stats-card-icon bg-warning">
-                                    <i class="fas fa-toggle-on"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="mcb2">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">Circuit Breaker 2</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">MCB 3</h6>
-                                <div class="stats-card-icon bg-danger">
-                                    <i class="fas fa-toggle-on"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="mcb3">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">Circuit Breaker 3</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Voltage Readings -->
-                    <div class="col-md-4">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">System Voltage</h6>
+                                <h6 class="stats-card-title">BTS Cut Off</h6>
                                 <div class="stats-card-icon bg-primary">
-                                    <i class="fas fa-plug"></i>
+                                    <i class="fas fa-broadcast-tower"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value" id="system-voltage">Loading...</h3>
-                            <p class="stats-card-subtitle">Main System Voltage</p>
+                            <h3 class="stats-card-value">4800</h3>
+                            <p class="stats-card-subtitle">
+                                <i class="fas fa-arrow-down me-2"></i>
+                                BTS Cut Off (mV)
+                            </p>
                         </div>
                     </div>
-                    
-                    {% for i in range(1, number_of_scc+1) %}
-                    <div class="col-md-4">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Load {{i}} Voltage</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-bolt"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value" id="load{{i}}-voltage">Loading...</h3>
-                            <p class="stats-card-subtitle">Load {{i}} Voltage Reading</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Load {{i}} Current</h6>
-                                <div class="stats-card-icon bg-info">
-                                    <i class="fas fa-tachometer-alt"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value" id="load{{i}}-current">Loading...</h3>
-                            <p class="stats-card-subtitle">Load {{i}} Current Reading</p>
-                        </div>
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -468,91 +410,12 @@
                     {% endfor %}
                 </div>
             </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- SCC Relay Configuration -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
-            <div class="modern-card-header">
-                <h5 class="modern-card-title">
-                    <i class="fas fa-chart-bar text-info me-2"></i>
-                    SCC Relay Configuration
-                </h5>
-            </div>
-            <div class="modern-card-body">
-                <div class="row g-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Vsat Reconnect</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-satellite"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">4700</h3>
-                            <p class="stats-card-subtitle">
-                                <i class="fas fa-arrow-up me-2"></i>
-                                Vsat Reconnect (mV)
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Vsat Cut Off</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-satellite"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">4600</h3>
-                            <p class="stats-card-subtitle">
-                                <i class="fas fa-arrow-down me-2"></i>
-                                Vsat Cut Off (mV)
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">BTS Reconnect</h6>
-                                <div class="stats-card-icon bg-primary">
-                                    <i class="fas fa-broadcast-tower"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">4900</h3>
-                            <p class="stats-card-subtitle">
-                                <i class="fas fa-arrow-up me-2"></i>
-                                BTS Reconnect (mV)
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">BTS Cut Off</h6>
-                                <div class="stats-card-icon bg-primary">
-                                    <i class="fas fa-broadcast-tower"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">4800</h3>
-                            <p class="stats-card-subtitle">
-                                <i class="fas fa-arrow-down me-2"></i>
-                                BTS Cut Off (mV)
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
 <!-- Quick Actions -->
-<div class="row">
+<div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
             <div class="modern-card-header">
@@ -594,7 +457,6 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -611,9 +473,6 @@ document.addEventListener('DOMContentLoaded', function() {
             switch (endpoint) {
                 case '/api/device-information':
                     updateDeviceInformation(data);
-                    break;
-                case '/api/lvd-realtime':
-                    updatePowerOverview(data);
                     break;
                 case '/api/scc-realtime':
                     updateSCCOverview(data);
@@ -836,108 +695,6 @@ const updateDeviceInformation = (data) => {
     }
 };
 
-// Power Overview Update
-const updatePowerOverview = (data) => {
-    if (data.code == 500) {
-        console.log(`Error: ${data.status}`);
-        return;
-    }
-
-    // Counter Heartbeat
-    const heartbeatElement = document.getElementById('lvd-counter-heartbeat');
-    if (heartbeatElement) {
-        const heartbeatText = `Heartbeat: ${data.data.counter_heartbeat}`;
-        heartbeatElement.textContent = heartbeatText;
-        
-        if (data.data.counter_heartbeat == -1) {
-            heartbeatElement.classList.add('text-danger');
-        } else {
-            heartbeatElement.classList.remove('text-danger');
-        }
-    }
-
-    // System Voltage
-    const systemVoltageElement = document.getElementById('system-voltage');
-    if (systemVoltageElement) {
-        if (data.data.system_voltage === -1) {
-            systemVoltageElement.textContent = 'N/A';
-            systemVoltageElement.classList.add('text-muted');
-        } else {
-            systemVoltageElement.textContent = `${data.data.system_voltage} V`;
-            systemVoltageElement.classList.remove('text-muted');
-        }
-    }
-
-    // MCB Status
-    {% for i in range(1, 4) %}
-    const mcb{{i}}Element = document.getElementById('mcb{{i}}');
-    if (mcb{{i}}Element && data.data.relay_status) {
-        const status = data.data.relay_status.relay{{i}};
-        const statusSpan = mcb{{i}}Element.querySelector('.status-indicator') || mcb{{i}}Element;
-        statusSpan.textContent = status;
-        
-        if (status === "CLOSED") {
-            statusSpan.className = 'status-indicator active';
-        } else {
-            statusSpan.className = 'status-indicator inactive';
-        }
-    }
-    {% endfor %}
-
-    // VSAT LVD
-    const vsatLvdElement = document.getElementById('vsat-lvd');
-    if (vsatLvdElement && data.data.relay_status) {
-        const status = data.data.relay_status.relay1;
-        vsatLvdElement.textContent = status;
-        
-        if (status === "CLOSED") {
-            vsatLvdElement.className = 'status-indicator active';
-        } else {
-            vsatLvdElement.className = 'status-indicator inactive';
-        }
-    }
-    
-    // BTS LVD
-    const btsLvdElement = document.getElementById('bts-lvd');
-    if (btsLvdElement && data.data.relay_status) {
-        const status = data.data.relay_status.relay2;
-        btsLvdElement.textContent = status;
-        
-        if (status === "CLOSED") {
-            btsLvdElement.className = 'status-indicator active';
-        } else {
-            btsLvdElement.className = 'status-indicator inactive';
-        }
-    }
-
-    // Load Voltage and Current
-    {% if number_of_scc >= 2 %}
-    {% for i in range(1, number_of_scc+1) %}
-    const load{{i}}VoltageElement = document.getElementById('load{{i}}-voltage');
-    if (load{{i}}VoltageElement && data.data.lvd) {
-        if (data.data.lvd.lvd{{i}} === -1) {
-            load{{i}}VoltageElement.textContent = 'N/A';
-            load{{i}}VoltageElement.classList.add('text-muted');
-        } else {
-            load{{i}}VoltageElement.textContent = `${data.data.lvd.lvd{{i}}} V`;
-            load{{i}}VoltageElement.classList.remove('text-muted');
-        }
-    }
-
-    const load{{i}}CurrentElement = document.getElementById('load{{i}}-current');
-    if (load{{i}}CurrentElement && data.data.load_current) {
-        if (data.data.load_current.load{{i}}_current === -1) {
-            load{{i}}CurrentElement.textContent = 'N/A';
-            load{{i}}CurrentElement.classList.add('text-muted');
-        } else {
-            load{{i}}CurrentElement.textContent = `${data.data.load_current.load{{i}}_current} A`;
-            load{{i}}CurrentElement.classList.remove('text-muted');
-        }
-    }
-    {% endfor %}
-    {% endif %}
-};
-
 // SCC Overview Update
 const updateSCCOverview = (data) => {
     if (data.code == 500) {
@@ -1092,11 +849,9 @@ if (!window.powerDeskApp) {
 
     const updateAllData = async () => {
         const deviceData = await fetchData('/api/device-information/');
-        const lvdData = await fetchData('/api/realtime/lvd/');
         const sccData = await fetchData('/api/realtime/scc/');
         
         if (deviceData) updateDeviceInformation(deviceData);
-        if (lvdData) updatePowerOverview(lvdData);
         if (sccData) updateSCCOverview(sccData);
     };
 
