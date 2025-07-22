@@ -317,18 +317,26 @@
         
         if (sccType === 'scc-srne') {
             alarmScenarios = [
-                { type: 'battery', subtype: 'batt-hi-temp-1', status: 'active', probability: 0.10 },
-                { type: 'battery', subtype: 'batt-hi-temp-2', status: 'active', probability: 0.08 },
-                { type: 'battery', subtype: 'batt-lo-temp-1', status: 'active', probability: 0.05 },
-                { type: 'battery', subtype: 'batt-lo-temp-2', status: 'active', probability: 0.05 },
-                { type: 'battery', subtype: 'batt-overdisc', status: 'active', probability: 0.12 },
-                { type: 'battery', subtype: 'batt-overvolt', status: 'active', probability: 0.15 },
-                { type: 'battery', subtype: 'batt-reversed', status: 'active', probability: 0.02 },
-                { type: 'battery', subtype: 'batt-undervolt', status: 'active', probability: 0.10 },
-                { type: 'controller', subtype: 'controller-temp-high', status: 'active', probability: 0.18 },
-                { type: 'load', subtype: 'load-over-current', status: 'active', probability: 0.12 },
-                { type: 'pv', subtype: 'pv-overpower', status: 'active', probability: 0.08 },
-                { type: 'pv', subtype: 'pv-overvolt', status: 'active', probability: 0.10 }
+                { type: 'battery', subtype: 'high-temp-1', status: 'active', probability: 0.10 },
+                { type: 'battery', subtype: 'high-temp-2', status: 'active', probability: 0.08 },
+                { type: 'battery', subtype: 'low-temp-1', status: 'active', probability: 0.05 },
+                { type: 'battery', subtype: 'low-temp-2', status: 'active', probability: 0.05 },
+                { type: 'battery', subtype: 'overdisc', status: 'active', probability: 0.12 },
+                { type: 'battery', subtype: 'overvolt', status: 'active', probability: 0.15 },
+                { type: 'battery', subtype: 'reversed', status: 'active', probability: 0.02 },
+                { type: 'battery', subtype: 'undervolt', status: 'active', probability: 0.10 },
+                { type: 'battery', subtype: 'oo-batt-detected-sld', status: 'active', probability: 0.10 },
+                { type: 'system', subtype: 'overdisc-protection', status: 'active', probability: 0.10 },
+                { type: 'system', subtype: 'power-supply-status', status: 'active', probability: 0.10 },
+                { type: 'controller', subtype: 'temp-high', status: 'active', probability: 0.18 },
+                { type: 'controller', subtype: 'induction-probe-damaged', status: 'active', probability: 0.12 },
+                { type: 'load', subtype: 'over-current', status: 'active', probability: 0.12 },
+                { type: 'load', subtype: 'open-circuit', status: 'active', probability: 0.12 },
+                { type: 'load', subtype: 'short', status: 'active', probability: 0.12 },
+                { type: 'pv', subtype: 'overpower', status: 'active', probability: 0.08 },
+                { type: 'pv', subtype: 'overvolt', status: 'active', probability: 0.10 },
+                { type: 'solar-panel', subtype: 'reversed', status: 'active', probability: 0.10 },
+                { type: 'solar-panel', subtype: 'working-point-overvolt', status: 'active', probability: 0.10 }
             ];
         } else if (sccType === 'scc-epveper') {
             alarmScenarios = [
