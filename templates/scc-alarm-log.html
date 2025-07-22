@@ -59,24 +59,6 @@
                             <p class="stats-card-subtitle">Data Refresh</p>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">System Status</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
-                            </div>
-                            <div class="scc-status-container">
-                                {% for i in range(1, number_of_scc+1) %}
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-primary me-2">SCC{{i}}</span>
-                                    <span class="badge" id="scc{{i}}-status">Loading...</span>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
