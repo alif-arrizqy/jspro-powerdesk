@@ -362,98 +362,103 @@
                 </h2>
             </div>
             <div class="modern-card-body">
-                {% if number_of_scc == 2 %}
                 <div class="row g-4">
                     {% for i in range(1, number_of_scc+1) %}
+                    {% if number_of_scc <= 2 %}
                     <div class="col-lg-6">
+                    {% elif number_of_scc == 3 %}
+                    <div class="col-xl-4 col-lg-6 col-md-12">
+                    {% else %}
+                    <div class="col-xl-3 col-lg-6 col-md-12">
+                    {% endif %}
                         <div class="modern-card">
                             <div class="modern-card-header">
                                 <h5 class="modern-card-title">
                                     <i class="fas fa-solar-panel"></i>
                                     SCC {{i}} Status
                                 </h5>
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center flex-wrap">
                                     <i class="fas fa-info-circle text-primary me-2"></i>
-                                    <span class="text-muted" id="scc{{i}}-device-id">SCC ID: Loading...</span>
-                                    <span class="text-muted mx-2">|</span>
-                                    <i class="fas fa-heartbeat text-danger me-2"></i>
-                                    <span class="text-muted" id="scc{{i}}-counter-heartbeat">Heartbeat: Loading...</span>
+                                    <span class="text-muted small" id="scc{{i}}-device-id">SCC ID: Loading...</span>
+                                    <span class="text-muted mx-1">|</span>
+                                    <i class="fas fa-heartbeat text-danger me-1"></i>
+                                    <span class="text-muted small" id="scc{{i}}-counter-heartbeat">Heartbeat: Loading...</span>
                                 </div>
                             </div>
                             <div class="modern-card-body">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
+                                <div class="row g-2">
+                                    <div class="col-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">Status</h6>
+                                                <h6 class="stats-card-title small">Status</h6>
                                                 <div class="stats-card-icon bg-primary">
                                                     <i class="fas fa-power-off"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value">
+                                            <h5 class="stats-card-value">
                                                 <span class="status-indicator" id="scc{{i}}-status">Loading...</span>
-                                            </h4>
-                                            <p class="stats-card-subtitle">SCC {{i}} Status</p>
+                                            </h5>
+                                            <p class="stats-card-subtitle small">SCC {{i}} Status</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">PV {{i}} Voltage</h6>
+                                                <h6 class="stats-card-title small">PV {{i}} Voltage</h6>
                                                 <div class="stats-card-icon bg-success">
                                                     <i class="fas fa-sun"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value" id="pv{{i}}-voltage">Loading...</h4>
-                                            <p class="stats-card-subtitle">Photovoltaic Voltage</p>
+                                            <h5 class="stats-card-value" id="pv{{i}}-voltage">Loading...</h5>
+                                            <p class="stats-card-subtitle small">Photovoltaic</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">PV {{i}} Current</h6>
+                                                <h6 class="stats-card-title small">PV {{i}} Current</h6>
                                                 <div class="stats-card-icon bg-info">
                                                     <i class="fas fa-tachometer-alt"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value" id="pv{{i}}-current">Loading...</h4>
-                                            <p class="stats-card-subtitle">Photovoltaic Current</p>
+                                            <h5 class="stats-card-value" id="pv{{i}}-current">Loading...</h5>
+                                            <p class="stats-card-subtitle small">PV Current</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">Load Voltage</h6>
+                                                <h6 class="stats-card-title small">Load Voltage</h6>
                                                 <div class="stats-card-icon bg-info">
                                                     <i class="fas fa-plug"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
-                                            <p class="stats-card-subtitle">Load Voltage</p>
+                                            <h5 class="stats-card-value" id="load{{i}}-voltage-detail">Loading...</h5>
+                                            <p class="stats-card-subtitle small">Load Voltage</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">Load Current</h6>
+                                                <h6 class="stats-card-title small">Load Current</h6>
                                                 <div class="stats-card-icon bg-primary">
                                                     <i class="fas fa-arrow-left"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
-                                            <p class="stats-card-subtitle">Load Current</p>
+                                            <h5 class="stats-card-value" id="load{{i}}-current-detail">Loading...</h5>
+                                            <p class="stats-card-subtitle small">Load Current</p>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-6">
                                         <div class="stats-card">
                                             <div class="stats-card-header">
-                                                <h6 class="stats-card-title">Load Power</h6>
+                                                <h6 class="stats-card-title small">Load Power</h6>
                                                 <div class="stats-card-icon bg-warning">
                                                     <i class="fas fa-bolt"></i>
                                                 </div>
                                             </div>
-                                            <h4 class="stats-card-value" id="load{{i}}-voltage">Loading...</h4>
-                                            <p class="stats-card-subtitle">Load Power</p>
+                                            <h5 class="stats-card-value" id="load{{i}}-power-detail">Loading...</h5>
+                                            <p class="stats-card-subtitle small">Load Power</p>
                                         </div>
                                     </div>
                                 </div>
@@ -462,27 +467,7 @@
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}
-                <!-- Handle different number of SCCs -->
-                <div class="row g-3">
-                    {% for i in range(1, number_of_scc+1) %}
-                    <div class="col-lg-4">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">SCC {{i}} Status</h6>
-                                <div class="stats-card-icon bg-primary">
-                                    <i class="fas fa-power-off"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">
-                                <span class="status-indicator" id="scc{{i}}-status">Loading...</span>
-                            </h3>
-                            <p class="stats-card-subtitle">Solar Charge Controller {{i}}</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+            </div>
             </div>
         </div>
     </div>
@@ -713,6 +698,73 @@ function generateDummySystemData() {
         const status = serviceStates[Math.floor(Math.random() * serviceStates.length)];
         updateStatusIndicator(`${service}-status`, status, ['active'], ['inactive', 'error']);
     });
+    
+    // Generate dummy SCC data
+    generateDummySCCData();
+}
+
+// Generate dummy SCC data for testing
+function generateDummySCCData() {
+    const numberOfScc = {{ number_of_scc }};
+    
+    for (let i = 1; i <= numberOfScc; i++) {
+        // SCC Status
+        const sccStatuses = ['is running', 'is running', 'is standby', 'modbus error'];
+        const sccStatus = sccStatuses[Math.floor(Math.random() * sccStatuses.length)];
+        updateStatusIndicator(`scc${i}-status`, sccStatus, ['is running'], ['modbus error', 'unknown status']);
+        
+        // PV Voltage
+        const pvVoltage = (Math.random() * 30 + 15).toFixed(1); // 15-45V
+        const pvVoltageElement = document.getElementById(`pv${i}-voltage`);
+        if (pvVoltageElement) {
+            pvVoltageElement.textContent = `${pvVoltage} V`;
+        }
+        
+        // PV Current
+        const pvCurrent = (Math.random() * 8 + 1).toFixed(2); // 1-9A
+        const pvCurrentElement = document.getElementById(`pv${i}-current`);
+        if (pvCurrentElement) {
+            pvCurrentElement.textContent = `${pvCurrent} A`;
+        }
+        
+        // Load Voltage Detail
+        const loadVoltage = (Math.random() * 3 + 12).toFixed(1); // 12-15V
+        const loadVoltageDetailElement = document.getElementById(`load${i}-voltage-detail`);
+        if (loadVoltageDetailElement) {
+            loadVoltageDetailElement.textContent = `${loadVoltage} V`;
+        }
+        
+        // Load Current Detail
+        const loadCurrent = (Math.random() * 5 + 0.5).toFixed(2); // 0.5-5.5A
+        const loadCurrentDetailElement = document.getElementById(`load${i}-current-detail`);
+        if (loadCurrentDetailElement) {
+            loadCurrentDetailElement.textContent = `${loadCurrent} A`;
+        }
+        
+        // Load Power Detail
+        const loadPower = (parseFloat(loadVoltage) * parseFloat(loadCurrent)).toFixed(2);
+        const loadPowerDetailElement = document.getElementById(`load${i}-power-detail`);
+        if (loadPowerDetailElement) {
+            loadPowerDetailElement.textContent = `${loadPower} W`;
+        }
+        
+        // SCC Device ID
+        const sccDeviceIdElement = document.getElementById(`scc${i}-device-id`);
+        if (sccDeviceIdElement) {
+            const deviceId = Math.floor(Math.random() * 200) + 1;
+            sccDeviceIdElement.textContent = `SCC ID: ${deviceId}`;
+        }
+        
+        // SCC Heartbeat
+        const sccHeartbeatElement = document.getElementById(`scc${i}-counter-heartbeat`);
+        if (sccHeartbeatElement) {
+            const heartbeat = Math.floor(Math.random() * 1000) + 100;
+            sccHeartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
+        }
+    }
+    
+    // Generate dummy device information
+    generateDummyDeviceInfo();
 }
 
 // SCC Device ID mapping
@@ -957,6 +1009,46 @@ const updateSCCOverview = (data) => {
             const power = (voltage * current).toFixed(2);
             pv{{i}}PowerElement.textContent = `${power} W`;
             pv{{i}}PowerElement.classList.remove('text-muted');
+        }
+    }
+
+    // Load Voltage Detail for SCC Overview
+    const load{{i}}VoltageDetailElement = document.getElementById('load{{i}}-voltage-detail');
+    if (load{{i}}VoltageDetailElement && data.data.scc{{i}}) {
+        if (data.data.scc{{i}}.load_voltage === -1) {
+            load{{i}}VoltageDetailElement.textContent = 'N/A';
+            load{{i}}VoltageDetailElement.classList.add('text-muted');
+        } else {
+            load{{i}}VoltageDetailElement.textContent = `${data.data.scc{{i}}.load_voltage} V`;
+            load{{i}}VoltageDetailElement.classList.remove('text-muted');
+        }
+    }
+
+    // Load Current Detail for SCC Overview
+    const load{{i}}CurrentDetailElement = document.getElementById('load{{i}}-current-detail');
+    if (load{{i}}CurrentDetailElement && data.data.scc{{i}}) {
+        if (data.data.scc{{i}}.load_current === -1) {
+            load{{i}}CurrentDetailElement.textContent = 'N/A';
+            load{{i}}CurrentDetailElement.classList.add('text-muted');
+        } else {
+            load{{i}}CurrentDetailElement.textContent = `${data.data.scc{{i}}.load_current} A`;
+            load{{i}}CurrentDetailElement.classList.remove('text-muted');
+        }
+    }
+
+    // Load Power Detail for SCC Overview
+    const load{{i}}PowerDetailElement = document.getElementById('load{{i}}-power-detail');
+    if (load{{i}}PowerDetailElement && data.data.scc{{i}}) {
+        const voltage = data.data.scc{{i}}.load_voltage;
+        const current = data.data.scc{{i}}.load_current;
+        
+        if (voltage === -1 || current === -1) {
+            load{{i}}PowerDetailElement.textContent = 'N/A';
+            load{{i}}PowerDetailElement.classList.add('text-muted');
+        } else {
+            const power = (voltage * current).toFixed(2);
+            load{{i}}PowerDetailElement.textContent = `${power} W`;
+            load{{i}}PowerDetailElement.classList.remove('text-muted');
         }
     }
 
