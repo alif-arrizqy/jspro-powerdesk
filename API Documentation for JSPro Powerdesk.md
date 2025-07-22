@@ -75,7 +75,6 @@ All API responses follow a consistent structure:
 }
 ```
 
-
 ### 3. Systemd Service Status
 
 **Endpoint:** `GET /api/v1/systemd-status`
@@ -102,7 +101,6 @@ All API responses follow a consistent structure:
     }
 }
 ```
-
 
 ### 4. Monitoring SCC Data
 
@@ -219,7 +217,6 @@ All API responses follow a consistent structure:
 }
 ```
 
-
 ### 5. Monitoring Battery Data
 
 **Endpoint:** `GET /api/v1/monitoring/battery`
@@ -276,7 +273,6 @@ All API responses follow a consistent structure:
     },
 }
 ```
-
 
 ### 6. Monitoring Battery Aktif
 
@@ -345,78 +341,207 @@ All API responses follow a consistent structure:
 }
 ```
 
+### 7. Historical Data - Redis Storage
 
-### 7. Historical Data - [GET] Data Logs
+#### 7.1. Get Redis Data Logs
+**Endpoint:** `GET /api/v1/loggers/redis/data`
 
-**Endpoint** `GET /api/v1/loggers/data`
+**Query Parameters:**
+- `start_date` (optional): Start date for filtering (ISO 8601 format)
+- `end_date` (optional): End date for filtering (ISO 8601 format)
+- `limit` (optional): Maximum number of records to return
+- `offset` (optional): Number of records to skip
 
-**Response**
+**Response:**
 ```json
 {
     "status_code": 200,
     "status": "success",
-    "data": [
-        {
-            "energy_data": {},
-            "bms_data": []
+    "data": {
+        "records": [
+            {
+                "timestamp": "2025-07-21T10:30:00",
+                "energy_data": {
+                    "scc_voltage": 48.5,
+                    "scc_current": 12.3,
+                    "battery_voltage": 47.8,
+                    "load_power": 250.5
+                },
+                "bms_data": [
+                    {
+                        "slave_id": 1,
+                        "voltage": 3.65,
+                        "current": 2.1,
+                        "temperature": 25.4
+                    }
+                ]
+            }
+        ],
+        "total_records": 150,
+        "page_info": {
+            "limit": 50,
+            "offset": 0,
+            "has_next": true
         },
-        {
-            "energy_data": {},
-            "bms_data": []
-        },
-    ]
+        "last_update": "2025-07-21T10:30:00"
+    }
 }
 ```
 
+#### 7.2. Store Data to Redis
+**Endpoint:** `POST /api/v1/loggers/redis/data`
 
-### 8. Historical Data - [POST] Data Logs
-
-**Endpoint** `POST /api/v1/loggers/data`
-
-**Body**
+**Request Body:**
 ```json
 {
     "site_id": "PAP9999",
     "site_name": "Sundaya RnD",
     "data": [
         {
-            "energy_data": {},
-            "bms_data": []
-        },
-        {
-            "energy_data": {},
-            "bms_data": []
-        },
+            "timestamp": "2025-07-21T10:30:00",
+            "energy_data": {
+                "scc_voltage": 48.5,
+                "scc_current": 12.3,
+                "battery_voltage": 47.8,
+                "load_power": 250.5
+            },
+            "bms_data": [
+                {
+                    "slave_id": 1,
+                    "voltage": 3.65,
+                    "current": 2.1,
+                    "temperature": 25.4
+                }
+            ]
+        }
     ]
 }
 ```
 
-**Response**
+**Response:**
+```json
+{
+    "status_code": 201,
+    "status": "success",
+    "message": "Redis data stored successfully"
+}
+```
+
+#### 7.3. Delete Redis Data
+**Endpoint:** `DELETE /api/v1/loggers/redis/data/:timestamp`
+
+**Response:**
 ```json
 {
     "status_code": 200,
     "status": "success",
-    "message": "loggers insert successfully"
+    "message": "Redis data deleted successfully"
 }
 ```
 
+### 8. Historical Data - SQLite Storage
 
+#### 8.1. Get SQLite Data Logs
+**Endpoint:** `GET /api/v1/loggers/sqlite/data`
 
-### 9. Historical Data - [DELETE] Data Logs
+**Query Parameters:**
+- `start_date` (optional): Start date for filtering (ISO 8601 format)
+- `end_date` (optional): End date for filtering (ISO 8601 format)
+- `limit` (optional): Maximum number of records to return (default: 100)
+- `offset` (optional): Number of records to skip (default: 0)
+- `table` (optional): Specific table name to query
 
-**Endpoint** `DELETE /api/v1/loggers/data/:timestamp`
-
-**Response**
+**Response:**
 ```json
 {
     "status_code": 200,
     "status": "success",
-    "message": "loggers deleted successfully"
+    "data": {
+        "records": [
+            {
+                "id": 1,
+                "timestamp": "2025-07-21T10:30:00",
+                "energy_data": {
+                    "scc_voltage": 48.5,
+                    "scc_current": 12.3,
+                    "battery_voltage": 47.8,
+                    "load_power": 250.5
+                },
+                "bms_data": [
+                    {
+                        "slave_id": 1,
+                        "voltage": 3.65,
+                        "current": 2.1,
+                        "temperature": 25.4
+                    }
+                ],
+                "created_at": "2025-07-21T10:30:00"
+            }
+        ],
+        "total_records": 1000,
+        "page_info": {
+            "limit": 100,
+            "offset": 0,
+            "has_next": true
+        },
+        "last_update": "2025-07-21T10:30:00"
+    }
 }
 ```
 
+#### 8.2. Store Data to SQLite
+**Endpoint:** `POST /api/v1/loggers/sqlite/data`
 
-### 10. Historical Data - Storage Overview
+**Request Body:**
+```json
+{
+    "site_id": "PAP9999",
+    "site_name": "Sundaya RnD",
+    "table_name": "energy_logs",
+    "data": [
+        {
+            "timestamp": "2025-07-21T10:30:00",
+            "energy_data": {
+                "scc_voltage": 48.5,
+                "scc_current": 12.3,
+                "battery_voltage": 47.8,
+                "load_power": 250.5
+            },
+            "bms_data": [
+                {
+                    "slave_id": 1,
+                    "voltage": 3.65,
+                    "current": 2.1,
+                    "temperature": 25.4
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Response:**
+```json
+{
+    "status_code": 201,
+    "status": "success",
+    "message": "SQLite data stored successfully",
+}
+```
+
+#### 8.3. Delete SQLite Data
+**Endpoint:** `DELETE /api/v1/loggers/sqlite/data/:id`
+
+**Response:**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "message": "SQLite data deleted successfully"
+}
+```
+
+### 9. Historical Data - Storage Overview
 
 **Endpoint** `GET /api/v1/loggers/overview`
 
@@ -434,19 +559,141 @@ All API responses follow a consistent structure:
                 "used": 6.1,
                 "total": 15.4
             },
-            "last_update": "2025-07-18T10:10:23"
         },
         "data_statistics": {
             "logger_records": 22,
             "sqlite_records": 100,
+        },
+        "last_update": "2025-07-18T10:10:23"
+    }
+}
+```
+
+### 10. SCC Alarm Log - Overview
+
+**Endpoint** `GET /api/v1/scc-alarm/overview`
+
+**Response**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "data": {
+        "data_statistics": {
+            "total_alarm_logs": 100,
             "last_update": "2025-07-18T10:10:23"
         }
     }
 }
 ```
 
+### 11. SCC Alarm Log - Alarm Log History
 
+**Endpoint** `GET /api/v1/scc-alarm/history`
 
+**Response**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "data": {
+        "logger_records": 100,
+        "logs": [
+            {
+                "device": "scc2",
+                "alarm": "batt_overdisc",
+                "battery_temperature": 25,
+                "battery_voltage": 5333,
+                "device_temperature": 28,
+                "load_status": "is standby",
+                "timestamp": "2025-07-21T10:30:00"
+            },
+            {
+                "device": "scc2",
+                "alarm": "batt_undervolt",
+                "battery_temperature": 25,
+                "battery_voltage": 5333,
+                "device_temperature": 28,
+                "load_status": "is standby",
+                "timestamp": "2025-07-21T10:30:00"
+            },
+        ],
+        "page_info": {
+            "limit": 50,
+            "offset": 0,
+            "has_next": true
+        },
+        "last_update": "2025-07-21T10:30:00"
+    }
+}
+```
+
+### 12. SCC Alarm Log - Download Alarm Logs
+
+**Endpoint** `GET /api/v1/scc-alarm/logs`
+
+**Response**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "data": {
+        "logger_records": 100,
+        "last_update": "2025-07-18T10:10:23",
+        "logs": [
+            {
+                "scc1": {
+                    "alarm": {},
+                    "battery_temperature": 25,
+                    "battery_voltage": 5827,
+                    "device_temperature": 25,
+                    "load": {
+                        "bts_curr": 4.95,
+                        "obl": 0.02,
+                        "relay_state": {
+                            "bts": true,
+                            "obl": true,
+                            "vsat": true
+                        },
+                        "vsat_curr": 1.6
+                    },
+                    "load_status": "is running"
+                },
+                "scc2": {
+                    "alarm": {},
+                    "battery_temperature": 25,
+                    "battery_voltage": 5827,
+                    "device_temperature": 25,
+                    "load": {
+                        "bts_curr": 4.95,
+                        "obl": 0.02,
+                        "relay_state": {
+                            "bts": true,
+                            "obl": true,
+                            "vsat": true
+                        },
+                        "vsat_curr": 1.6
+                    },
+                    "load_status": "is running"
+                }
+            }
+        ]
+    }
+}
+```
+
+### 12. SCC Alarm Logs - Clear Alarms
+
+**Endpoint** `DELETE /api/v1/scc-alarm/logs`
+
+**Response**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "message": "SCC Alarm data deleted successfully"
+}
+```
 
 
 ## Error Responses
@@ -470,8 +717,7 @@ All endpoints follow the same error response format:
 ## Request/Response Standards
 
 ### Date Format
-- All timestamps should use ISO 8601 format: `YYYY-MM-DDTHH:mm:ssZ`
-- Timezone: UTC
+- All timestamps should use format: `YYYY-MM-DDTHH:mm:ss`
 
 ### Data Types
 - **Numbers**: Float values for measurements (voltage, current, power, temperature)
@@ -491,25 +737,25 @@ All endpoints follow the same error response format:
 
 ### Get System Resources
 ```bash
-curl -X GET "http://your-domain/api/dashboard/system-resources" \
+curl -X GET "http://your-domain/api/v1/dashboard/system-resources" \
   -H "Content-Type: application/json"
 ```
 
 ### Get Systemd Status
 ```bash
-curl -X GET "http://your-domain/api/dashboard/systemd-status" \
+curl -X GET "http://your-domain/api/v1/dashboard/systemd-status" \
   -H "Content-Type: application/json"
 ```
 
 ### Get Device Information
 ```bash
-curl -X GET "http://your-domain/api/device/information" \
+curl -X GET "http://your-domain/api/v1/device/information" \
   -H "Content-Type: application/json"
 ```
 
 ### Get SCC Data
 ```bash
-curl -X GET "http://your-domain/api/scc/data" \
+curl -X GET "http://your-domain/api/v1/monitoring/scc" \
   -H "Content-Type: application/json"
 ```
 
