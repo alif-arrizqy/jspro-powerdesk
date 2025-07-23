@@ -1,6 +1,9 @@
+import psutil
 import shutil
 import subprocess
 import json
+import subprocess
+from gpiozero import CPUTemperature
 from subprocess import Popen
 from config import *
 
@@ -45,12 +48,25 @@ def get_gateway(interface):
     return gateway
 
 
-def get_free_ram():
-    command = ["free -h | grep Mi"]
-    output = bash_command(command, universal_newlines=True, shell=True)
-    line = output[:output.find('\nSwap')][62:].replace(" ", "")
-    free_ram = line[line.find('Mi')+2:].replace("Mi", "")
-    return free_ram
+def get_cpu_usage():
+    """Get CPU Usage Percentage"""
+    return psutil.cpu_percent(interval=2) 
+
+
+def get_memory_usage():
+    """Get memory usage percentage"""
+    memory = psutil.virtual_memory()
+    return memory.percent
+
+
+def get_temperature():
+    """Get CPU temperature"""
+    try:
+        cpu_temp = CPUTemperature()
+        temperature = round(cpu_temp.temperature, 1)
+    except:
+        temperature = 25.0
+    return temperature
 
 
 def get_disk_detail():
