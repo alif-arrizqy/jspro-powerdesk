@@ -5,14 +5,17 @@ from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from config import *
 from functions import *
-from api import core
+from api.core import register_blueprints, register_error_handlers
 from api.redisconnection import connection as red
 from auths import users
 from validations import validate_setting_ip, validate_modbus_id
 
 app = Flask(__name__)
 app.secret_key = '83dcdc455025cedcfe64b21e620564fb'
-app.register_blueprint(core.api)
+
+# Register all API blueprints and error handlers
+register_blueprints(app)
+register_error_handlers(app)
 
 cors = CORS(app)
 
