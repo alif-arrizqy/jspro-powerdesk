@@ -98,6 +98,7 @@ def get_device_information():
                 "panel2_type": "new",
                 "site_type": "bakti",
                 "scc_type": "scc-epveper",
+                "scc_id": [2, 1],
                 "scc_source": "serial",
                 "battery_type": "talis5"
             }
