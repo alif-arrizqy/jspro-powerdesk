@@ -1,687 +1,313 @@
-import json
-import re
-from ast import literal_eval
 from flask import jsonify, request
+from flasgger import Swagger
 from . import api
-from .redisconnection import connection as red
-from config import number_of_scc, slave_ids
-from auths import token_auth as auth
-from functions import get_disk_detail, get_free_ram
-from redis.exceptions import RedisError
 
 
-# ============== Device Information ===========================
-@api.route('/api/device-information/', methods=("GET",))
-def device_information():
-    try:
-        device_information = {}
-        data = red.hgetall('device_version')
-        for key, val in data.items():
-            # conv_val = literal_eval(str(val)[2:-1])
-            conv_val = json.loads(val)
-            for k, v in conv_val.items():
-                device_information[k] = v
-        
-        # datalog length
-        talis_log1 = red.hgetall("bms_usb0_log")
-        talis_log2 = red.hgetall("bms_usb1_log")
-        scc_data = red.hgetall("energy_data")
-
-        talis_log1_length = len(talis_log1) if talis_log1 else 0
-        talis_log2_length = len(talis_log2) if talis_log2 else 0
-        scc_data_length = len(scc_data) if scc_data else 0
-        # total datalog length
-        datalog_length = talis_log1_length + talis_log2_length + scc_data_length            
-        
-        # disk usage and ram usage
-        disk = get_disk_detail()
-        free_ram = get_free_ram()
-        disk_ram = {
-            'disk': {
-                'total': f'{round(disk.total / 1000000000, 1)}',
-                'used': f'{round(disk.used / 1000000000, 1)}',
-                'free': f'{round(disk.free / 1000000000, 1)}'
-            },
-            "free_ram": f'{free_ram}'
-        }
-        
-        response = {
-            'code': 200,
-            'message': 'success',
-            'data': {
-                'device_information': device_information,
-                'datalog_length': datalog_length,
-                'disk_ram': disk_ram
-            }
-        }
-        return jsonify(response), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-# ================== END Device Information ====================
-
-
-# ================== API Realtime ====================
-@api.route('/api/realtime/lvd/', methods=("GET",))
-def lvd_realtime():
-    try:
-        # lvd load voltage
-        lvd_result = {}
-        mcb_result = {}
-        load_current = {}
-        relay_status = {}
-        system_voltage = -1
-        counter_heartbeat = -1
-
-        try:
-            lvd1 = float(red.hget('lvd', 'lvd1') or -1)
-            lvd2 = float(red.hget('lvd', 'lvd2') or -1)
-            lvd3 = float(red.hget('lvd', 'lvd3') or -1)
-            lvd_result = {
-                "lvd1": lvd1,
-                "lvd2": lvd2,
-                "lvd3": lvd3,
-            }
-        except Exception as e:
-            print(f"Error retrieving LVD data: {e}")
-            
-        try:
-            feedback_status = literal_eval(red.hget('lvd', 'mcb_status'))
-            if feedback_status is None:
-                mcb_result = "data not found"
-            
-            mcb_result = {
-                "mcb1": "CLOSED" if "ON" in feedback_status[0] else "OPEN",
-                "mcb2": "CLOSED" if "ON" in feedback_status[1] else "OPEN",
-                "mcb3": "CLOSED" if "ON" in feedback_status[2] else "OPEN",
-            }
-
-            relay_status = {
-                "relay1": "CLOSED" if "ON" in feedback_status[3] else "OPEN",
-                "relay2": "CLOSED" if "ON" in feedback_status[4] else "OPEN",
-                "relay3": "CLOSED" if "ON" in feedback_status[5] else "OPEN",
-            }
-            # mcb status
-            mcb_result = {
-                "mcb1": "CLOSED" if "ON" in feedback_status[0] else "OPEN",
-                "mcb2": "CLOSED" if "ON" in feedback_status[1] else "OPEN",
-                "mcb3": "CLOSED" if "ON" in feedback_status[2] else "OPEN",
-            }
-            
-            # relay status
-            relay_status = {
-                "relay1": "CLOSED" if "ON" in feedback_status[3] else "OPEN",
-                "relay2": "CLOSED" if "ON" in feedback_status[4] else "OPEN",
-                "relay3": "CLOSED" if "ON" in feedback_status[5] else "OPEN",
-            }
-            
-            
-        except Exception as e:
-            print(f"Error retrieving MCB data: {e}")
-
-        try:
-            load1_current = float(red.hget('sensor_arus', 'load1') or -1)
-            load2_current = float(red.hget('sensor_arus', 'load2') or -1)
-            load3_current = float(red.hget('sensor_arus', 'load3') or -1)
-            load_current = {
-                "load1_current": load1_current,
-                "load2_current": load2_current,
-                "load3_current": load3_current
-            }
-        except Exception as e:
-            print(f"Error retrieving load current data: {e}")
-
-        try:
-            system_voltage = float(red.hget('lvd', 'system_voltage') or -1)
-        except Exception as e:
-            print(f"Error retrieving system voltage data: {e}")
-            
-        try:
-            counter_heartbeat = int(red.hget('lvd', 'counter') or -1)
-        except Exception as e:
-            print(f"Error retrieving heartbeat counter: {e}")
-
-        response = {
-            'code': 200,
-            'message': 'success',
-            'data': {
-                'counter_heartbeat': counter_heartbeat,
-                'lvd': lvd_result,
-                'relay_status': relay_status,
-                'mcb_status': mcb_result,
-                'load_current': load_current,
-                'system_voltage': system_voltage
-            }
-        }
-        return jsonify(response), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-
-
-@api.route('/api/realtime/scc/', methods=("GET",))
-def scc_realtime():
-    try:
-        scc_data = {}
-
-        # pv voltage, pv current, scc status
-        for no in range(1, number_of_scc + 1):
-            scc_key = f"scc{no}"
-            scc_data[scc_key] = {}
-
-            try:
-                scc_data[scc_key]['counter_heartbeat'] = int(red.hget(scc_key, 'counter') or -1)
-            except Exception as e:
-                print(f"Error retrieving {scc_key}_counter: {e}")
-                scc_data[scc_key]['counter_heartbeat'] = -1
-
-            try:
-                scc_data[scc_key]['pv_voltage'] = float(red.hget(scc_key, 'pv_voltage') or -1)
-            except Exception as e:
-                print(f"Error retrieving {scc_key}_voltage: {e}")
-                scc_data[scc_key]['pv_voltage'] = -1
-
-            try:
-                scc_data[scc_key]['pv_current'] = float(red.hget(scc_key, 'pv_current') or -1)
-            except Exception as e:
-                print(f"Error retrieving {scc_key}_current: {e}")
-                scc_data[scc_key]['pv_current'] = -1
-
-            # get load status from scc
-            try:
-                load_status_value = int(red.hget(scc_key, "load_status"))
-                
-                if load_status_value is None:
-                    scc_data[scc_key]['load_status'] = "data not found"
-                elif load_status_value == 1:
-                    scc_data[scc_key]['load_status'] = "is running"
-                elif load_status_value == 0:
-                    scc_data[scc_key]['load_status'] = "is standby"
-                elif load_status_value == -1:
-                    scc_data[scc_key]['load_status'] = "modbus error"
-                else:
-                    scc_data[scc_key]['load_status'] = "unknown status"
-            except Exception as e:
-                print(f"Error retrieving load_status for {scc_key}: {e}")
-                scc_data[scc_key]['load_status'] = "error retrieving data"
-
-            # battery temperature
-            try:
-                _batt_temp = int(red.hget(scc_key, "battery_temperature"))
-                if _batt_temp is None:
-                    scc_data[scc_key]['battery_temperature'] = -1
-                elif _batt_temp == b'-1':
-                    scc_data[scc_key]['battery_temperature'] = "modbus error"
-                else:
-                    scc_data[scc_key]['battery_temperature'] = _batt_temp
-            except Exception as e:
-                print(f"Error retrieving battery_temperature for {scc_key}: {e}")
-                scc_data[scc_key]['battery_temperature'] = "modbus error"
-
-            # device temperature
-            try:
-                _device_temp = int(red.hget(scc_key, "device_temperature"))
-                if _device_temp is None:
-                    scc_data[scc_key]['device_temperature'] = -1
-                elif _device_temp == -1:
-                    scc_data[scc_key]['device_temperature'] = "modbus error"
-                else:
-                    scc_data[scc_key]['device_temperature'] = _device_temp
-            except Exception as e:
-                print(f"Error retrieving device temperature for {scc_key}: {e}")
-                scc_data[scc_key]['device_temperature'] = "modbus error"
-
-        response = {
-            'code': 200,
-            'message': 'success',
-            'data': scc_data
-        }
-        return jsonify(response), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-
-
-@api.route('/api/realtime/scc-alarm/', methods=('GET',))
-def scc_alarm_realtime():
-    scc_data = {}
+def register_blueprints(app):
+    """
+    Register all API blueprints to the Flask app
+    """
+    # Import blueprints here to avoid circular imports
+    from .device import device_bp
+    from .monitoring import monitoring_bp
+    # from .loggers import loggers_bp  # Uncomment when loggers blueprint is ready
     
-    try:
-        for slave in range(1, number_of_scc + 1):
-            # get alarm info from scc
-            try:
-                _alarm = red.hget(f"scc{slave}_alarm", "alarm")
-                if _alarm is None:
-                    alarm = -1
-                else:
-                    alarm = literal_eval(_alarm)
-            except Exception:
-                alarm = "modbus error"
-            
-            scc_data[f"scc{slave}"] = alarm
-            # response
-            response = {
-                'code': 200,
-                'message': 'success',
-                'data': scc_data
-            }
-        return jsonify(response), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            "code": 500,
-            "message": "Internal server error",
-            "status": "error"
-        }
-        return jsonify(response), 500
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
-            "code": 500,
-            "message": "Internal server error",
-            "status": "error"
-        }
-        return jsonify(response), 500
+    # Register error handlers
+    register_error_handlers(app)
+    
+    # Register core API blueprint (legacy endpoints)
+    app.register_blueprint(api)
+    
+    # Register v1 API blueprints with URL prefixes
+    app.register_blueprint(device_bp, url_prefix='/api/v1/device')
+    app.register_blueprint(monitoring_bp, url_prefix='/api/v1/monitoring')
+    # app.register_blueprint(loggers_bp, url_prefix='/api/v1/loggers')  # Uncomment when ready
+    
+    print("✅ All API blueprints registered successfully")
 
 
-@api.route('/api/realtime/talis-active/', methods=("GET",))
-def talis_active():
-    try:
-        # bms active in usb0
-        bms_active = red.hgetall('bms_active_usb0')
-        if not bms_active:
-            print("BMS active USB0 data not found")
+def register_error_handlers(app):
+    """
+    Register custom error handlers for the Flask app
+    """
+    
+    @app.errorhandler(404)
+    def not_found_error(error):
+        """Handle 404 Not Found errors"""
+        # Check if request is for API endpoint
+        if request.path.startswith('/api/'):
+            return jsonify({
+                "status_code": 404,
+                "status": "error",
+                "message": "Endpoint not found",
+                "error": {
+                    "type": "NotFound",
+                    "description": f"The requested endpoint '{request.path}' was not found on this server",
+                    "requested_url": request.url,
+                    "method": request.method,
+                },
+                "suggestion": "Please check the API documentation at /api/docs/ for available endpoints"
+            }), 404
+        else:
+            # For non-API requests, return standard HTML 404
+            return '''
+            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+            <title>404 Not Found</title>
+            <h1>Not Found</h1>
+            <p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+            <p><a href="/api/">API Documentation</a> | <a href="/api/docs/">Swagger UI</a></p>
+            ''', 404
 
-        bms_active_compare = dict()
-        for key, val in bms_active.items():
-            bms_active_compare[key] = int(val)
-
-        # bms active in usb1
-        bms_active1 = red.hgetall('bms_active_usb1')
-        if not bms_active1:
-            print("BMS active USB1 data not found")
-
-        bms_active_compare1 = dict()
-        for key, val in bms_active1.items():
-            bms_active_compare1[key] = int(val)
-
-        if bms_active_compare == {} and bms_active_compare1 == {}:
-            response = {
-                'code': 404,
-                'message': 'Data not found',
-                'data': []
-            }
-            return jsonify(response), 404
-
-        response = {
-            'code': 200,
-            'message': 'success',
-            'data': {
-                'usb0': bms_active_compare,
-                'usb1': bms_active_compare1
-            }
-        }
-        return jsonify(response), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'data': []
-        }
-        return jsonify(response), 500
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'data': []
-        }
-        return jsonify(response), 500
-
-
-@api.route('/api/realtime/talis/', methods=("GET",))
-def realtime_talis():
-    talis_data_usb0 = []
-    talis_data_usb1 = []
-
-    try:
-        # data for usb0
-        for slave_id in range(1, slave_ids + 1):
-            bms_data_json = red.hget("bms_usb0", f"slave_id_{slave_id}")
-            if bms_data_json:
-                bms_logger = json.loads(bms_data_json)
-                # trim pcb_code
-                bms_logger['pcb_code'] = bms_logger['pcb_code'].strip()
-                talis_data_usb0.append(bms_logger)
-            else:
-                print(f"No data found for slave_id_{slave_id} in usb0")
-
-        # data for usb1
-        for slave_id in range(1, slave_ids + 1):
-            bms_data_json = red.hget("bms_usb1", f"slave_id_{slave_id}")
-            if bms_data_json:
-                bms_logger = json.loads(bms_data_json)
-                # trim pcb_code
-                bms_logger['pcb_code'] = bms_logger['pcb_code'].strip()
-                talis_data_usb1.append(bms_logger)
-            else:
-                print(f"No data found for slave_id_{slave_id} in usb1")
-
-        if talis_data_usb0 == [] and talis_data_usb1 == []:
-            response = {
-                'code': 404,
-                'message': 'Data not found',
-                'data': []
-            }
-            return jsonify(response), 404
-
-        response = {
-            'code': 200,
-            'message': 'success',
-            'data': {
-                'usb0': talis_data_usb0,
-                'usb1': talis_data_usb1
-            }
-        }
-        return jsonify(response), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
-
-    except Exception as e:
-        print(f"Error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'data': []
-        }
-        return jsonify(response), 500
-# ================== END API Realtime ====================
-
-
-# =========================== Loggers ===========================
-def clean_json_string(json_string):
-    # Replace single quotes with double quotes
-    json_string = json_string.replace("'", '"')
-    # Ensure property names are enclosed in double quotes
-    json_string = re.sub(r'(\w+):', r'"\1":', json_string)
-    return json_string
-
-
-@api.route('/api/loggers/data', methods=("GET",))
-@auth.login_required
-def data_loggers():
-    result = {}
-    try:
-        # Get the cursor and page size from query parameters
-        cursor = request.args.get('cursor', default=None, type=str)
-        page_size = request.args.get('page_size', default=10, type=int)
-
-        # Fetch all data from Redis in one go
-        data_energy = red.hgetall('energy_data')
-        data_usb0 = red.hgetall('bms_usb0_log')
-        data_usb1 = red.hgetall('bms_usb1_log')
-        
-        # Process energy data
-        if data_energy:
-            for key, val in data_energy.items():
-                try:
-                    clean_val = clean_json_string(val)
-                    conv_val = json.loads(clean_val)
-                    ts = key
-                    conv_val['ts'] = ts
-                    result.setdefault(ts, {'scc': conv_val, 'battery': []})
-                except (ValueError, SyntaxError) as e:
-                    print(f"Error parsing data for key {key}: {e}")
-
-        # Process USB0 data
-        if data_usb0:
-            for key, val in data_usb0.items():
-                try:
-                    clean_val = clean_json_string(val)
-                    conv_val = json.loads(clean_val)
-                    ts = key
-                    for v in conv_val:
-                        v['ts'] = ts
-                        v['pcb_code'] = v['pcb_code'].strip()
-                        result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
-                except (ValueError, SyntaxError) as e:
-                    print(f"Error parsing data for key {key}: {e}")
-
-        # Process USB1 data
-        if data_usb1:
-            for key, val in data_usb1.items():
-                try:
-                    clean_val = clean_json_string(val)
-                    conv_val = json.loads(clean_val)
-                    ts = key
-                    for v in conv_val:
-                        v['ts'] = ts
-                        v['pcb_code'] = v['pcb_code'].strip()
-                        result.setdefault(ts, {'scc': {}, 'battery': []})['battery'].append(v)
-                except (ValueError, SyntaxError) as e:
-                    print(f"Error parsing data for key {key}: {e}")
-
-        if not result:
-            return jsonify({'code': 404, 'message': 'Data not found', 'data': {}}), 404
-
-        # Convert result to a sorted list of items based on timestamp
-        sorted_items = sorted(result.items(), key=lambda x: x[0])
-
-        # Find the starting point based on the cursor
-        if cursor:
-            index = next((i for i, (ts, _) in enumerate(sorted_items) if ts == cursor), None)
-            if index is not None:
-                sorted_items = sorted_items[index + 1:]  # Get items after the cursor
-
-        # Get the next set of results based on the page size
-        paginated_result = dict(sorted_items[:page_size])
-
-        # Calculate the next cursor
-        next_cursor = sorted_items[page_size - 1][0] if len(sorted_items) > page_size else None
-
-        # Prepare the response
-        response = {
-            'code': 200,
-            'message': 'Success',
-            'next_cursor': next_cursor,
-            'page_size': page_size,
-            'data': paginated_result
-        }
-        return jsonify(response), 200
-
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        return jsonify({'code': 500, 'message': 'Internal server error', 'status': 'error'}), 500
-
-    except ValueError as e:
-        print(f"Error: {e}")
-        return jsonify({'code': 404, 'message': 'Data not found', 'data': []}), 404
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
-
-
-@api.route('/api/loggers/scc-alarm', methods=("GET", "DELETE"))
-@auth.login_required
-def scc_alarm_loggers():
-    if request.method == 'GET':
-        result = {}
-        try:        
-            # Get the cursor and page size from query parameters
-            cursor = request.args.get('cursor', default=None, type=str)
-            page_size = request.args.get('page_size', default=10, type=int)
-            
-            # Fetch all data from Redis in one go
-            scc_logs = red.hgetall('scc_logs_epveper')
-            
-            # Process scc logs
-            if scc_logs:
-                for key, val in scc_logs.items():
-                    try:
-                        clean_val = clean_json_string(val)
-                        conv_val = json.loads(clean_val)
-                        ts = key
-                        result.setdefault(ts, conv_val)
-                    except (ValueError, SyntaxError) as e:
-                        print(f"Error parsing data for key {key}: {e}")
-            
-            if not result:
-                return jsonify({'code': 404, 'message': 'Data not found', 'data': {}}), 404
-            
-            # Convert result to a sorted list of items based on timestamp
-            sorted_items = sorted(result.items(), key=lambda x: x[0])
-            
-            # Find the starting point based on the cursor
-            if cursor:
-                index = next((i for i, (ts, _) in enumerate(sorted_items) if ts == cursor), None)
-                if index is not None:
-                    sorted_items = sorted_items[index + 1:]
-            
-            # Get the next set of results based on the page size
-            paginated_result = dict(sorted_items[:page_size])
-            
-            # Calculate the next cursor
-            next_cursor = sorted_items[page_size - 1][0] if len(sorted_items) > page_size else None
-            
-            # Prepare the response
-            response = {
-                'code': 200,
-                'message': 'Success',
-                'next_cursor': next_cursor,
-                'page_size': page_size,
-                'data': paginated_result
-            }
-            return jsonify(response), 200
-
-        except RedisError as e:
-            print(f"Redis error: {e}")
-            return jsonify({'code': 500, 'message': 'Internal server error', 'status': 'error'}), 500
-
-        except ValueError as e:
-            print(f"Error: {e}")
-            return jsonify({'code': 404, 'message': 'Data not found', 'data': []}), 404
-
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            return jsonify({'code': 500, 'message': 'Internal server error', 'data': []}), 500
-    if request.method == 'DELETE':
-        try:
-            scc_logs = red.hgetall('scc_logs_epveper')
-            if scc_logs:
-                red.delete('scc_logs_epveper')
-                response = {
-                    "code": 200,
-                    "message": "Data deleted successfully",
-                    "status": "success"
+    @app.errorhandler(405)
+    def method_not_allowed_error(error):
+        """Handle 405 Method Not Allowed errors"""
+        if request.path.startswith('/api/'):
+            return jsonify({
+                "status_code": 405,
+                "status": "error",
+                "message": "Method not allowed",
+                "error": {
+                    "type": "MethodNotAllowed",
+                    "description": f"The method '{request.method}' is not allowed for endpoint '{request.path}'",
+                    "requested_method": request.method,
+                    "requested_url": request.url,
                 }
-                return jsonify(response), 200
-            else:
-                response = {
-                    "code": 404,
-                    "message": "Data not found",
-                    "status": "error"
+            }), 405
+        else:
+            return '''
+            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+            <title>405 Method Not Allowed</title>
+            <h1>Method Not Allowed</h1>
+            <p>The method is not allowed for the requested URL.</p>
+            ''', 405
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        """Handle 500 Internal Server Error"""
+        if request.path.startswith('/api/'):
+            return jsonify({
+                "status_code": 500,
+                "status": "error",
+                "message": "Internal server error",
+                "error": {
+                    "type": "InternalServerError",
+                    "description": "An unexpected error occurred on the server",
+                    "requested_url": request.url,
+                    "method": request.method
                 }
-                return jsonify(response), 404
-        
-        except RedisError as e:
-            print(f"Redis error: {e}")
-            response = {
-                "code": 500,
-                "message": "Internal server error",
-                "status": "error"
-            }
-            return jsonify(response), 500
+            }), 500
+        else:
+            return '''
+            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+            <title>500 Internal Server Error</title>
+            <h1>Internal Server Error</h1>
+            <p>The server encountered an internal error and was unable to complete your request.</p>
+            ''', 500
 
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            response = {
-                "code": 500,
-                "message": "Internal server error",
-                "status": "error"
-            }
-            return jsonify(response), 500
+    @app.errorhandler(401)
+    def unauthorized_error(error):
+        """Handle 401 Unauthorized errors"""
+        if request.path.startswith('/api/'):
+            return jsonify({
+                "status_code": 401,
+                "status": "error",
+                "message": "Authentication required",
+                "error": {
+                    "type": "Unauthorized",
+                    "description": "Authentication is required to access this endpoint",
+                    "requested_url": request.url,
+                    "method": request.method,
+                    "authentication": {
+                        "type": "Bearer Token",
+                        "header": "Authorization",
+                        "format": "Bearer <token>",
+                        "example": "Authorization: Bearer RUNDIEpTUFJPIEJBS1RJIDIwMTk="
+                    }
+                }
+            }), 401
+        else:
+            return '''
+            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+            <title>401 Unauthorized</title>
+            <h1>Unauthorized</h1>
+            <p>Authentication is required to access this resource.</p>
+            ''', 401
 
-# =========================== End Loggers ===========================
+    print("✅ Error handlers registered successfully")
 
-
-# ===================== Delete Loggers ===========================
-@api.route('/api/loggers/data/<timestamp>', methods=('DELETE',))
-@auth.login_required
-def delete_logger_talis(timestamp):
-    try:
-        # Check data in redis bms_usb0_log and bms_usb1_log
-        bms_data_json_usb0 = red.hget('bms_usb0_log', str(timestamp))
-        bms_data_json_usb1 = red.hget('bms_usb1_log', str(timestamp))
-        scc_logs = red.hget('energy_data', str(timestamp)) 
-
-        if not bms_data_json_usb0 and not bms_data_json_usb1 and not scc_logs:
-            response = {
-                'code': 404,
-                'message': 'Data not found',
-                'status': 'error'
-            }
-            return jsonify(response), 404
-
-        # Delete the data
-        if scc_logs:
-            red.hdel('energy_data', str(timestamp))
-
-        if bms_data_json_usb0:
-            red.hdel('bms_usb0_log', str(timestamp))
-        
-        if bms_data_json_usb1:
-            red.hdel('bms_usb1_log', str(timestamp))
-
-        response = {
-            'code': 200,
-            'message': 'Data deleted successfully',
-            'status': 'success'
+# ============== Base API Routes v1 ===========================
+@api.route('/', methods=['GET'])
+def api_v1_info():
+    """Base API v1 information endpoint"""
+    return jsonify({
+        "status_code": 200,
+        "status": "success",
+        "data": {
+            "api_version": "v1",
+            "service": "JSPro Powerdesk API",
+            "description": "Centralized API management with modular blueprint architecture",
+            "modules": {
+                "device": {
+                    "url_prefix": "/api/v1/device",
+                    "description": "Device management and system information",
+                    "endpoints": [
+                        "/system-resources",
+                        "/information", 
+                        "/systemd-status"
+                    ]
+                },
+                "monitoring": {
+                    "url_prefix": "/api/v1/monitoring",
+                    "description": "SCC and Battery monitoring data",
+                    "endpoints": [
+                        "/scc",
+                        "/battery",
+                        "/battery/active"
+                    ]
+                }
+            },
+            "documentation": "See API Documentation for JSPro Powerdesk.md"
         }
-        return jsonify(response), 200
-    except RedisError as e:
-        print(f"Redis error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
+    }), 200
 
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        response = {
-            'code': 500,
-            'message': 'Internal server error',
-            'status': 'error'
-        }
-        return jsonify(response), 500
 
-# ===================== End Delete Loggers ===========================
+@api.route('/v1/device', methods=['GET'])
+def device_module_info():
+    """Device module information endpoint"""
+    return jsonify({
+        "status_code": 200,
+        "status": "success",
+        "data": {
+            "module": "device",
+            "description": "Device management and system information",
+            "base_url": "/api/v1/device",
+            "endpoints": [
+                {
+                    "path": "/api/v1/device/system-resources",
+                    "method": "GET",
+                    "description": "Get system resource usage (CPU, memory, disk, temperature)",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/device/information", 
+                    "method": "GET",
+                    "description": "Get device information, site details, and hardware configuration",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/device/systemd-status",
+                    "method": "GET", 
+                    "description": "Get systemd services status and system uptime",
+                    "authentication": "required"
+                }
+            ]
+        }
+    }), 200
+
+
+@api.route('/v1/monitoring', methods=['GET'])
+def monitoring_module_info():
+    """Monitoring module information endpoint"""
+    return jsonify({
+        "status_code": 200,
+        "status": "success", 
+        "data": {
+            "module": "monitoring",
+            "description": "SCC and Battery monitoring data",
+            "base_url": "/api/v1/monitoring",
+            "endpoints": [
+                {
+                    "path": "/api/v1/monitoring/scc",
+                    "method": "GET",
+                    "description": "Get Solar Charge Controller monitoring data",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/monitoring/battery",
+                    "method": "GET",
+                    "description": "Get battery monitoring data for all BMS units",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/monitoring/battery/active",
+                    "method": "GET",
+                    "description": "Get active battery status information",
+                    "authentication": "required"
+                }
+            ]
+        }
+    }), 200
+
+
+# ============== Wildcard Route for Unknown API Endpoints ===========================
+@api.route('/<path:unknown_path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+def api_not_found(unknown_path):
+    """Handle unknown API endpoints"""
+    return jsonify({
+        "status_code": 404,
+        "status": "error",
+        "message": "API endpoint not found",
+        "error": {
+            "type": "EndpointNotFound",
+            "requested_path": f"/api/{unknown_path}",
+            "requested_method": request.method,
+            "description": "The requested API endpoint does not exist",
+            "suggestions": [
+                "Check the endpoint spelling",
+                "Verify the API version (currently v1)",
+                "Ensure you're using the correct HTTP method",
+                "Review the API documentation"
+            ],
+            "available_endpoints": {
+                "api_info": {
+                    "path": "/api/",
+                    "description": "Get API information and available modules"
+                },
+                "device_module": {
+                    "path": "/api/v1/device/",
+                    "description": "Device management endpoints"
+                },
+                "monitoring_module": {
+                    "path": "/api/v1/monitoring/",
+                    "description": "Monitoring data endpoints"
+                }
+            }
+        }
+    }), 404
+
+
+# ============== Device Routes (v1) ===========================
+# These routes are now handled by the device blueprint in api/device/api_device.py
+# The device blueprint is registered with URL prefix '/api/v1/device'
+
+# Available device endpoints:
+# GET /api/v1/device/system-resources
+# GET /api/v1/device/information  
+# GET /api/v1/device/systemd-status
+
+
+# ============== Monitoring Routes (v1) ===========================
+# These routes are now handled by the monitoring blueprint in api/monitoring/api_monitoring.py
+# The monitoring blueprint is registered with URL prefix '/api/v1/monitoring'
+
+# Available monitoring endpoints:
+# GET /api/v1/monitoring/scc
+# GET /api/v1/monitoring/battery
+# GET /api/v1/monitoring/battery/active
+
+@api.route('/api/v1/monitoring', methods=['GET'])
+def monitoring_info():
+    """Monitoring module information endpoint"""
+    return jsonify({
+        "status_code": 200,
+        "status": "success", 
+        "data": {
+            "module": "monitoring",
+            "description": "SCC and Battery monitoring endpoints",
+            "endpoints": {
+                "scc": "/api/v1/monitoring/scc",
+                "battery": "/api/v1/monitoring/battery",
+                "battery_active": "/api/v1/monitoring/battery/active"
+            }
+        }
+    }), 200
