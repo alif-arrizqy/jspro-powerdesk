@@ -32,7 +32,8 @@ All API responses follow a consistent structure:
         "disk_usage": {
             "free": 8.6,
             "used": 6.1,
-            "total": 15.4
+            "total": 15.4,
+            "unit": "GB"
         },
         "last_update": "2025-07-18T10:10:23"
     }
