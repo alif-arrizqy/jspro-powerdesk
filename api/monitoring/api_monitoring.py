@@ -32,8 +32,8 @@ def get_scc_monitoring():
                 scc_data[scc_key]['load_power'] = float(red.hget(scc_key, 'load_power') or -1)
 
                 # Temperature data
-                scc_data[scc_key]['battery_temperature'] = int(red.hget(scc_key, 'battery_temperature') or -1)
-                scc_data[scc_key]['device_temperature'] = int(red.hget(scc_key, 'device_temperature') or -1)
+                scc_data[scc_key]['battery_temperature'] = float(red.hget(scc_key, 'battery_temperature') or -1)
+                scc_data[scc_key]['device_temperature'] = float(red.hget(scc_key, 'device_temperature') or -1)
 
                 # Load status
                 load_status_value = int(red.hget(scc_key, "load_status") or -1)
