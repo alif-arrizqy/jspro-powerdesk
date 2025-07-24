@@ -120,7 +120,7 @@ def register_error_handlers(app):
                         "type": "Bearer Token",
                         "header": "Authorization",
                         "format": "Bearer <token>",
-                        "example": "Authorization: Bearer RUNDIEpTUFJPIEJBS1RJIDIwMTk="
+                        "example": "Authorization: Bearer your-secret-token"
                     }
                 }
             }), 401
