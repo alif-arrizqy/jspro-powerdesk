@@ -1291,3 +1291,354 @@ body {
 .alarm-severity-info {
     border-left: 4px solid var(--info-color);
 }
+
+/* ===== DARK THEME STYLES ===== */
+.dark-theme {
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #60a5fa;
+    --light-color: #1f2937;
+    --dark-color: #f8fafc;
+    --white: #111827;
+    --gray-100: #1f2937;
+    --gray-200: #374151;
+    --gray-300: #4b5563;
+    --gray-400: #6b7280;
+    --gray-500: #9ca3af;
+    --gray-600: #d1d5db;
+    --gray-700: #e5e7eb;
+    --gray-800: #f3f4f6;
+    --gray-900: #f9fafb;
+}
+
+/* Dark theme body styles */
+.dark-theme body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+/* Dark theme sidebar */
+.dark-theme .sidebar {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-right: 1px solid #374151;
+}
+
+.dark-theme .sidebar-header {
+    border-bottom: 1px solid #374151;
+}
+
+.dark-theme .logo-text {
+    color: #e2e8f0;
+}
+
+.dark-theme .nav-link {
+    color: #94a3b8;
+}
+
+.dark-theme .nav-link:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+}
+
+.dark-theme .nav-link.active {
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.05) 100%);
+    color: #60a5fa;
+    border-left: 3px solid #3b82f6;
+}
+
+.dark-theme .nav-indicator {
+    background: #3b82f6;
+}
+
+/* Dark theme submenu */
+.dark-theme .submenu {
+    background-color: #0f172a;
+    border-top: 1px solid #374151;
+}
+
+/* Dark theme user info */
+.dark-theme .user-info {
+    border-top: 1px solid #374151;
+}
+
+.dark-theme .username,
+.dark-theme .user-role {
+    color: #e2e8f0;
+}
+
+.dark-theme .user-avatar {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+/* Dark theme header */
+.dark-theme .top-header {
+    background-color: #1e293b;
+    border-bottom: 1px solid #374151;
+}
+
+.dark-theme .breadcrumb-item a {
+    color: #94a3b8;
+}
+
+.dark-theme .breadcrumb-item.active {
+    color: #e2e8f0;
+}
+
+.dark-theme .site-name {
+    color: #e2e8f0;
+}
+
+.dark-theme .site-ip {
+    color: #94a3b8;
+}
+
+.dark-theme .time-text {
+    color: #e2e8f0;
+}
+
+.dark-theme .date-text {
+    color: #94a3b8;
+}
+
+/* Dark theme buttons */
+.dark-theme .btn-outline-primary {
+    border-color: #3b82f6;
+    color: #60a5fa;
+}
+
+.dark-theme .btn-outline-primary:hover {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+.dark-theme .btn-outline-secondary {
+    border-color: #6b7280;
+    color: #9ca3af;
+}
+
+.dark-theme .btn-outline-secondary:hover {
+    background-color: #6b7280;
+    border-color: #6b7280;
+    color: #ffffff;
+}
+
+/* Dark theme main content */
+.dark-theme .main-content {
+    background-color: #0f172a;
+}
+
+.dark-theme .content-area {
+    background-color: #0f172a;
+}
+
+/* Dark theme cards */
+.dark-theme .card {
+    background-color: #1e293b;
+    border: 1px solid #374151;
+    color: #e2e8f0;
+}
+
+.dark-theme .card-header {
+    background-color: #374151;
+    border-bottom: 1px solid #4b5563;
+    color: #e2e8f0;
+}
+
+.dark-theme .card-body {
+    color: #e2e8f0;
+}
+
+/* Dark theme stats cards */
+.dark-theme .stats-card {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border: 1px solid #374151;
+}
+
+.dark-theme .stats-value {
+    color: #e2e8f0;
+}
+
+.dark-theme .stats-label {
+    color: #94a3b8;
+}
+
+.dark-theme .stats-trend {
+    color: #94a3b8;
+}
+
+/* Dark theme tables */
+.dark-theme .table {
+    color: #e2e8f0;
+}
+
+.dark-theme .table th {
+    border-color: #374151;
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+.dark-theme .table td {
+    border-color: #374151;
+}
+
+.dark-theme .table-striped > tbody > tr:nth-of-type(odd) > td,
+.dark-theme .table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: #1e293b;
+}
+
+/* Dark theme forms */
+.dark-theme .form-control {
+    background-color: #1e293b;
+    border: 1px solid #374151;
+    color: #e2e8f0;
+}
+
+.dark-theme .form-control:focus {
+    background-color: #1e293b;
+    border-color: #3b82f6;
+    color: #e2e8f0;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+.dark-theme .form-control::placeholder {
+    color: #6b7280;
+}
+
+.dark-theme .form-label {
+    color: #e2e8f0;
+}
+
+/* Dark theme alerts */
+.dark-theme .alert {
+    border: 1px solid;
+}
+
+.dark-theme .alert-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    color: #34d399;
+}
+
+.dark-theme .alert-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: #f59e0b;
+    color: #fbbf24;
+}
+
+.dark-theme .alert-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #f87171;
+}
+
+.dark-theme .alert-info {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    color: #60a5fa;
+}
+
+/* Dark theme modals */
+.dark-theme .modal-content {
+    background-color: #1e293b;
+    border: 1px solid #374151;
+}
+
+.dark-theme .modal-header {
+    border-bottom: 1px solid #374151;
+}
+
+.dark-theme .modal-footer {
+    border-top: 1px solid #374151;
+}
+
+.dark-theme .modal-title {
+    color: #e2e8f0;
+}
+
+/* Dark theme badges */
+.dark-theme .badge.bg-success {
+    background-color: #10b981 !important;
+}
+
+.dark-theme .badge.bg-warning {
+    background-color: #f59e0b !important;
+    color: #000;
+}
+
+.dark-theme .badge.bg-danger {
+    background-color: #ef4444 !important;
+}
+
+.dark-theme .badge.bg-info {
+    background-color: #3b82f6 !important;
+}
+
+/* Dark theme progress bars */
+.dark-theme .progress {
+    background-color: #374151;
+}
+
+/* Dark theme loading spinner */
+.dark-theme .loading-spinner {
+    background-color: rgba(15, 23, 42, 0.8);
+}
+
+/* Dark theme toast notifications */
+.dark-theme .toast-container .toast {
+    background-color: #1e293b;
+    border: 1px solid #374151;
+    color: #e2e8f0;
+}
+
+/* Loading state for buttons */
+.btn-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Refresh button animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Theme transition for smooth switching */
+body,
+.sidebar,
+.main-content,
+.top-header,
+.card,
+.form-control,
+.btn {
+    transition: background-color var(--transition-normal), 
+                color var(--transition-normal), 
+                border-color var(--transition-normal);
+}
+
+/* Dark theme scrollbars */
+.dark-theme ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.dark-theme ::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
