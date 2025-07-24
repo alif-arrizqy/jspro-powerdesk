@@ -37,7 +37,7 @@ def get_system_resources():
             "memory_usage": float(memory_usage),
             "temperature": round(temperature, 1),
             "disk_usage": disk_usage,
-            "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         
         return jsonify({
@@ -122,7 +122,7 @@ def get_device_information():
             "site_information": site_information,
             "device_version": device_version,
             "device_model": device_model,
-            "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         
         return jsonify({
@@ -195,7 +195,7 @@ def get_systemd_status():
             "failed_service": failed_count,
             "services_status": services_status,
             "system_uptime": system_uptime,
-            "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         
         return jsonify({
