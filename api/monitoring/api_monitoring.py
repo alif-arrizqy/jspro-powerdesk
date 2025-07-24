@@ -48,10 +48,26 @@ def get_scc_monitoring():
                 try:
                     alarm_data = red.hget(f"{scc_key}_alarm", "alarm")
                     if alarm_data:
-                        scc_data[scc_key]['alarm_status'] = json.loads(alarm_data)
+                        # Handle different data formats
+                        if isinstance(alarm_data, bytes):
+                            alarm_data = alarm_data.decode('utf-8')
+                        
+                        # Try to parse as JSON first
+                        try:
+                            scc_data[scc_key]['alarm_status'] = json.loads(alarm_data)
+                        except json.JSONDecodeError:
+                            # If it's a string representation of a dict, use eval safely
+                            try:
+                                # Use ast.literal_eval for safe evaluation of string literals
+                                import ast
+                                scc_data[scc_key]['alarm_status'] = ast.literal_eval(alarm_data)
+                            except (ValueError, SyntaxError):
+                                # If all else fails, return as string for debugging
+                                scc_data[scc_key]['alarm_status'] = {"raw_data": alarm_data}
                     else:
                         scc_data[scc_key]['alarm_status'] = {}
-                except:
+                except Exception as e:
+                    print(f"Error parsing alarm data for {scc_key}: {e}")
                     scc_data[scc_key]['alarm_status'] = {}
 
             except Exception as e:
