@@ -402,6 +402,20 @@ def get_user_role(username):
         return USERS[username].get('role', 'guest')
     return 'guest'
 
+def get_role_api_token(role):
+    """Get API token based on user role"""
+    role_token_mapping = {
+        'admin': os.getenv('API_TOKEN_1'),
+        'teknisi': os.getenv('API_TOKEN_2'),
+        'apt': os.getenv('API_TOKEN_3')
+    }
+    return role_token_mapping.get(role)
+
+def get_user_api_token(username):
+    """Get API token for a specific user based on their role"""
+    user_role = get_user_role(username)
+    return get_role_api_token(user_role)
+
 def has_permission(username, permission_type, permission_name):
     """Check if user has specific permission"""
     user_role = get_user_role(username)
