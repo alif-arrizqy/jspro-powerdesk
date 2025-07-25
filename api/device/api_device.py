@@ -16,13 +16,25 @@ def get_system_resources():
     try:
         # Get CPU usage
         cpu_usage = get_cpu_usage()
+        cpu_dict = {
+            "value": float(cpu_usage),
+            "unit": "%"
+        }
 
         # Get memory usage
         memory_usage = get_memory_usage()
+        memory_dict = {
+            "value": float(memory_usage),
+            "unit": "%"
+        }
         
         # Get temperature using the fixed function
         temperature = get_temperature()
-            
+        temperature_dict = {
+            "value": round(temperature, 1),
+            "unit": "°C"
+        }
+        
         # Get disk usage
         disk = get_disk_detail()
         disk_usage = {
@@ -33,9 +45,9 @@ def get_system_resources():
         }
         
         response_data = {
-            "cpu_usage": float(cpu_usage),
-            "memory_usage": float(memory_usage),
-            "temperature": round(temperature, 1),
+            "cpu_usage": cpu_dict,
+            "memory_usage": memory_dict,
+            "temperature": temperature_dict,
             "disk_usage": disk_usage,
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
