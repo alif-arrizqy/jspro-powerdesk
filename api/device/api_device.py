@@ -160,13 +160,13 @@ def get_systemd_status():
         # Define the services to check
         services = [
             'mqtt_publish.service',
-            'redis.service', 
+            'redis.service',
+            'snmp_handler.service',
             'thread_bms.service',
             'scc.service',
-            'scc_logs.service',
-            'scc_logs.timer',
+            'store_data_5min.timer',
             'accumulate_energy.service',
-            'webapp.service'
+            'webapp.service',
         ]
         
         services_status = {}
