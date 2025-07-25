@@ -63,7 +63,7 @@
                                     <i class="fas fa-hdd"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value" id="disk-usage">Loading...</h3>
+                            <h3 class="stats-card-value" id="disk-usage-percentage">Loading...</h3>
                             <p class="stats-card-subtitle">Storage Space</p>
                         </div>
                     </div>
@@ -235,7 +235,7 @@
                                     <i class="fas fa-satellite"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4700</h3>
+                            <h3 class="stats-card-value" id="vsat-reconnect">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-up me-2"></i>
                                 Vsat Reconnect (mV)
@@ -250,7 +250,7 @@
                                     <i class="fas fa-satellite"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4600</h3>
+                            <h3 class="stats-card-value" id="vsat-cutoff">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-down me-2"></i>
                                 Vsat Cut Off (mV)
@@ -265,7 +265,7 @@
                                     <i class="fas fa-broadcast-tower"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4900</h3>
+                            <h3 class="stats-card-value" id="bts-reconnect">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-up me-2"></i>
                                 BTS Reconnect (mV)
@@ -280,7 +280,7 @@
                                     <i class="fas fa-broadcast-tower"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4800</h3>
+                            <h3 class="stats-card-value" id="bts-cutoff">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-down me-2"></i>
                                 BTS Cut Off (mV)
@@ -321,7 +321,7 @@
                                 </h5>
                                 <div class="d-flex align-items-center flex-wrap">
                                     <i class="fas fa-info-circle text-primary me-2"></i>
-                                    <span class="text-muted small" id="scc{{i}}-device-id">SCC ID: Loading...</span>
+                                    <span class="text-muted small" id="scc{{i}}-id">SCC ID: Loading...</span>
                                     <span class="text-muted mx-1">|</span>
                                     <i class="fas fa-heartbeat text-danger me-1"></i>
                                     <span class="text-muted small" id="scc{{i}}-counter-heartbeat">Heartbeat: Loading...</span>
@@ -429,19 +429,23 @@
             </div>
             <div class="modern-card-body">
                 <div class="row g-3">
+                    {% if menu_access.monitoring.scc %}
                     <div class="col-md-3">
                         <a href="/scc" class="btn btn-modern btn-primary w-100">
                             <i class="fas fa-solar-panel"></i>
                             Monitor SCC
                         </a>
                     </div>
-                    {% if username == 'teknisi' %}
+                    {% endif %}
+                    {% if menu_access.monitoring.battery %}
                     <div class="col-md-3">
                         <a href="/battery" class="btn btn-modern btn-success w-100">
                             <i class="fas fa-battery-full"></i>
                             Battery Status
                         </a>
                     </div>
+                    {% endif %}
+                    {% if menu_access.historical.datalog %}
                     <div class="col-md-3">
                         <a href="/datalog" class="btn btn-modern btn-info w-100">
                             <i class="fas fa-database"></i>
@@ -449,12 +453,14 @@
                         </a>
                     </div>
                     {% endif %}
+                    {% if menu_access.site_information %}
                     <div class="col-md-3">
                         <a href="/site-information" class="btn btn-modern btn-secondary w-100">
                             <i class="fas fa-info-circle"></i>
                             Site Information
                         </a>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -464,403 +470,409 @@
 
 {% block scripts %}
 <script>
-// Enhanced dashboard functionality with modern approach
+// Enhanced dashboard functionality with real API integration
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize system monitoring
-    initializeSystemMonitoring();
+    // Get authentication token and user role from server
+    const userToken = '{{ session.get("auth_token", "") }}';
+    const userRole = '{{ user_role }}';
     
-    // Initialize dashboard data updates
-    if (window.powerDeskApp) {
-        // Override the default data processing for dashboard
-        window.powerDeskApp.processData = function(endpoint, data) {
-            switch (endpoint) {
-                case '/api/device-information':
-                    updateDeviceInformation(data);
-                    break;
-                case '/api/scc-realtime':
-                    updateSCCOverview(data);
-                    break;
-                case '/api/system-resources':
-                    updateSystemResources(data);
-                    break;
-                case '/api/service-status':
-                    updateServiceStatus(data);
-                    break;
-            }
-        };
-    }
+    // Initialize dashboard with real API data
+    initializeDashboardData();
+    
+    // Set up periodic updates every 5 seconds
+    setInterval(initializeDashboardData, 5000);
 });
 
-// Helper function to update status indicators
-function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'running'], dangerStates = ['error', 'offline', 'stopped']) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = status;
-        
-        const statusLower = status.toLowerCase();
-        if (activeStates.some(state => statusLower.includes(state))) {
-            element.className = 'status-indicator active';
-        } else if (dangerStates.some(state => statusLower.includes(state))) {
-            element.className = 'status-indicator danger';
-        } else {
-            element.className = 'status-indicator inactive';
-        }
+// Main dashboard data initialization
+async function initializeDashboardData() {
+    try {
+        // Fetch all dashboard data concurrently
+        const [systemResources, deviceInfo, systemdStatus, sccData] = await Promise.all([
+            fetchAPIData('/api/v1/device/system-resources'),
+            fetchAPIData('/api/v1/device/information'),
+            fetchAPIData('/api/v1/device/systemd-status'),
+            fetchAPIData('/api/v1/monitoring/scc')
+        ]);
+
+        // Update UI with fetched data
+        if (systemResources) updateSystemResources(systemResources);
+        if (deviceInfo) updateDeviceInformation(deviceInfo);
+        if (systemdStatus) updateServiceStatus(systemdStatus);
+        if (sccData) updateSCCOverview(sccData);
+
+    } catch (error) {
+        console.error('Error initializing dashboard data:', error);
     }
 }
 
-// System monitoring initialization
-function initializeSystemMonitoring() {
-    // Generate dummy system data
-    generateDummySystemData();
+// Generic API fetch function with Bearer token authentication
+async function fetchAPIData(endpoint) {
+    const userToken = '{{ session.get("auth_token", "") }}';
     
-    // Update every 5 seconds
-    setInterval(generateDummySystemData, 5000);
+    try {
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            console.error(`❌ HTTP error for ${endpoint}: ${response.status} ${response.statusText}`);
+            if (response.status === 401) {
+                console.warn('Authentication failed, redirecting to login...');
+                window.location.href = '/login';
+                return null;
+            } else if (response.status === 403) {
+                console.warn(`Access denied to ${endpoint} for current user role`);
+                return null;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`✅ Successfully fetched data from ${endpoint}:`, data);
+        return data;
+        
+    } catch (error) {
+        console.error(`❌ Failed to fetch data from ${endpoint}:`, error);
+        return null;
+    }
 }
 
-// Generate dummy system resource data
-function generateDummySystemData() {
+// Update system resources data
+function updateSystemResources(data) {
+    console.log('System resources data received:', data);
+    
+    if (!data || data.status_code !== 200) {
+        console.warn('Invalid system resources data received');
+        console.warn('Data:', data);
+        return;
+    }
+
+    const resourceData = data.data;
+    
     // CPU Usage
-    const cpuUsage = Math.floor(Math.random() * 80) + 10; // 10-90%
     const cpuElement = document.getElementById('cpu-usage');
-    if (cpuElement) {
-        cpuElement.textContent = `${cpuUsage}%`;
-        cpuElement.className = cpuUsage > 80 ? 'stats-card-value text-danger' : 'stats-card-value';
+    if (cpuElement && resourceData.cpu_usage !== undefined) {
+        const cpuUsage = parseFloat(resourceData.cpu_usage.value);
+        const cpuUnit = resourceData.cpu_usage.unit || '%';
+        cpuElement.textContent = `${cpuUsage.toFixed(1)}${cpuUnit}`;
+        cpuElement.className = cpuUsage > 80 ? 'stats-card-value text-danger' : 
+                                cpuUsage > 60 ? 'stats-card-value text-warning' : 'stats-card-value';
     }
     
     // Memory Usage
-    const memoryUsage = Math.floor(Math.random() * 70) + 20; // 20-90%
     const memoryElement = document.getElementById('memory-usage');
-    if (memoryElement) {
-        memoryElement.textContent = `${memoryUsage}%`;
-        memoryElement.className = memoryUsage > 85 ? 'stats-card-value text-danger' : 'stats-card-value';
+    if (memoryElement && resourceData.memory_usage !== undefined) {
+        const memoryUsage = parseFloat(resourceData.memory_usage.value);
+        const memoryUnit = resourceData.memory_usage.unit || '%';
+        memoryElement.textContent = `${memoryUsage.toFixed(1)}${memoryUnit}`;
+        memoryElement.className = memoryUsage > 80 ? 'stats-card-value text-danger'
+                                : memoryUsage > 60 ? 'stats-card-value text-warning' : 'stats-card-value';
     }
     
     // System Temperature
-    const systemTemp = (Math.random() * 20 + 35).toFixed(1); // 35-55°C
     const tempElement = document.getElementById('system-temp');
-    if (tempElement) {
-        tempElement.textContent = `${systemTemp}°C`;
-        tempElement.className = systemTemp > 50 ? 'stats-card-value text-danger' : 'stats-card-value';
+    if (tempElement && resourceData.temperature !== undefined) {
+        const temp = parseFloat(resourceData.temperature.value);
+        const tempUnit = resourceData.temperature.unit || '°C';
+        tempElement.textContent = `${temp.toFixed(1)}${tempUnit}`;
+        tempElement.className = temp > 70 ? 'stats-card-value text-danger' : 
+                                temp > 60 ? 'stats-card-value text-warning' : 'stats-card-value';
     }
     
-    // System Uptime
-    const uptimeHours = Math.floor(Math.random() * 720) + 1; // 1-720 hours
-    const days = Math.floor(uptimeHours / 24);
-    const hours = uptimeHours % 24;
-    const uptimeElement = document.getElementById('system-uptime');
-    if (uptimeElement) {
-        uptimeElement.textContent = `${days}d ${hours}h`;
+    // Disk Usage
+    if (resourceData.disk_usage) {
+        const diskUsed = resourceData.disk_usage.used || 0;
+        const diskTotal = resourceData.disk_usage.total || 1;
+        const diskUsagePercentage = (diskUsed / diskTotal * 100);
+        
+        // Update percentage display with color coding (matching other resources)
+        const diskPercentageElement = document.getElementById('disk-usage-percentage');
+        if (diskPercentageElement) {
+            diskPercentageElement.textContent = `${diskUsagePercentage.toFixed(1)}%`;
+            // Apply color coding based on usage (consistent with CPU and Memory)
+            diskPercentageElement.className = diskUsagePercentage > 90 ? 'stats-card-value text-danger' : 
+                                            diskUsagePercentage > 80 ? 'stats-card-value text-warning' : 
+                                            'stats-card-value';
+        }
     }
+}
+
+// Update status indicator with color coding
+function updateStatusIndicator(elementId, status) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
     
-    // Service Status
-    const services = ['redis', 'snmp', 'mqtt'];
-    const serviceStates = ['active', 'active', 'active', 'inactive', 'error'];
+    // Normalize status to handle variations
+    const normalizedStatus = status.toLowerCase().trim();
     
-    services.forEach(service => {
-        const status = serviceStates[Math.floor(Math.random() * serviceStates.length)];
-        updateStatusIndicator(`${service}-status`, status, ['active'], ['inactive', 'error']);
+    // Green status indicators (working/active states)
+    if (normalizedStatus === 'active' || normalizedStatus === 'is running') {
+        const displayText = normalizedStatus === 'active' ? 'Active' : 'Running';
+        element.textContent = displayText;
+        element.className = 'status-indicator badge bg-success text-white';
+    } 
+    // Red status indicators (error/inactive states)
+    else if (normalizedStatus === 'inactive' || normalizedStatus === 'is standby' || normalizedStatus === 'modbus error') {
+        let displayText = 'Inactive';
+        if (normalizedStatus === 'standby') displayText = 'Standby';
+        else if (normalizedStatus === 'modbus error') displayText = 'Modbus Error';
+        
+        element.textContent = displayText;
+        element.className = 'status-indicator badge bg-danger text-white';
+    } 
+    else {
+        // Default fallback for any unexpected status
+        element.textContent = status;
+        element.className = 'status-indicator badge bg-secondary text-white';
+    }
+}
+
+// Update service status data
+function updateServiceStatus(data) {
+    if (!data || data.status_code !== 200) {
+        console.warn('Invalid service status data received');
+        return;
+    }
+
+    const services = data.data;
+    
+    // Update each service status
+    const serviceMapping = {
+        'redis.service': 'redis-status',
+        'mqtt_publish.service': 'mqtt-status', 
+        'snmp_handler.service': 'snmp-status'
+    };
+    
+    Object.keys(serviceMapping).forEach(serviceName => {
+        const elementId = serviceMapping[serviceName];
+        const statusElement = document.getElementById(elementId);
+        
+        if (statusElement && services.services_status[serviceName]) {
+            const status = services.services_status[serviceName].toLowerCase();
+            updateStatusIndicator(elementId, status);
+        }
     });
-    
-    // Generate dummy SCC data
-    generateDummySCCData();
-}
 
-// Generate dummy SCC data for testing
-function generateDummySCCData() {
-    const numberOfScc = {{ number_of_scc }};
-    
-    for (let i = 1; i <= numberOfScc; i++) {
-        // SCC Status
-        const sccStatuses = ['is running', 'is running', 'is standby', 'modbus error'];
-        const sccStatus = sccStatuses[Math.floor(Math.random() * sccStatuses.length)];
-        updateStatusIndicator(`scc${i}-status`, sccStatus, ['is running'], ['modbus error', 'unknown status']);
-        
-        // PV Voltage
-        const pvVoltage = (Math.random() * 30 + 15).toFixed(1); // 15-45V
-        const pvVoltageElement = document.getElementById(`pv${i}-voltage`);
-        if (pvVoltageElement) {
-            pvVoltageElement.textContent = `${pvVoltage} V`;
-        }
-        
-        // PV Current
-        const pvCurrent = (Math.random() * 8 + 1).toFixed(2); // 1-9A
-        const pvCurrentElement = document.getElementById(`pv${i}-current`);
-        if (pvCurrentElement) {
-            pvCurrentElement.textContent = `${pvCurrent} A`;
-        }
-        
-        // Load Voltage Detail
-        const loadVoltage = (Math.random() * 3 + 12).toFixed(1); // 12-15V
-        const loadVoltageDetailElement = document.getElementById(`load${i}-voltage-detail`);
-        if (loadVoltageDetailElement) {
-            loadVoltageDetailElement.textContent = `${loadVoltage} V`;
-        }
-        
-        // Load Current Detail
-        const loadCurrent = (Math.random() * 5 + 0.5).toFixed(2); // 0.5-5.5A
-        const loadCurrentDetailElement = document.getElementById(`load${i}-current-detail`);
-        if (loadCurrentDetailElement) {
-            loadCurrentDetailElement.textContent = `${loadCurrent} A`;
-        }
-        
-        // Load Power Detail
-        const loadPower = (parseFloat(loadVoltage) * parseFloat(loadCurrent)).toFixed(2);
-        const loadPowerDetailElement = document.getElementById(`load${i}-power-detail`);
-        if (loadPowerDetailElement) {
-            loadPowerDetailElement.textContent = `${loadPower} W`;
-        }
-        
-        // SCC Device ID
-        const sccDeviceIdElement = document.getElementById(`scc${i}-device-id`);
-        if (sccDeviceIdElement) {
-            const deviceId = Math.floor(Math.random() * 200) + 1;
-            sccDeviceIdElement.textContent = `SCC ID: ${deviceId}`;
-        }
-        
-        // SCC Heartbeat
-        const sccHeartbeatElement = document.getElementById(`scc${i}-counter-heartbeat`);
-        if (sccHeartbeatElement) {
-            const heartbeat = Math.floor(Math.random() * 1000) + 100;
-            sccHeartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
-        }
-    }
-    
-    // Generate dummy device information
-    generateDummyDeviceInfo();
-}
-
-// SCC Device ID mapping
-const sccDeviceIds = {
-    'scc-srne': ['122', '123', '124'],
-    'scc-epveper': ['1', '2']
-};
-
-// Update SCC IDs based on type
-function updateSCCIds(sccType) {
-    const sccIdsElement = document.getElementById('scc-ids');
-    if (sccIdsElement && sccDeviceIds[sccType]) {
-        sccIdsElement.textContent = sccDeviceIds[sccType].join(', ');
+    // Update system uptime
+    const uptimeElement = document.getElementById('system-uptime');
+    if (uptimeElement && services.system_uptime) {
+        const uptime = services.system_uptime || 'N/A';
+        uptimeElement.textContent = uptime;
+        uptimeElement.className = 'stats-card-value';
     }
 }
 
 // Device Information Update
-const updateDeviceInformation = (data) => {
-    if (data.code == 500) {
-        console.log(`Error: ${data.status}`);
+function updateDeviceInformation(data) {
+    if (!data || data.status_code !== 200) {
+        console.warn('Invalid device information data received');
         return;
     }
 
+    const deviceData = data.data.device_version;
+    
     // Battery Type
     const batteryTypeElement = document.getElementById('battery-type');
-    if (batteryTypeElement && data.data.device_information) {
-        batteryTypeElement.textContent = data.data.device_information.battery_type.toUpperCase();
+    if (batteryTypeElement && deviceData.battery_type) {
+        batteryTypeElement.textContent = deviceData.battery_type.toUpperCase();
     }
     
-    // SCC Type and IDs
+    // SCC Type
     const sccTypeElement = document.getElementById('scc-type');
-    if (sccTypeElement && data.data.device_information) {
-        const sccType = data.data.device_information.scc_type;
+    if (sccTypeElement && deviceData.scc_type) {
+        const sccType = deviceData.scc_type;
         sccTypeElement.textContent = sccType.toUpperCase();
         
         // Update SCC IDs based on type
         updateSCCIds(sccType);
     }
     
-    // Disk Usage
-    const diskUsageElement = document.getElementById('disk-usage');
-    if (diskUsageElement && data.data.disk_ram) {
-        const disk = data.data.disk_ram.disk;
-        const usagePercent = ((disk.used / disk.total) * 100).toFixed(1);
-        const usageText = `${usagePercent}% (${disk.used}/${disk.total} GB)`;
-        diskUsageElement.textContent = usageText;
-        
-        // Update status indicator
-        if (usagePercent > 85) {
-            diskUsageElement.classList.add('text-danger');
-        } else if (usagePercent > 70) {
-            diskUsageElement.classList.add('text-warning');
+    // SCC IDs
+    const sccIdsElement = document.getElementById('scc-ids');
+    if (sccIdsElement && deviceData.scc_id) {
+        if (Array.isArray(deviceData.scc_id)) {
+            sccIdsElement.textContent = deviceData.scc_id.join(', ');
         } else {
-            diskUsageElement.classList.remove('text-danger', 'text-warning');
+            sccIdsElement.textContent = deviceData.scc_id.toString();
         }
     }
     
     // Datalog length
     const datalogElement = document.getElementById('datalog-length');
-    if (datalogElement && data.data.datalog_length !== undefined) {
-        datalogElement.textContent = data.data.datalog_length.toLocaleString();
-        
-        // Update status indicator
-        if (data.data.datalog_length > 1000) {
-            datalogElement.classList.add('text-warning');
-        } else {
-            datalogElement.classList.remove('text-warning');
-        }
-    }
+}
+
+// SCC Device ID mapping
+const sccDeviceIds = {
+    'scc-srne': ['122', '123', '124'],
+    'scc-epveper': ['1', '2'],
+    'srne': ['122', '123', '124'],
+    'epveper': ['1', '2']
 };
 
+// Update SCC IDs based on type
+function updateSCCIds(sccType) {
+    const sccIdsElement = document.getElementById('scc-ids');
+    const normalizedType = sccType.toLowerCase().replace(/[^a-z]/g, '');
+    
+    if (sccIdsElement && sccDeviceIds[normalizedType]) {
+        sccIdsElement.textContent = sccDeviceIds[normalizedType].join(', ');
+    }
+}
+
 // SCC Overview Update
-const updateSCCOverview = (data) => {
-    if (data.code == 500) {
-        console.log(`Error: ${data.status}`);
+function updateSCCOverview(data) {
+    if (!data || data.status_code !== 200) {
+        console.warn('Invalid SCC data received');
         return;
     }
 
-    // Get SCC type to determine device IDs
-    const sccType = document.getElementById('scc-type')?.textContent?.toLowerCase() || 'unknown';
-    const deviceIds = sccDeviceIds[sccType] || [];
+    const sccData = data.data;
 
+    // Relay Configuration
+    const vsatReconnectElement = document.getElementById('vsat-reconnect');
+    if (vsatReconnectElement && sccData.relay_configuration.vsat_reconnect !== undefined) {
+        const vsatReconnect = parseFloat(sccData.relay_configuration.vsat_reconnect);
+        vsatReconnectElement.textContent = vsatReconnect;
+    }
+    const vsatCutoffElement = document.getElementById('vsat-cutoff');
+    if (vsatCutoffElement && sccData.relay_configuration.vsat_cutoff !== undefined) {
+        const vsatCutoff = parseFloat(sccData.relay_configuration.vsat_cutoff);
+        vsatCutoffElement.textContent = vsatCutoff;
+    }
+    const btsReconnectElement = document.getElementById('bts-reconnect');
+    if (btsReconnectElement && sccData.relay_configuration.bts_reconnect !== undefined) {
+        const btsReconnect = parseFloat(sccData.relay_configuration.bts_reconnect);
+        btsReconnectElement.textContent = btsReconnect;
+    }
+    const btsCutoffElement = document.getElementById('bts-cutoff');
+    if (btsCutoffElement && sccData.relay_configuration.bts_cutoff !== undefined) {
+        const btsCutoff = parseFloat(sccData.relay_configuration.bts_cutoff);
+        btsCutoffElement.textContent = btsCutoff;
+    }
+    
     {% if number_of_scc >= 2 %}
     {% for i in range(1, number_of_scc+1) %}
-    // SCC {{i}} Device ID
-    const scc{{i}}DeviceIdElement = document.getElementById('scc{{i}}-device-id');
-    if (scc{{i}}DeviceIdElement && deviceIds[{{i-1}}]) {
-        scc{{i}}DeviceIdElement.textContent = `ID: ${deviceIds[{{i-1}}]}`;
-    }
-
-    // SCC {{i}} Status
-    const scc{{i}}StatusElement = document.getElementById('scc{{i}}-status');
-    if (scc{{i}}StatusElement && data.data.scc{{i}}) {
-        const status = data.data.scc{{i}}.load_status;
-        scc{{i}}StatusElement.textContent = status;
+    
+    // Update SCC {{i}} data if available
+    if (sccData.scc{{i}}) {
+        const scc{{i}}Data = sccData.scc{{i}};
         
-        if (status === 'is standby') {
-            scc{{i}}StatusElement.className = 'status-indicator inactive';
-        } else if (status === 'modbus error' || status === 'unknown status') {
-            scc{{i}}StatusElement.className = 'status-indicator danger';
-        } else {
-            scc{{i}}StatusElement.className = 'status-indicator active';
+        // SCC {{i}} Status
+        const scc{{i}}StatusElement = document.getElementById('scc{{i}}-status');
+        if (scc{{i}}StatusElement && scc{{i}}Data.load_status) {
+            const status = scc{{i}}Data.load_status;
+            updateStatusIndicator('scc{{i}}-status', status);
         }
-    }
 
-    // PV {{i}} Voltage
-    const pv{{i}}VoltageElement = document.getElementById('pv{{i}}-voltage');
-    if (pv{{i}}VoltageElement && data.data.scc{{i}}) {
-        if (data.data.scc{{i}}.pv_voltage === -1) {
-            pv{{i}}VoltageElement.textContent = 'N/A';
-            pv{{i}}VoltageElement.classList.add('text-muted');
-        } else {
-            pv{{i}}VoltageElement.textContent = `${data.data.scc{{i}}.pv_voltage} V`;
-            pv{{i}}VoltageElement.classList.remove('text-muted');
+        // PV {{i}} Voltage
+        const pv{{i}}VoltageElement = document.getElementById('pv{{i}}-voltage');
+        if (pv{{i}}VoltageElement && scc{{i}}Data.pv_voltage !== undefined) {
+            const voltage = parseFloat(scc{{i}}Data.pv_voltage);
+            if (voltage === -1 || isNaN(voltage)) {
+                pv{{i}}VoltageElement.textContent = 'N/A';
+                pv{{i}}VoltageElement.classList.add('text-muted');
+            } else {
+                pv{{i}}VoltageElement.textContent = `${voltage.toFixed(1)} V`;
+                pv{{i}}VoltageElement.classList.remove('text-muted');
+            }
         }
-    }
 
-    // PV {{i}} Current
-    const pv{{i}}CurrentElement = document.getElementById('pv{{i}}-current');
-    if (pv{{i}}CurrentElement && data.data.scc{{i}}) {
-        if (data.data.scc{{i}}.pv_current === -1) {
-            pv{{i}}CurrentElement.textContent = 'N/A';
-            pv{{i}}CurrentElement.classList.add('text-muted');
-        } else {
-            pv{{i}}CurrentElement.textContent = `${data.data.scc{{i}}.pv_current} A`;
-            pv{{i}}CurrentElement.classList.remove('text-muted');
+        // PV {{i}} Current
+        const pv{{i}}CurrentElement = document.getElementById('pv{{i}}-current');
+        if (pv{{i}}CurrentElement && scc{{i}}Data.pv_current !== undefined) {
+            const current = parseFloat(scc{{i}}Data.pv_current);
+            if (current === -1 || isNaN(current)) {
+                pv{{i}}CurrentElement.textContent = 'N/A';
+                pv{{i}}CurrentElement.classList.add('text-muted');
+            } else {
+                pv{{i}}CurrentElement.textContent = `${current.toFixed(2)} A`;
+                pv{{i}}CurrentElement.classList.remove('text-muted');
+            }
         }
-    }
 
-    // PV {{i}} Power (calculate from voltage and current)
-    const pv{{i}}PowerElement = document.getElementById('pv{{i}}-power');
-    if (pv{{i}}PowerElement && data.data.scc{{i}}) {
-        const voltage = data.data.scc{{i}}.pv_voltage;
-        const current = data.data.scc{{i}}.pv_current;
+        // Load Voltage Detail for SCC {{i}}
+        const load{{i}}VoltageDetailElement = document.getElementById('load{{i}}-voltage-detail');
+        if (load{{i}}VoltageDetailElement && scc{{i}}Data.load_voltage !== undefined) {
+            const voltage = parseFloat(scc{{i}}Data.load_voltage);
+            if (voltage === -1 || isNaN(voltage)) {
+                load{{i}}VoltageDetailElement.textContent = 'N/A';
+                load{{i}}VoltageDetailElement.classList.add('text-muted');
+            } else {
+                load{{i}}VoltageDetailElement.textContent = `${voltage.toFixed(1)} V`;
+                load{{i}}VoltageDetailElement.classList.remove('text-muted');
+            }
+        }
+
+        // Load Current Detail for SCC {{i}}
+        const load{{i}}CurrentDetailElement = document.getElementById('load{{i}}-current-detail');
+        if (load{{i}}CurrentDetailElement && scc{{i}}Data.load_current !== undefined) {
+            const current = parseFloat(scc{{i}}Data.load_current);
+            if (current === -1 || isNaN(current)) {
+                load{{i}}CurrentDetailElement.textContent = 'N/A';
+                load{{i}}CurrentDetailElement.classList.add('text-muted');
+            } else {
+                load{{i}}CurrentDetailElement.textContent = `${current.toFixed(2)} A`;
+                load{{i}}CurrentDetailElement.classList.remove('text-muted');
+            }
+        }
+
+        // Load Power Detail for SCC {{i}} (calculated)
+        const load{{i}}PowerDetailElement = document.getElementById('load{{i}}-power-detail');
+        if (load{{i}}PowerDetailElement && scc{{i}}Data.load_voltage !== undefined && scc{{i}}Data.load_current !== undefined) {
+            const voltage = parseFloat(scc{{i}}Data.load_voltage);
+            const current = parseFloat(scc{{i}}Data.load_current);
+            
+            if (voltage === -1 || current === -1 || isNaN(voltage) || isNaN(current)) {
+                load{{i}}PowerDetailElement.textContent = 'N/A';
+                load{{i}}PowerDetailElement.classList.add('text-muted');
+            } else {
+                const power = (voltage * current).toFixed(2);
+                load{{i}}PowerDetailElement.textContent = `${power} W`;
+                load{{i}}PowerDetailElement.classList.remove('text-muted');
+            }
+        }
+
+        // SCC {{i}} Device ID
+        const scc{{i}}DeviceIdElement = document.getElementById('scc{{i}}-id');
+        if (scc{{i}}DeviceIdElement && scc{{i}}Data.scc_id !== undefined) {
+            scc{{i}}DeviceIdElement.textContent = `SCC ID: ${scc{{i}}Data.scc_id}`;
+        }
+
+        // SCC {{i}} Counter Heartbeat
+        const scc{{i}}HeartbeatElement = document.getElementById('scc{{i}}-counter-heartbeat');
+        if (scc{{i}}HeartbeatElement && scc{{i}}Data.counter_heartbeat !== undefined) {
+            const heartbeat = scc{{i}}Data.counter_heartbeat;
+            scc{{i}}HeartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
+        }
         
-        if (voltage === -1 || current === -1) {
-            pv{{i}}PowerElement.textContent = 'N/A';
-            pv{{i}}PowerElement.classList.add('text-muted');
-        } else {
-            const power = (voltage * current).toFixed(2);
-            pv{{i}}PowerElement.textContent = `${power} W`;
-            pv{{i}}PowerElement.classList.remove('text-muted');
+        // Last Update for SCC {{i}}
+        const lastUpdate{{i}}Element = document.getElementById('last-update-{{i}}');
+        if (lastUpdate{{i}}Element && sccData.last_update !== undefined) {
+            lastUpdate{{i}}Element.textContent = `Last Update: ${sccData.last_update}`;
         }
+    } else {
+        console.warn(`SCC{{i}} data not available in API response`);
     }
-
-    // Load Voltage Detail for SCC Overview
-    const load{{i}}VoltageDetailElement = document.getElementById('load{{i}}-voltage-detail');
-    if (load{{i}}VoltageDetailElement && data.data.scc{{i}}) {
-        if (data.data.scc{{i}}.load_voltage === -1) {
-            load{{i}}VoltageDetailElement.textContent = 'N/A';
-            load{{i}}VoltageDetailElement.classList.add('text-muted');
-        } else {
-            load{{i}}VoltageDetailElement.textContent = `${data.data.scc{{i}}.load_voltage} V`;
-            load{{i}}VoltageDetailElement.classList.remove('text-muted');
-        }
-    }
-
-    // Load Current Detail for SCC Overview
-    const load{{i}}CurrentDetailElement = document.getElementById('load{{i}}-current-detail');
-    if (load{{i}}CurrentDetailElement && data.data.scc{{i}}) {
-        if (data.data.scc{{i}}.load_current === -1) {
-            load{{i}}CurrentDetailElement.textContent = 'N/A';
-            load{{i}}CurrentDetailElement.classList.add('text-muted');
-        } else {
-            load{{i}}CurrentDetailElement.textContent = `${data.data.scc{{i}}.load_current} A`;
-            load{{i}}CurrentDetailElement.classList.remove('text-muted');
-        }
-    }
-
-    // Load Power Detail for SCC Overview
-    const load{{i}}PowerDetailElement = document.getElementById('load{{i}}-power-detail');
-    if (load{{i}}PowerDetailElement && data.data.scc{{i}}) {
-        const voltage = data.data.scc{{i}}.load_voltage;
-        const current = data.data.scc{{i}}.load_current;
-        
-        if (voltage === -1 || current === -1) {
-            load{{i}}PowerDetailElement.textContent = 'N/A';
-            load{{i}}PowerDetailElement.classList.add('text-muted');
-        } else {
-            const power = (voltage * current).toFixed(2);
-            load{{i}}PowerDetailElement.textContent = `${power} W`;
-            load{{i}}PowerDetailElement.classList.remove('text-muted');
-        }
-    }
-
-    // SCC {{i}} Counter Heartbeat
-    const scc{{i}}HeartbeatElement = document.getElementById('scc{{i}}-counter-heartbeat');
-    if (scc{{i}}HeartbeatElement && data.data.scc{{i}}) {
-        const heartbeat = data.data.scc{{i}}.counter_heartbeat;
-        scc{{i}}HeartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
-        
-        if (heartbeat == -1) {
-            scc{{i}}HeartbeatElement.classList.add('text-danger');
-        } else {
-            scc{{i}}HeartbeatElement.classList.remove('text-danger');
-        }
-    }
+    
     {% endfor %}
     {% endif %}
-};
-
-// Fallback for manual data fetching if PowerDeskApp is not available
-if (!window.powerDeskApp) {
-    const fetchData = async (endpoint) => {
-        try {
-            const response = await fetch(endpoint, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error(`Failed to fetch data from ${endpoint}:`, error);
-            return null;
-        }
-    };
-
-    const updateAllData = async () => {
-        const deviceData = await fetchData('/api/device-information/');
-        const sccData = await fetchData('/api/realtime/scc/');
-        
-        if (deviceData) updateDeviceInformation(deviceData);
-        if (sccData) updateSCCOverview(sccData);
-    };
-
-    // Initial load and periodic updates
-    updateAllData();
-    setInterval(updateAllData, 5000);
 }
+
+// Error handling for authentication failures
+window.addEventListener('unhandledrejection', function(event) {
+    if (event.reason && event.reason.message && event.reason.message.includes('401')) {
+        console.warn('Authentication session expired, redirecting to login...');
+        window.location.href = '/login';
+    }
+});
+
+console.log('🚀 Dashboard initialized with role-based API authentication');
+console.log(`👤 Current user role: {{ user_role }}`);
 </script>
 {% endblock %}
