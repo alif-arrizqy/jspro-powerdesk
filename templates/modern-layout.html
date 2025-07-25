@@ -51,9 +51,10 @@
             
             <div class="sidebar-content">
                 <ul class="nav-menu">
-                    {% if username == 'apt' or username == 'teknisi' %}
+                    <!-- Dashboard - Accessible by teknisi, apt, admin -->
+                    {% if menu_access.dashboard %}
                     <li class="nav-item">
-                        <a href="/" class="nav-link {{ 'active' if request.endpoint == 'main.index' }}">
+                        <a href="/" class="nav-link {{ 'active' if request.endpoint == 'index' }}">
                             <i class="fas fa-home"></i>
                             <span>Dashboard</span>
                             <div class="nav-indicator"></div>
@@ -61,23 +62,27 @@
                     </li>
                     {% endif %}
                     
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.scc', 'main.battery'] }}">
+                    <!-- Monitoring Menu - Based on role permissions -->
+                    {% if menu_access.monitoring %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['scc', 'battery'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-chart-line"></i>
                             <span>Monitoring</span>
                             <i class="fas fa-chevron-down chevron"></i>
                         </a>
                         <ul class="submenu">
+                            {% if menu_access.monitoring.scc %}
                             <li>
-                                <a href="/scc" class="nav-link {{ 'active' if request.endpoint == 'main.scc' }}">
+                                <a href="/scc" class="nav-link {{ 'active' if request.endpoint == 'scc' }}">
                                     <i class="fas fa-solar-panel"></i>
                                     <span>Solar Charge Controller</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
-                            {% if username == 'teknisi' %}
+                            {% endif %}
+                            {% if menu_access.monitoring.battery %}
                             <li>
-                                <a href="/battery" class="nav-link {{ 'active' if request.endpoint == 'main.battery' }}">
+                                <a href="/battery" class="nav-link {{ 'active' if request.endpoint == 'battery' }}">
                                     <i class="fas fa-battery-full"></i>
                                     <span>Battery Monitor</span>
                                     <div class="nav-indicator"></div>
@@ -86,62 +91,74 @@
                             {% endif %}
                         </ul>
                     </li>
+                    {% endif %}
                     
-                    {% if username == 'teknisi' %}
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.mqtt_service', 'main.logger_service'] }}">
+                    <!-- Services Menu - Based on role permissions -->
+                    {% if menu_access.services and (menu_access.services.mqtt or menu_access.services.systemd) %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['mqtt_service', 'systemd_service'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-cogs"></i>
                             <span>Services</span>
                             <i class="fas fa-chevron-down chevron"></i>
                         </a>
                         <ul class="submenu">
+                            {% if menu_access.services.mqtt %}
                             <li>
-                                <a href="/mqtt-service" class="nav-link {{ 'active' if request.endpoint == 'main.mqtt_service' }}">
+                                <a href="/mqtt-service" class="nav-link {{ 'active' if request.endpoint == 'mqtt_service' }}">
                                     <i class="fas fa-exchange"></i>
                                     <span>MQTT</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
+                            {% endif %}
+                            {% if menu_access.services.systemd %}
                             <li>
-                                <a href="/systemd-service" class="nav-link {{ 'active' if request.endpoint == 'main.service_systemd' }}">
+                                <a href="/systemd-service" class="nav-link {{ 'active' if request.endpoint == 'systemd_service' }}">
                                     <i class="fas fa-adjust"></i>
                                     <span>Systemd</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}
                     
-                    {% if username == 'teknisi' %}
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.datalog', 'main.scc_alarm_log'] }}">
+                    <!-- Historical Data Menu - Admin only -->
+                    {% if menu_access.historical and (menu_access.historical.datalog or menu_access.historical.scc_alarm_log) %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['datalog', 'scc_alarm_log'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-history"></i>
                             <span>Historical Data</span>
                             <i class="fas fa-chevron-down chevron"></i>
                         </a>
                         <ul class="submenu">
+                            {% if menu_access.historical.datalog %}
                             <li>
-                                <a href="/datalog" class="nav-link {{ 'active' if request.endpoint == 'main.datalog' }}">
+                                <a href="/datalog" class="nav-link {{ 'active' if request.endpoint == 'datalog' }}">
                                     <i class="fas fa-database"></i>
                                     <span>Data Logs</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
+                            {% endif %}
+                            {% if menu_access.historical.scc_alarm_log %}
                             <li>
-                                <a href="/scc-alarm-log" class="nav-link {{ 'active' if request.endpoint == 'main.scc_alarm_log' }}">
+                                <a href="/scc-alarm-log" class="nav-link {{ 'active' if request.endpoint == 'scc_alarm_log' }}">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     <span>SCC Alarm Log</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}
                     
-                    {% if username == 'apt' or username == 'teknisi' %}
+                    <!-- Site Information - Accessible by teknisi, apt, admin -->
+                    {% if menu_access.site_information %}
                     <li class="nav-item">
-                        <a href="/site-information" class="nav-link {{ 'active' if request.endpoint == 'main.site_information' }}">
+                        <a href="/site-information" class="nav-link {{ 'active' if request.endpoint == 'site_information' }}">
                             <i class="fas fa-info-circle"></i>
                             <span>Site Information</span>
                             <div class="nav-indicator"></div>
@@ -149,53 +166,50 @@
                     </li>
                     {% endif %}
                     
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['main.setting_device', 'main.setting_scc', 'main.setting_ip', 'main.config_value_scc', 'main.disk_storage'] }}">
+                    <!-- Settings Menu - Based on role permissions -->
+                    {% if menu_access.settings %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['setting_device', 'setting_scc', 'setting_ip'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
                             <i class="fas fa-chevron-down chevron"></i>
                         </a>
                         <ul class="submenu">
-                            {% if username == 'apt' or username == 'teknisi' %}
+                            {% if menu_access.settings.device_settings %}
                             <li>
-                                <a href="/setting-device" class="nav-link {{ 'active' if request.endpoint == 'main.setting_device' }}">
+                                <a href="/setting-device" class="nav-link {{ 'active' if request.endpoint == 'setting_device' }}">
                                     <i class="fas fa-microchip"></i>
                                     <span>Device Settings</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
                             {% endif %}
-                            {% if username == 'teknisi' %}
+                            {% if menu_access.settings.scc_settings %}
                             <li>
-                                <a href="/setting-scc" class="nav-link {{ 'active' if request.endpoint == 'main.setting_scc' }}">
+                                <a href="/setting-scc" class="nav-link {{ 'active' if request.endpoint == 'setting_scc' }}">
                                     <i class="fas fa-solar-panel"></i>
                                     <span>SCC Settings</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
+                            {% endif %}
+                            {% if menu_access.settings.ip_configuration %}
                             <li>
-                                <a href="/setting-ip" class="nav-link {{ 'active' if request.endpoint == 'main.setting_ip' }}">
+                                <a href="/setting-ip" class="nav-link {{ 'active' if request.endpoint == 'setting_ip' }}">
                                     <i class="fas fa-network-wired"></i>
                                     <span>IP Configuration</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
-                            {% if username == 'apt' and scc_type != 'scc-tristar' %}
-                            <li>
-                                <a href="/config-value-scc" class="nav-link {{ 'active' if request.endpoint == 'main.config_value_scc' }}">
-                                    <i class="fas fa-wrench"></i>
-                                    <span>SCC Configuration</span>
-                                    <div class="nav-indicator"></div>
-                                </a>
-                            </li>
-                            {% endif %}
                             {% endif %}
                         </ul>
                     </li>
+                    {% endif %}
 
-                    {% if username == 'teknisi' %}
+                    <!-- Power Operations - teknisi and admin only -->
+                    {% if menu_access.power_operations %}
                     <li class="nav-item">
-                        <a href="/power-operation" class="nav-link {{ 'active' if request.endpoint == 'main.power_operation' }}">
+                        <a href="/power-operation" class="nav-link {{ 'active' if request.endpoint == 'power_operation' }}">
                             <i class="fas fa-power-off"></i>
                             <span>Power Operation</span>
                             <div class="nav-indicator"></div>
@@ -212,7 +226,7 @@
                     </div>
                     <div class="user-details">
                         <span class="username">{{ username.capitalize() }}</span>
-                        <span class="user-role">{{ username.capitalize() }}</span>
+                        <span class="user-role">{{ user_role.replace('_', ' ').title() if user_role else username.capitalize() }}</span>
                     </div>
                 </div>
                 <a href="/logout" class="nav-link logout-link">
