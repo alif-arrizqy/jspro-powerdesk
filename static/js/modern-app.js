@@ -713,8 +713,6 @@ class PowerDeskApp {
             if (typeof updateDeviceInfo === 'function') {
                 await updateDeviceInfo();
             }
-            
-            console.log('📱 Device data updated');
         } catch (error) {
             console.error('Failed to update device data:', error);
             throw error;
