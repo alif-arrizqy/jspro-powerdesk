@@ -96,7 +96,10 @@ function initializeFormSubmission() {
         return;
     }
 
+    // Handle form submission
     loginForm.addEventListener('submit', function(e) {
+        console.log('Form submit event triggered'); // Debug log
+        
         // Validate form before submission
         if (!validateForm()) {
             e.preventDefault();
@@ -105,6 +108,20 @@ function initializeFormSubmission() {
 
         // Show loading state
         showLoadingState();
+        
+        // Let the form submit naturally - don't prevent default
+        console.log('Form validation passed, submitting...'); // Debug log
+    });
+    
+    // Handle button click explicitly
+    loginButton.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent default button behavior
+        console.log('Login button clicked'); // Debug log
+        
+        if (validateForm()) {
+            showLoadingState();
+            loginForm.submit(); // Explicitly submit the form
+        }
     });
 }
 
@@ -179,12 +196,24 @@ function initializeKeyboardShortcuts() {
                 return;
             }
             
-            // If focus is on password field or submit button, submit form
-            if (activeElement && (activeElement.id === 'password' || activeElement.id === 'loginButton')) {
+            // If focus is on password field, submit form
+            if (activeElement && activeElement.id === 'password') {
                 e.preventDefault();
                 const form = document.getElementById('loginForm');
-                if (form) {
-                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                if (form && validateForm()) {
+                    showLoadingState();
+                    form.submit(); // Use native form submit instead of dispatchEvent
+                }
+                return;
+            }
+            
+            // If focus is on submit button, submit form
+            if (activeElement && activeElement.id === 'loginButton') {
+                e.preventDefault();
+                const form = document.getElementById('loginForm');
+                if (form && validateForm()) {
+                    showLoadingState();
+                    form.submit(); // Use native form submit instead of dispatchEvent
                 }
                 return;
             }
@@ -195,6 +224,35 @@ function initializeKeyboardShortcuts() {
             clearForm();
         }
     });
+    
+    // Also add Enter key listener specifically to the form inputs
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const form = document.getElementById('loginForm');
+                if (form && validateForm()) {
+                    showLoadingState();
+                    form.submit();
+                }
+            }
+        });
+    }
+    
+    if (usernameInput) {
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const passwordField = document.getElementById('password');
+                if (passwordField) {
+                    passwordField.focus();
+                }
+            }
+        });
+    }
 }
 
 function clearForm() {
