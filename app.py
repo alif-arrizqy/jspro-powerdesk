@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for
+from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for, make_response
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from config import *
@@ -826,6 +826,10 @@ def setting_scc():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # If user is already logged in, redirect to dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -838,8 +842,18 @@ def login():
         # Verify credentials using the secure authentication system
         if verify_password(username, password):
             user = User(username)
-            login_user(user)
+            login_user(user, remember=False)  # Change to remember=False to avoid persistent sessions
             session['username'] = username
+            session.permanent = False  # Make session non-permanent for security
+            
+            # Get role-based API token from environment variables
+            from auths import get_user_api_token
+            api_token = get_user_api_token(username)
+            if api_token:
+                session['auth_token'] = api_token
+            else:
+                flash('API token not found for your role. Please contact administrator.', 'error')
+                return redirect(url_for('login'))
             
             # Audit successful login
             audit_access(username, 'login', 'successful_login')
@@ -847,6 +861,11 @@ def login():
             # Get user role for logging
             user_role = get_user_role(username)
             flash(f'Welcome {username.capitalize()}! You are logged in as {user_role}.', 'success')
+            
+            # Handle potential 'next' parameter for redirect after login
+            next_page = request.args.get('next')
+            if next_page and next_page.startswith('/'):
+                return redirect(next_page)
             
             return redirect(url_for('index'))
         else:
@@ -859,7 +878,34 @@ def login():
 
 @app.route('/logout')
 def logout():
+    # Clear user session completely (no need to revoke static API tokens)
     logout_user()
     session.clear()
+    
+    # Clear any Flask-Login remember me cookies
+    response = make_response(redirect(url_for('login')))
+    response.set_cookie('remember_token', '', expires=0)
+    response.set_cookie('session', '', expires=0)
+    
     flash('Berhasil Logout', 'success')
+    return response
+
+
+# Route untuk clear session secara manual (untuk debugging)
+@app.route('/clear-session')
+def clear_session():
+    logout_user()
+    session.clear()
+    flash('Session cleared successfully', 'info')
     return redirect(url_for('login'))
+
+
+if __name__ == '__main__':
+    # Clear any existing sessions on startup
+    print("🔐 Starting JSPro PowerDesk Application...")
+    print("🧹 Clearing any existing sessions...")
+    
+    # Run the Flask application
+    print("🚀 Server starting on http://127.0.0.1:5000")
+    print("📝 Note: First access should redirect to login page")
+    app.run(debug=True, host='127.0.0.1', port=5000)
