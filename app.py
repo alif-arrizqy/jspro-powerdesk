@@ -7,11 +7,15 @@ from config import *
 from functions import *
 from api.core import register_blueprints, register_error_handlers
 from api.redisconnection import connection as red
-from auths import users
+from auths import USERS, verify_password, record_successful_login, record_failed_attempt, is_user_locked, get_user_role, audit_access, get_menu_access, can_access_page
 from validations import validate_setting_ip, validate_modbus_id
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = '83dcdc455025cedcfe64b21e620564fb'
+# app.secret_key = '7yBkBOPs92u9HZQeyqlmyNVKv8_RTd3hQoziImBnsME'
+app.secret_key = os.getenv('SECRET_KEY')
 
 # Register all API blueprints and error handlers
 register_blueprints(app)
@@ -32,7 +36,7 @@ PATH = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis"
 
 @login_manager.user_loader
 def load_user(username):
-    if username in users:
+    if username in USERS:
         return User(username)
     return None
 
@@ -42,27 +46,46 @@ def index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'dashboard'):
+        audit_access(username, 'dashboard', 'access_denied')
+        flash('You do not have permission to access the dashboard.', 'error')
+        return redirect(url_for('logout'))
+    
     site_name = ""
-    username = ""
     try:
         # get current username
         username = current_user.id
         
         # get site name
         site_name = red.hget('device_config', 'site_name')
+        
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc
         }
+        
+        # Audit page access
+        audit_access(username, 'dashboard', 'view')
+        
     except Exception as e:
         print(f"index() error: {e}")
         context = {
             'username': username,
-            'site_name': 'Sitea Name',
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
+            'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
@@ -74,14 +97,24 @@ def index():
 @app.route('/scc', methods=['GET'])
 @login_required
 def scc():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'scc_monitoring'):
+        audit_access(username, 'scc_monitoring', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -89,10 +122,16 @@ def scc():
             'scc_type': scc_type,
             'number_of_scc': number_of_scc
         }
+        
+        # Audit page access
+        audit_access(username, 'scc_monitoring', 'view')
+        
     except Exception as e:
         print(f"scc() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -106,14 +145,24 @@ def scc():
 @app.route('/battery', methods=['GET'])
 @login_required
 def battery():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'battery_monitoring'):
+        audit_access(username, 'battery_monitoring', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -121,10 +170,16 @@ def battery():
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }
+        
+        # Audit page access
+        audit_access(username, 'battery_monitoring', 'view')
+        
     except Exception as e:
         print(f"battery() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -138,23 +193,39 @@ def battery():
 @app.route('/datalog', methods=['GET'])
 @login_required
 def datalog():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'datalog'):
+        audit_access(username, 'datalog', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.4.44'
         }
+        
+        # Audit page access
+        audit_access(username, 'datalog', 'view')
+        
     except Exception as e:
         print(f"datalog() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -166,24 +237,40 @@ def datalog():
 @app.route('/scc-alarm-log', methods=['GET'])
 @login_required
 def scc_alarm_log():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'scc_alarm_log'):
+        audit_access(username, 'scc_alarm_log', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             'number_of_scc': number_of_scc,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4'
         }
+        
+        # Audit page access
+        audit_access(username, 'scc_alarm_log', 'view')
+        
     except Exception as e:
         print(f"scc_alarm_log() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             'number_of_scc': number_of_scc,
@@ -195,28 +282,44 @@ def scc_alarm_log():
 @app.route('/mqtt-service', methods=['GET'])
 @login_required
 def mqtt_service():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'mqtt_service'):
+        audit_access(username, 'mqtt_service', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     path = f'{PATH}/config_device.json'
     with open(path, 'r') as file:
         data = json.load(file)
     
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
             'mqtt_config': data.get('mqtt_config', {})
         }
+        
+        # Audit page access
+        audit_access(username, 'mqtt_service', 'view')
+        
     except Exception as e:
         print(f"mqtt_service() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -228,23 +331,39 @@ def mqtt_service():
 @app.route('/systemd-service', methods=['GET'])
 @login_required
 def systemd_service():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'systemd_service'):
+        audit_access(username, 'systemd_service', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1'
         }
+        
+        # Audit page access
+        audit_access(username, 'systemd_service', 'view')
+        
     except Exception as e:
-        print(f"mqtt_service() error: {e}")
+        print(f"systemd_service() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -255,23 +374,39 @@ def systemd_service():
 @app.route('/power-operation', methods=['GET'])
 @login_required
 def power_operation():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'power_operations'):
+        audit_access(username, 'power_operations', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         site_name = red.hget('device_config', 'site_name')
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1'
         }
+        
+        # Audit page access
+        audit_access(username, 'power_operations', 'view')
+        
     except Exception as e:
         print(f"power_operation() error: {e}")
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
@@ -283,11 +418,19 @@ def power_operation():
 @app.route('/site-information', methods=['GET'])
 @login_required
 def site_information():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'site_information'):
+        audit_access(username, 'site_information', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
     site_name = ""
     path = f'{PATH}/config_device.json'
     try:
-        # username login
-        username = current_user.id
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
         
         with open(path, 'r') as file:
             data = json.load(file)
@@ -297,6 +440,8 @@ def site_information():
         
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             'site_information': data.get('site_information'),
@@ -313,6 +458,10 @@ def site_information():
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
+        
+        # Audit page access
+        audit_access(username, 'site_information', 'view')
+        
     except Exception as e:
         print(f"site_information() error: {e}")
         
@@ -321,6 +470,8 @@ def site_information():
         
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             'site_information': data.get('site_information'),
@@ -343,9 +494,14 @@ def site_information():
 @app.route('/setting-device', methods=['GET', 'POST'])
 @login_required
 def setting_device():
-    site_name = ""
-    # username login
+    # Check page access permission
     username = current_user.id
+    if not can_access_page(username, 'device_settings'):
+        audit_access(username, 'device_settings', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
 
     # path config device
     path = f'{PATH}/config_device.json'
@@ -363,6 +519,7 @@ def setting_device():
             
             if response:
                 flash('Site Location has been updated successfully', 'success')
+                audit_access(username, 'device_settings', 'update_site_location')
             else:
                 flash('Failed to update Site Location', 'danger')
             return redirect(url_for('setting_device'))
@@ -371,11 +528,16 @@ def setting_device():
             response = update_device_model(path, data)
             if response:
                 flash('Device Info has been updated successfully', 'success')
+                audit_access(username, 'device_settings', 'update_device_model')
             else:
                 flash('Failed to update Device Info', 'danger')
             return redirect(url_for('setting_device'))
     
     try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
         with open(path, 'r') as file:
             data = json.load(file)
 
@@ -384,6 +546,8 @@ def setting_device():
 
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
             'site_information': data.get('site_information'),
@@ -392,6 +556,10 @@ def setting_device():
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
         }
+        
+        # Audit page access
+        audit_access(username, 'device_settings', 'view')
+        
     except Exception as e:
         print(f"setting_device() error: {e}")
         
@@ -400,6 +568,8 @@ def setting_device():
 
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
             'site_information': data.get('site_information'),
@@ -414,9 +584,14 @@ def setting_device():
 @app.route('/setting-ip', methods=['GET', 'POST'])
 @login_required
 def setting_ip():
-    site_name = ""
-    # username login
+    # Check page access permission
     username = current_user.id
+    if not can_access_page(username, 'ip_configuration'):
+        audit_access(username, 'ip_configuration', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
     
     if request.method == 'POST':
         path = './commands/change_ip.py'
@@ -437,6 +612,7 @@ def setting_ip():
             
             if status:
                 flash('IP Address has been changed successfully', 'success')
+                audit_access(username, 'ip_configuration', 'update_ip_settings')
             else:
                 flash('Failed to change IP Address', 'danger')
             return redirect(url_for('setting_ip'))
@@ -444,6 +620,10 @@ def setting_ip():
             flash('Invalid IP Address', 'danger')
             return redirect(url_for('setting_ip'))
     try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
         # get site name
         site_name = red.hget('device_config', 'site_name')
         
@@ -453,6 +633,8 @@ def setting_ip():
         
         context = {
             'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
             'site_name': site_name,
             'data_ip': data_ip,
             'scc_type': scc_type,
@@ -467,11 +649,17 @@ def setting_ip():
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
+        
+        # Audit page access
+        audit_access(username, 'ip_configuration', 'view')
+        
     except Exception as e:
         print(f"setting_ip() error: {e}")
         
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'data_ip': data_ip,
             'scc_type': scc_type,
@@ -492,9 +680,14 @@ def setting_ip():
 @app.route('/setting-scc', methods=['GET', 'POST'])
 @login_required
 def setting_scc():
-    site_name = ""
-    # username login
+    # Check page access permission
     username = current_user.id
+    if not can_access_page(username, 'scc_settings'):
+        audit_access(username, 'scc_settings', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
     
     # path config device
     path = f'{PATH}/config_device.json'
@@ -514,6 +707,7 @@ def setting_scc():
             response = update_scc_type(path, form_data)
             if response:
                 flash('SCC Type has been updated successfully', 'success')
+                audit_access(username, 'scc_settings', 'update_scc_type')
                 bash_command('sudo systemctl restart scc device_config_loader.service webapp.service')
             else:
                 flash('Failed to update SCC Type', 'danger')
@@ -531,6 +725,7 @@ def setting_scc():
                 bash_command('sudo systemctl restart scc device_config_loader.service webapp.service')
                 bash_command('sudo systemctl daemon-reload')
                 flash('SCC ID has been updated successfully', 'success')
+                audit_access(username, 'scc_settings', 'update_scc_id')
             else:
                 flash('Failed to update SCC ID', 'danger')
             return redirect(url_for('setting_scc'))
@@ -539,6 +734,7 @@ def setting_scc():
             response = update_config_cutoff_reconnect(path, form_data)
             if response:
                 flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
+                audit_access(username, 'scc_settings', 'update_relay_config')
                 os.system(f'sudo python3 {PATH}/config_scc.py')
                 bash_command('sudo systemctl restart scc')
             else:
@@ -549,14 +745,23 @@ def setting_scc():
             response = update_config_scc(path, form_data)
             if response:
                 flash('Config Value SCC has been updated successfully', 'success')
+                audit_access(username, 'scc_settings', 'update_scc_config')
                 os.system(f'sudo python3 {PATH}/config_scc.py')
                 bash_command('sudo systemctl restart scc')
             else:
                 flash('Failed to update Config Value SCC', 'danger')
             return redirect(url_for('setting_scc'))
     try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
         # get site name
         site_name = red.hget('device_config', 'site_name')
+        
+        # Audit page access
+        audit_access(username, 'scc_settings', 'view')
+        
     except Exception as e:
         print(f"setting_scc() error: {e}")
         site_name = 'Site Name'
@@ -576,6 +781,8 @@ def setting_scc():
             scc_id_2 = 2
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4',
@@ -600,6 +807,8 @@ def setting_scc():
             scc_id_3 = 3
         context = {
             'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
             'site_name': site_name,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.3.4',
@@ -622,15 +831,30 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        if username in users and password == users[username]['password']:
+        # Check if user is locked
+        if is_user_locked(username):
+            flash('Account is temporarily locked due to too many failed attempts. Please try again later.', 'error')
+            return render_template('login.html')
+        
+        # Verify credentials using the secure authentication system
+        if verify_password(username, password):
             user = User(username)
             login_user(user)
             session['username'] = username
-            flash('Kamu Telah Login Sebagai', 'success')
+            
+            # Audit successful login
+            audit_access(username, 'login', 'successful_login')
+            
+            # Get user role for logging
+            user_role = get_user_role(username)
+            flash(f'Welcome {username.capitalize()}! You are logged in as {user_role}.', 'success')
+            
             return redirect(url_for('index'))
         else:
-            flash('Invalid username or password.', 'danger')
+            # Record failed attempt (already handled in verify_password)
+            flash('Invalid username or password', 'error')
             return redirect(url_for('login'))
+            
     return render_template('login.html')
 
 
