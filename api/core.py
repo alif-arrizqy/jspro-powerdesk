@@ -54,7 +54,7 @@ def register_error_handlers(app):
             <title>404 Not Found</title>
             <h1>Not Found</h1>
             <p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
-            <p><a href="/api/">API Documentation</a> | <a href="/api/docs/">Swagger UI</a></p>
+            <p><a href="/api/">API Documentation</a></p>
             ''', 404
 
     @app.errorhandler(405)
