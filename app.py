@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-# app.secret_key = '7yBkBOPs92u9HZQeyqlmyNVKv8_RTd3hQoziImBnsME'
 app.secret_key = os.getenv('SECRET_KEY')
 
 # Register all API blueprints and error handlers
