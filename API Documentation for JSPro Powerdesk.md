@@ -35,7 +35,7 @@ All API responses follow a consistent structure:
             "total": 15.4,
             "unit": "GB"
         },
-        "last_update": "2025-07-18T10:10:23"
+        "last_update": "2025-07-18 10:10:23"
     }
 }
 ```
@@ -71,7 +71,7 @@ All API responses follow a consistent structure:
             "software_version": "2.0.0",
             "hardware_version": "2.0.0"
         },
-        "last_update": "2025-07-18T10:10:23"
+        "last_update": "2025-07-18 10:10:23"
     }
 }
 ```
@@ -98,7 +98,7 @@ All API responses follow a consistent structure:
             "scc_logs.timer": "active"
         },
         "system_uptime": "2d 2h",
-        "last_update": "2025-07-18T10:10:23"
+        "last_update": "2025-07-18 10:10:23"
     }
 }
 ```
@@ -213,7 +213,7 @@ All API responses follow a consistent structure:
             "bts_reconnect": 4900,
             "bts_cutoff": 4800
         },
-        "last_update": "2025-07-18T10:10:23"
+        "last_update": "2025-07-18 10:10:23"
     }
 }
 ```
@@ -230,47 +230,145 @@ All API responses follow a consistent structure:
     "data": {
         "bms_data": [
             {
+                "ambient_temperature": 338,
+                "average_cell_temperature": 315,
+                "cell_difference": 10,
+                "cell_temperature": [
+                    318,
+                    313,
+                    313
+                ],
+                "cell_voltage": [
+                    3386,
+                    3392,
+                    3396,
+                    3390,
+                    3393,
+                    3388,
+                    3389,
+                    3390,
+                    3388,
+                    3392,
+                    3396,
+                    3393,
+                    3390,
+                    3386,
+                    3387,
+                    3389
+                ],
+                "counter": 9,
+                "cycle_count": 1,
+                "environment_temperature": 338,
+                "error_messages": [
+                    "Pack voltage 5424 exceeds limit 5325",
+                    "Max cell voltage 3396 exceeds limit 425 at indices [2, 10]",
+                    "Min cell voltage 3386 exceeds limit 375 at indices [0, 13]",
+                    "Cell difference 10 below limit 300",
+                    "Max cell temperature 318 exceeds limit 240 at indices [0]",
+                    "Min cell temperature 313 exceeds limit 230 at indices [1, 2]",
+                    "FET temperature 318 exceeds limit 250"
+                ],
+                "fault_status_flag": [
+                    "state of charge",
+                    "charge Mosfet ON",
+                    "discharge Mosfet ON",
+                    "charge limit current function is ON"
+                ],
+                "fet_temperature": 318,
+                "full_charged_capacity": 108,
+                "max_cell_temperature": 318,
+                "max_cell_voltage": 3396,
+                "min_cell_temperature": 313,
+                "min_cell_voltage": 3386,
+                "pack_current": 35,
+                "pack_voltage": 5424,
+                "pcb_code": "TBI24032703195",
+                "port": "usb0",
+                "protection_flag": [
+                    "no alarm detected"
+                ],
+                "remaining_capacity": 108,
+                "remaining_charge_time": 0,
+                "remaining_discharge_time": 65535,
                 "slave_id": 1,
-                "port": "usb0",
+                "sn1_code": "AO67950111",
+                "soc": 10000,
+                "soh": 10000,
+                "warning_flag": [
+                    "no alarm detected"
+                ]
             },
             {
-                "slave_id": 2,
-                "port": "usb0",
-            },
-            {
-                "slave_id": 3,
-                "port": "usb0",
-            },
-            {
-                "slave_id": 4,
-                "port": "usb0",
-            },
-            {
-                "slave_id": 5,
-                "port": "usb0",
-            },
-            {
+                "ambient_temperature": 337,
+                "average_cell_temperature": 315,
+                "cell_difference": 17,
+                "cell_temperature": [
+                    314,
+                    314,
+                    315
+                ],
+                "cell_voltage": [
+                    3388,
+                    3387,
+                    3386,
+                    3386,
+                    3386,
+                    3388,
+                    3389,
+                    3390,
+                    3385,
+                    3395,
+                    3388,
+                    3385,
+                    3387,
+                    3387,
+                    3402,
+                    3385
+                ],
+                "counter": 9,
+                "cycle_count": 2,
+                "environment_temperature": 337,
+                "error_messages": [
+                    "Pack voltage 5421 exceeds limit 5325",
+                    "Max cell voltage 3402 exceeds limit 425 at indices [14]",
+                    "Min cell voltage 3385 exceeds limit 375 at indices [8, 11, 15]",
+                    "Cell difference 17 below limit 300",
+                    "Max cell temperature 320 exceeds limit 240",
+                    "Min cell temperature 314 exceeds limit 230 at indices [0, 1]",
+                    "FET temperature 319 exceeds limit 250"
+                ],
+                "fault_status_flag": [
+                    "state of charge",
+                    "charge Mosfet ON",
+                    "discharge Mosfet ON",
+                    "charge limit current function is ON"
+                ],
+                "fet_temperature": 319,
+                "full_charged_capacity": 108,
+                "max_cell_temperature": 320,
+                "max_cell_voltage": 3402,
+                "min_cell_temperature": 314,
+                "min_cell_voltage": 3385,
+                "pack_current": 33,
+                "pack_voltage": 5421,
+                "pcb_code": "TBI24032703301",
+                "port": "usb1",
+                "protection_flag": [
+                    "no alarm detected"
+                ],
+                "remaining_capacity": 108,
+                "remaining_charge_time": 0,
+                "remaining_discharge_time": 65535,
                 "slave_id": 6,
-                "port": "usb1",
-            },
-            {
-                "slave_id": 7,
-                "port": "usb1",
-            },
-            {
-                "slave_id": 8,
-                "port": "usb1",
-            },
-            {
-                "slave_id": 9,
-                "port": "usb1",
-            },
-            {
-                "slave_id": 10,
-                "port": "usb1",
+                "sn1_code": "AO67950135",
+                "soc": 10000,
+                "soh": 10000,
+                "warning_flag": [
+                    "no alarm detected"
+                ]
             },
         ],
-        "last_update": "2025-07-18T10:10:23"
+        "last_update": "2025-07-18 10:10:23"
     },
 }
 ```
@@ -337,7 +435,7 @@ All API responses follow a consistent structure:
                 "status": true
             },
         ],
-        "last_update": "2025-07-18T10:10:23Z"
+        "last_update": "2025-07-18 10:10:23"
     }
 }
 ```
@@ -361,7 +459,7 @@ All API responses follow a consistent structure:
     "data": {
         "records": [
             {
-                "timestamp": "2025-07-21T10:30:00",
+                "timestamp": "2025-07-21 10:30:00",
                 "energy_data": {
                     "scc_voltage": 48.5,
                     "scc_current": 12.3,
@@ -384,7 +482,7 @@ All API responses follow a consistent structure:
             "offset": 0,
             "has_next": true
         },
-        "last_update": "2025-07-21T10:30:00"
+        "last_update": "2025-07-21 10:30:00"
     }
 }
 ```
@@ -402,7 +500,7 @@ All API responses follow a consistent structure:
     "site_name": "Sundaya RnD",
     "data": [
         {
-            "timestamp": "2025-07-21T10:30:00",
+            "timestamp": "2025-07-21 10:30:00",
             "energy_data": {
                 "scc_voltage": 48.5,
                 "scc_current": 12.3,
@@ -464,7 +562,7 @@ All API responses follow a consistent structure:
         "records": [
             {
                 "id": 1,
-                "timestamp": "2025-07-21T10:30:00",
+                "timestamp": "2025-07-21 10:30:00",
                 "energy_data": {
                     "scc_voltage": 48.5,
                     "scc_current": 12.3,
@@ -479,7 +577,7 @@ All API responses follow a consistent structure:
                         "temperature": 25.4
                     }
                 ],
-                "created_at": "2025-07-21T10:30:00"
+                "created_at": "2025-07-21 10:30:00"
             }
         ],
         "total_records": 1000,
@@ -488,7 +586,7 @@ All API responses follow a consistent structure:
             "offset": 0,
             "has_next": true
         },
-        "last_update": "2025-07-21T10:30:00"
+        "last_update": "2025-07-21 10:30:00"
     }
 }
 ```
@@ -504,7 +602,7 @@ All API responses follow a consistent structure:
     "table_name": "energy_logs",
     "data": [
         {
-            "timestamp": "2025-07-21T10:30:00",
+            "timestamp": "2025-07-21 10:30:00",
             "energy_data": {
                 "scc_voltage": 48.5,
                 "scc_current": 12.3,
@@ -568,7 +666,7 @@ All API responses follow a consistent structure:
             "logger_records": 22,
             "sqlite_records": 100,
         },
-        "last_update": "2025-07-18T10:10:23"
+        "last_update": "2025-07-18 10:10:23"
     }
 }
 ```
@@ -585,7 +683,7 @@ All API responses follow a consistent structure:
     "data": {
         "data_statistics": {
             "total_alarm_logs": 100,
-            "last_update": "2025-07-18T10:10:23"
+            "last_update": "2025-07-18 10:10:23"
         }
     }
 }
@@ -610,7 +708,7 @@ All API responses follow a consistent structure:
                 "battery_voltage": 5333,
                 "device_temperature": 28,
                 "load_status": "is standby",
-                "timestamp": "2025-07-21T10:30:00"
+                "timestamp": "2025-07-21 10:30:00"
             },
             {
                 "device": "scc2",
@@ -619,7 +717,7 @@ All API responses follow a consistent structure:
                 "battery_voltage": 5333,
                 "device_temperature": 28,
                 "load_status": "is standby",
-                "timestamp": "2025-07-21T10:30:00"
+                "timestamp": "2025-07-21 10:30:00"
             },
         ],
         "page_info": {
@@ -627,7 +725,7 @@ All API responses follow a consistent structure:
             "offset": 0,
             "has_next": true
         },
-        "last_update": "2025-07-21T10:30:00"
+        "last_update": "2025-07-21 10:30:00"
     }
 }
 ```
@@ -643,7 +741,7 @@ All API responses follow a consistent structure:
     "status": "success",
     "data": {
         "logger_records": 100,
-        "last_update": "2025-07-18T10:10:23",
+        "last_update": "2025-07-18 10:10:23",
         "logs": [
             {
                 "scc1": {
