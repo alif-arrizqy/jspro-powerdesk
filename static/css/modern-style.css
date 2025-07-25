@@ -1321,6 +1321,54 @@ body {
     color: #e2e8f0;
 }
 
+/* Dark theme text utility classes */
+.dark-theme .text-muted {
+    color: #94a3b8 !important;
+}
+
+.dark-theme .text-primary {
+    color: #60a5fa !important;
+}
+
+.dark-theme .text-secondary {
+    color: #94a3b8 !important;
+}
+
+.dark-theme .text-success {
+    color: #34d399 !important;
+}
+
+.dark-theme .text-danger {
+    color: #f87171 !important;
+}
+
+.dark-theme .text-warning {
+    color: #fbbf24 !important;
+}
+
+.dark-theme .text-info {
+    color: #60a5fa !important;
+}
+
+.dark-theme .text-light {
+    color: #f8fafc !important;
+}
+
+.dark-theme .text-dark {
+    color: #1f2937 !important;
+}
+
+/* Dark theme small text elements */
+.dark-theme .small,
+.dark-theme small {
+    color: #94a3b8;
+}
+
+/* Dark theme span elements inside dashboard */
+.dark-theme span.text-muted {
+    color: #94a3b8 !important;
+}
+
 /* Dark theme sidebar */
 .dark-theme .sidebar {
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
@@ -1469,6 +1517,58 @@ body {
 
 .dark-theme .stats-trend {
     color: #94a3b8;
+}
+
+/* Dark theme stats card specific elements */
+.dark-theme .stats-card-title {
+    color: #e2e8f0;
+}
+
+.dark-theme .stats-card-value {
+    color: #e2e8f0;
+}
+
+.dark-theme .stats-card-subtitle {
+    color: #94a3b8 !important;
+}
+
+.dark-theme .stats-card .small,
+.dark-theme .stats-card small {
+    color: #94a3b8 !important;
+}
+
+/* Dark theme modern card elements */
+.dark-theme .modern-card {
+    background-color: #1e293b;
+    border: 1px solid #374151;
+    color: #e2e8f0;
+}
+
+.dark-theme .modern-card-header {
+    background-color: #374151;
+    border-bottom: 1px solid #4b5563;
+    color: #e2e8f0;
+}
+
+.dark-theme .modern-card-body {
+    color: #e2e8f0;
+}
+
+.dark-theme .modern-card-title {
+    color: #e2e8f0;
+}
+
+/* Dark theme dashboard specific text elements */
+.dark-theme #scc1-device-id,
+.dark-theme #scc2-device-id,
+.dark-theme #scc3-device-id,
+.dark-theme #scc1-counter-heartbeat,
+.dark-theme #scc2-counter-heartbeat,
+.dark-theme #scc3-counter-heartbeat,
+.dark-theme #last-update-1,
+.dark-theme #last-update-2,
+.dark-theme #last-update-3 {
+    color: #94a3b8 !important;
 }
 
 /* Dark theme tables */
