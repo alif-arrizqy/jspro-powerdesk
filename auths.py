@@ -62,6 +62,7 @@ ROLE_PERMISSIONS = {
             'dashboard',
             'scc_monitoring',
             'battery_monitoring', 
+            'cockpit_service',
             'systemd_service',
             'site_information',
             'device_settings',
@@ -112,6 +113,7 @@ ROLE_PERMISSIONS = {
             'scc_monitoring',
             'battery_monitoring',
             'mqtt_service',
+            'cockpit_service',
             'systemd_service',
             'datalog',
             'scc_alarm_log',
@@ -155,6 +157,7 @@ MENU_ACCESS = {
         },
         'services': {
             'mqtt': False,
+            'cockpit': True,
             'systemd': True
         },
         'historical': {
@@ -199,6 +202,7 @@ MENU_ACCESS = {
         },
         'services': {
             'mqtt': True,
+            'cockpit': True,
             'systemd': True
         },
         'historical': {

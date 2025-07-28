@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cockpit Service - Sundaya EHub-Talis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .cockpit-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-top: 5vh;
+        }
+        
+        .cockpit-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .cockpit-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .credentials-card {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .credential-item:last-child {
+            border-bottom: none;
+        }
+        
+        .credential-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #212529;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .credential-value:hover {
+            background: #007bff;
+            color: white;
+        }
+        
+        .redirect-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .redirect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        
+        .countdown {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .instruction-list {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .instruction-list h5 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .instruction-list li {
+            margin-bottom: 8px;
+            color: #856404;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: blink 1.5s infinite;
+        }
+        
+        .status-online {
+            background-color: #28a745;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-btn">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="cockpit-container">
+                    <div class="cockpit-header">
+                        <div class="cockpit-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h1 class="fw-bold text-dark mb-3">
+                            <span class="status-indicator status-online"></span>
+                            Cockpit Web Console
+                        </h1>
+                        <p class="text-muted fs-5">
+                            System Administration & Monitoring Dashboard
+                        </p>
+                    </div>
+
+                    <div class="credentials-card">
+                        <h4 class="text-center mb-3">
+                            <i class="fas fa-key me-2"></i>Login Credentials
+                        </h4>
+                        <div class="credential-item">
+                            <span class="credential-label">
+                                <i class="fas fa-user me-2"></i>Username:
+                            </span>
+                            <span class="credential-value" onclick="copyToClipboard('pi')" title="Click to copy">
+                                pi
+                            </span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">
+                                <i class="fas fa-lock me-2"></i>Password:
+                            </span>
+                            <span class="credential-value" onclick="copyToClipboard('raspberry')" title="Click to copy">
+                                raspberry
+                            </span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">
+                                <i class="fas fa-globe me-2"></i>URL:
+                            </span>
+                            <span class="credential-value" onclick="copyToClipboard(getCockpitUrl())" title="Click to copy">
+                                <span id="cockpit-url">Loading...</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="instruction-list">
+                        <h5>
+                            <i class="fas fa-info-circle me-2"></i>Quick Instructions:
+                        </h5>
+                        <ol>
+                            <li>Click the "Open Cockpit Console" button below</li>
+                            <li>Use the credentials above to login</li>
+                            <li>Navigate to <strong>Logs</strong> section for system logs</li>
+                            <li>Use <strong>Services</strong> section to manage systemd services</li>
+                            <li>Check <strong>System</strong> for resource monitoring</li>
+                        </ol>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Tip:</strong> Click on any credential above to copy it to clipboard!
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="mb-3">
+                            <i class="fas fa-clock me-2"></i>
+                            Auto-redirect in <span class="countdown" id="countdown">10</span> seconds
+                        </p>
+                        
+                        <a href="#" class="redirect-btn" id="cockpit-btn" onclick="openCockpit()">
+                            <i class="fas fa-external-link-alt me-2"></i>
+                            Open Cockpit Console
+                        </a>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-outline-secondary" onclick="cancelRedirect()">
+                                <i class="fas fa-times me-2"></i>Cancel Auto-redirect
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Sundaya EHub-Talis Management System
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let countdownInterval;
+        let redirectCancelled = false;
+        
+        // Get current host IP for Cockpit URL
+        function getCockpitUrl() {
+            const hostname = window.location.hostname;
+            return `http://${hostname}:9090`;
+        }
+        
+        // Update Cockpit URL in the page
+        function updateCockpitUrl() {
+            const cockpitUrl = getCockpitUrl();
+            document.getElementById('cockpit-url').textContent = cockpitUrl;
+            document.getElementById('cockpit-btn').href = cockpitUrl;
+        }
+        
+        // Copy text to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success feedback
+                const Toast = new bootstrap.Toast(document.getElementById('copyToast') || createToast());
+                Toast.show();
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Copied to clipboard: ' + text);
+                } catch (err) {
+                    console.error('Fallback: Could not copy text: ', err);
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+        
+        // Create toast notification for copy feedback
+        function createToast() {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.innerHTML = `
+                <div class="toast" id="copyToast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong class="me-auto">Success</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        Copied to clipboard!
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+            return document.getElementById('copyToast');
+        }
+        
+        // Open Cockpit in new tab/window
+        function openCockpit() {
+            const cockpitUrl = getCockpitUrl();
+            window.open(cockpitUrl, '_blank');
+        }
+        
+        // Countdown and auto-redirect
+        function startCountdown() {
+            let seconds = 10;
+            const countdownElement = document.getElementById('countdown');
+            
+            countdownInterval = setInterval(function() {
+                if (redirectCancelled) {
+                    clearInterval(countdownInterval);
+                    return;
+                }
+                
+                seconds--;
+                countdownElement.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    if (!redirectCancelled) {
+                        openCockpit();
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Cancel auto-redirect
+        function cancelRedirect() {
+            redirectCancelled = true;
+            clearInterval(countdownInterval);
+            document.getElementById('countdown').textContent = 'cancelled';
+            document.querySelector('.countdown').style.color = '#6c757d';
+            
+            // Hide cancel button
+            const cancelBtn = document.querySelector('button[onclick="cancelRedirect()"]');
+            cancelBtn.style.display = 'none';
+            
+            // Show confirmation
+            const confirmation = document.createElement('div');
+            confirmation.className = 'alert alert-info mt-2';
+            confirmation.innerHTML = '<i class="fas fa-info-circle me-2"></i>Auto-redirect cancelled. Click the button above to open Cockpit manually.';
+            cancelBtn.parentNode.appendChild(confirmation);
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCockpitUrl();
+            startCountdown();
+            
+            // Update URL every 5 seconds in case of network changes
+            setInterval(updateCockpitUrl, 5000);
+        });
+        
+        // Handle page visibility change (pause countdown when tab is not active)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearInterval(countdownInterval);
+            } else if (!redirectCancelled) {
+                // Resume countdown if page becomes visible again
+                const currentSeconds = parseInt(document.getElementById('countdown').textContent);
+                if (currentSeconds > 0) {
+                    startCountdown();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
