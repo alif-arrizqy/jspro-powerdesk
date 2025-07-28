@@ -31,3 +31,7 @@ else:
     number_of_cell = 16
 
 slave_ids = 10
+
+# Application PATH configuration
+# PATH = "/var/lib/sundaya/ehub-talis"  # Production path
+PATH = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis"  # Development path

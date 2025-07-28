@@ -9,6 +9,7 @@ from api.core import register_blueprints, register_error_handlers
 from api.redisconnection import connection as red
 from auths import USERS, verify_password, record_successful_login, record_failed_attempt, is_user_locked, get_user_role, audit_access, get_menu_access, can_access_page
 from validations import validate_setting_ip, validate_modbus_id
+from config import number_of_scc, PATH
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,9 +30,6 @@ login_manager.login_view = 'login'
 class User(UserMixin):
     def __init__(self, username):
         self.id = username
-
-# PATH = "/var/lib/sundaya/ehub-talis"
-PATH = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis"
 
 @login_manager.user_loader
 def load_user(username):
