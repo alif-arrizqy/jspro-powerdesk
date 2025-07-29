@@ -2,12 +2,52 @@ import json
 import sqlite3
 import os
 from datetime import datetime, timedelta
-from flask import jsonify
+from flask import jsonify, request
 from . import monitoring_bp
 from ..redisconnection import connection as red
 from auths import token_auth as auth
 from config import number_of_scc, slave_ids, PATH
-from redis.exceptions import RedisError
+
+
+def get_battery_port_configuration():
+    """
+    Get battery port configuration based on device settings
+    Returns list of active USB ports
+    """
+    try:
+        # Get device configuration from Redis
+        device_config = red.hget('device_config', 'device_version')
+        if device_config:
+            device = json.loads(device_config)
+            battery_type = device.get('battery_type', 'mix')
+        else:
+            # Fallback to checking bms_system_info
+            bms_info = red.hget('bms_system_info', 'battery_type')
+            battery_type = bms_info.decode('utf-8') if bms_info else 'mix'
+        
+        # Determine active ports based on battery type
+        if battery_type == 'talis5':
+            # Talis5 typically uses both USB ports
+            active_ports = ['usb0', 'usb1']
+        else:
+            # Mix and other types typically use only USB0
+            active_ports = ['usb0']
+        
+        # Verify which ports actually have active data
+        verified_ports = []
+        for port in active_ports:
+            # Check if there's any active data for this port
+            active_data = red.hgetall(f'bms_active_{port}')
+            if active_data:
+                verified_ports.append(port)
+        
+        # If no verified ports found, fallback to usb0
+        return verified_ports if verified_ports else ['usb0']
+        
+    except Exception as e:
+        print(f"Error getting battery port configuration: {e}")
+        # Fallback to default configuration
+        return ['usb0']
 
 
 @monitoring_bp.route('/scc', methods=['GET'])
