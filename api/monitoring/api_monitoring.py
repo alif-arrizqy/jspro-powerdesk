@@ -278,40 +278,73 @@ def get_scc_chart_data():
             "data": None
         }), 500
 
-
 @monitoring_bp.route('/battery', methods=['GET'])
 @auth.login_required
 def get_battery_monitoring():
-    """Get battery monitoring data for all BMS units"""
+    """Get battery monitoring data from Redis hget bms_usb* keys based on active slaves configuration"""
     try:
         bms_data = []
-
-        # Get BMS data for USB0
-        # logger data for usb0
-        for slave_id in range(1, slave_ids + 1):
-            bms_data_json = red.hget("bms_usb0", f"slave_id_{slave_id}")
-            if bms_data_json:
-                bms_logger = json.loads(bms_data_json)
-                # trim pcb_code
-                bms_logger['pcb_code'] = bms_logger['pcb_code'].strip()
-                bms_data.append(bms_logger)
+        active_slaves_config = {}
+        
+        # First, read bms_active_slaves configuration
+        try:
+            active_slaves_data = red.hget('bms_active_slaves', 'status')
+            if active_slaves_data:
+                # Parse the JSON data
+                if isinstance(active_slaves_data, bytes):
+                    active_slaves_data = active_slaves_data.decode('utf-8')
+                
+                active_slaves_config = json.loads(active_slaves_data)
+                ports_config = active_slaves_config.get('ports', {})
+                last_update = active_slaves_config.get('last_update', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             else:
-                print(f"No data found for slave_id_{slave_id} in usb0")
-
-        # logger data for usb1
-        for slave_id in range(1, slave_ids + 1):
-            bms_data_json = red.hget("bms_usb1", f"slave_id_{slave_id}")
-            if bms_data_json:
-                bms_logger = json.loads(bms_data_json)
-                # trim pcb_code
-                bms_logger['pcb_code'] = bms_logger['pcb_code'].strip()
-                bms_data.append(bms_logger)
-            else:
-                print(f"No data found for slave_id_{slave_id} in usb1")
-
+                # Fallback to get active ports configuration
+                active_ports = get_battery_port_configuration()
+                ports_config = {}
+                for port in active_ports:
+                    ports_config[port] = list(range(1, slave_ids + 1))
+                last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"Error parsing active slaves configuration: {e}")
+            # Fallback to get active ports configuration
+            active_ports = get_battery_port_configuration()
+            ports_config = {}
+            for port in active_ports:
+                ports_config[port] = list(range(1, slave_ids + 1))
+            last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Get BMS data from each active port and slave based on configuration
+        for port, active_slave_list in ports_config.items():
+            try:
+                # Get data for each active slave ID on this port
+                for slave_id in active_slave_list:
+                    bms_data_json = red.hget(f"bms_{port}", f"slave_id_{slave_id}")
+                    
+                    if bms_data_json:
+                        try:
+                            bms_logger = json.loads(bms_data_json)
+                            
+                            # Only include data that has pcb_code
+                            if 'pcb_code' in bms_logger and bms_logger['pcb_code']:
+                                # Clean pcb_code
+                                bms_logger['pcb_code'] = str(bms_logger['pcb_code']).strip()
+                                
+                                # Add port information
+                                bms_logger['port'] = port
+                                
+                                bms_data.append(bms_logger)
+                                
+                        except json.JSONDecodeError as e:
+                            print(f"Error parsing BMS data for {port} slave {slave_id}: {e}")
+                            
+            except Exception as e:
+                print(f"Error processing port {port}: {e}")
+        
         response_data = {
             "bms_data": bms_data,
-            "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            "active_slaves_config": active_slaves_config,
+            "last_update": last_update
         }
 
         return jsonify({
@@ -324,47 +357,85 @@ def get_battery_monitoring():
         print(f"Error getting battery monitoring data: {e}")
         return jsonify({
             "status_code": 500,
-            "message": "Internal server error",
+            "message": f"Internal server error: {str(e)}",
             "data": None
         }), 500
-
 
 @monitoring_bp.route('/battery/active', methods=['GET'])
 @auth.login_required
 def get_battery_monitoring_active():
-    """Get active battery monitoring data with status information"""
+    """Get active battery monitoring data based on bms_active_slaves configuration"""
     try:
         bms_data = []
-
-        # Get BMS active data for USB0
-        bms_active_usb0 = red.hgetall('bms_active_usb0')
-        for slave_id in range(1, slave_ids + 1):
-            slave_key = f"slave_id_{slave_id}"
-            status = bool(int(bms_active_usb0.get(slave_key, 0)))
-            
-            bms_info = {
-                "slave_id": slave_id,
-                "port": "usb0",
-                "status": status
-            }
-            bms_data.append(bms_info)
-
-        # Get BMS active data for USB1
-        bms_active_usb1 = red.hgetall('bms_active_usb1')
-        for slave_id in range(1, slave_ids + 1):
-            slave_key = f"slave_id_{slave_id}"
-            status = bool(int(bms_active_usb1.get(slave_key, 0)))
-            
-            bms_info = {
-                "slave_id": slave_id,
-                "port": "usb1", 
-                "status": status
-            }
-            bms_data.append(bms_info)
+        
+        # Get active slaves configuration from Redis
+        try:
+            active_slaves_data = red.hget('bms_active_slaves', 'status')
+            if active_slaves_data:
+                # Parse the JSON data
+                if isinstance(active_slaves_data, bytes):
+                    active_slaves_data = active_slaves_data.decode('utf-8')
+                
+                active_slaves_config = json.loads(active_slaves_data)
+                ports_config = active_slaves_config.get('ports', {})
+                last_update = active_slaves_config.get('last_update', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            else:
+                # Fallback to empty configuration
+                ports_config = {}
+                last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"Error parsing active slaves configuration: {e}")
+            ports_config = {}
+            last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Process each port from the configuration
+        for port, active_slave_list in ports_config.items():
+            try:
+                # Get BMS active data for this port
+                bms_active_data = red.hgetall(f'bms_active_{port}')
+                
+                # Process all slaves (both active and inactive) for this port
+                for slave_id in active_slave_list:
+                    slave_key = f"slave_id_{slave_id}"
+                    
+                    # Get status from Redis (handle both string and bytes)
+                    status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
+                    
+                    if status_value is not None:
+                        # Convert to boolean (handle bytes/string)
+                        if isinstance(status_value, bytes):
+                            status_value = status_value.decode('utf-8')
+                        
+                        try:
+                            status = bool(int(status_value))
+                        except (ValueError, TypeError):
+                            status = False
+                    else:
+                        status = False
+                    
+                    bms_info = {
+                        "slave_id": slave_id,
+                        "port": port,
+                        "status": status
+                    }
+                    bms_data.append(bms_info)
+                    
+            except Exception as e:
+                print(f"Error processing port {port}: {e}")
+                # Add error entries for this port's slaves
+                for slave_id in active_slave_list:
+                    bms_info = {
+                        "slave_id": slave_id,
+                        "port": port,
+                        "status": False,
+                        "error": f"Failed to read data for port {port}"
+                    }
+                    bms_data.append(bms_info)
 
         response_data = {
             "bms_data": bms_data,
-            "last_update": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            "last_update": last_update
         }
 
         return jsonify({
@@ -377,6 +448,237 @@ def get_battery_monitoring_active():
         print(f"Error getting active battery monitoring data: {e}")
         return jsonify({
             "status_code": 500,
-            "message": "Internal server error",
+            "message": f"Internal server error: {str(e)}",
             "data": None
         }), 500
+
+@monitoring_bp.route('/battery/chart', methods=['GET'])
+@auth.login_required
+def get_battery_chart_data():
+    """Get battery monitoring data for chart from SQLite database by slave ID"""
+    try:
+        # Get query parameters
+        slave_id = request.args.get('slave_id', type=int)
+        hours = request.args.get('hours', 24, type=int)  # Default last 24 hours
+        
+        # Path to SQLite database
+        db_path = f"{PATH}/data_storage.db"
+        print(f"DEBUG: Database path: {db_path}")
+
+        # Check if database exists
+        if not os.path.exists(db_path):
+            print(f"DEBUG: Database not found at: {db_path}")
+            return jsonify({
+                "status_code": 404,
+                "status": "error",
+                "message": "Database not found",
+                "data": None
+            }), 404
+
+        # Connect to SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Calculate timestamp for specified hours ago
+        hours_ago = datetime.now() - timedelta(hours=hours)
+        print(f"DEBUG: Querying data from: {hours_ago.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Build query based on whether slave_id is specified
+        if slave_id:
+            print(f"DEBUG: Querying for specific slave_id: {slave_id}")
+            # Query for specific slave ID
+            cursor.execute("""
+                SELECT 
+                    collection_time, slave_id, pcb_code, pack_voltage, 
+                    pack_current, max_cell_voltage, min_cell_voltage,
+                    cell_difference
+                FROM bms_data 
+                WHERE collection_time >= ? AND slave_id = ?
+                ORDER BY collection_time ASC
+            """, (hours_ago.strftime('%Y-%m-%d %H:%M:%S'), slave_id))
+        else:
+            print("DEBUG: Querying for all slave_ids")
+            # Query for all slave IDs
+            cursor.execute("""
+                SELECT 
+                    collection_time, slave_id, pcb_code, pack_voltage, 
+                    pack_current, max_cell_voltage, min_cell_voltage,
+                    cell_difference
+                FROM bms_data 
+                WHERE collection_time >= ?
+                ORDER BY collection_time ASC, slave_id ASC
+            """, (hours_ago.strftime('%Y-%m-%d %H:%M:%S'),))
+        
+        rows = cursor.fetchall()
+        print(f"DEBUG: Found {len(rows)} rows in database")
+        
+        # Debug: Print first few rows if any
+        if rows:
+            print(f"DEBUG: First row sample: {rows[0]}")
+        else:
+            # Check if table exists and has any data
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='bms_data'")
+            table_exists = cursor.fetchone()
+            print(f"DEBUG: Table 'bms_data' exists: {table_exists is not None}")
+            
+            if table_exists:
+                cursor.execute("SELECT COUNT(*) FROM bms_data")
+                total_count = cursor.fetchone()[0]
+                print(f"DEBUG: Total records in bms_data: {total_count}")
+                
+                cursor.execute("SELECT MAX(collection_time), MIN(collection_time) FROM bms_data")
+                time_range = cursor.fetchone()
+                print(f"DEBUG: Data time range: {time_range}")
+        
+        conn.close()
+        
+        # Process data for chart
+        chart_data = {
+            "labels": [],
+            "datasets": {
+                "pack_voltage": [],
+                "pack_current": [],
+                "max_cell_voltage": [],
+                "min_cell_voltage": [],
+                "cell_difference": []
+            },
+            "slave_data": {}
+        }
+        
+        # Group data by slave_id
+        slave_groups = {}
+        time_labels = set()
+        
+        for row in rows:
+            collection_time, s_id, pcb_code, pack_voltage, pack_current, max_cell_voltage, min_cell_voltage, cell_difference = row
+            
+            # Parse datetime and format for chart label
+            try:
+                dt = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S')
+                time_label = dt.strftime('%H:%M')
+                time_labels.add(time_label)
+                
+                # Group by slave_id
+                if s_id not in slave_groups:
+                    slave_groups[s_id] = {
+                        "pcb_code": pcb_code,
+                        "data": [],
+                        "pack_voltage": [],
+                        "pack_current": [],
+                        "max_cell_voltage": [],
+                        "min_cell_voltage": [],
+                        "cell_difference": []
+                    }
+                
+                # Add data point
+                data_point = {
+                    "time": time_label,
+                    "pack_voltage": round(float(pack_voltage or 0), 2),
+                    "pack_current": round(float(pack_current or 0), 2),
+                    "max_cell_voltage": (max_cell_voltage or 0),
+                    "min_cell_voltage": (min_cell_voltage or 0),
+                    "cell_difference": (cell_difference or 0),
+                }
+                
+                slave_groups[s_id]["data"].append(data_point)
+                slave_groups[s_id]["pack_voltage"].append(data_point["pack_voltage"])
+                slave_groups[s_id]["pack_current"].append(data_point["pack_current"])
+                slave_groups[s_id]["max_cell_voltage"].append(data_point["max_cell_voltage"])
+                slave_groups[s_id]["min_cell_voltage"].append(data_point["min_cell_voltage"])
+                slave_groups[s_id]["cell_difference"].append(data_point["cell_difference"])
+                
+            except ValueError as e:
+                print(f"Error parsing datetime: {e}")
+                continue
+        
+        print(f"DEBUG: Processed {len(slave_groups)} slave groups")
+        
+        # Sort time labels
+        sorted_labels = sorted(list(time_labels))
+        chart_data["labels"] = sorted_labels
+        
+        # Prepare datasets for chart visualization
+        for s_id, slave_info in slave_groups.items():
+            pcb_code = slave_info["pcb_code"] or f"Slave_{s_id}"
+            
+            chart_data["datasets"]["pack_voltage"].append({
+                "label": f"{pcb_code} - Pack Voltage (V)",
+                "slave_id": s_id,
+                "data": slave_info["pack_voltage"]
+            })
+            
+            chart_data["datasets"]["pack_current"].append({
+                "label": f"{pcb_code} - Pack Current (A)",
+                "slave_id": s_id,
+                "data": slave_info["pack_current"]
+            })
+            
+            chart_data["datasets"]["max_cell_voltage"].append({
+                "label": f"{pcb_code} - Max Cell Voltage (mV)",
+                "slave_id": s_id,
+                "data": slave_info["max_cell_voltage"]
+            })
+            
+            chart_data["datasets"]["min_cell_voltage"].append({
+                "label": f"{pcb_code} - Min Cell Voltage (mV)",
+                "slave_id": s_id,
+                "data": slave_info["min_cell_voltage"]
+            })
+            
+            chart_data["datasets"]["cell_difference"].append({
+                "label": f"{pcb_code} - Cell Difference (mV)",
+                "slave_id": s_id,
+                "data": slave_info["cell_difference"]
+            })
+        
+        # Store detailed slave data
+        chart_data["slave_data"] = slave_groups
+        
+        # If no data found, return empty structure
+        if not rows:
+            chart_data["labels"] = []
+            for metric in chart_data["datasets"]:
+                chart_data["datasets"][metric] = []
+        
+        response_data = {
+            "chart_data": chart_data,
+            "query_params": {
+                "slave_id": slave_id,
+                "hours": hours
+            },
+            "data_points": len(rows),
+            "slaves_count": len(slave_groups),
+            "query_time": hours_ago.strftime("%Y-%m-%d %H:%M:%S"),
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "debug_info": {
+                "db_path": db_path,
+                "db_exists": os.path.exists(db_path),
+                "rows_found": len(rows),
+                "time_range_query": hours_ago.strftime('%Y-%m-%d %H:%M:%S')
+            }
+        }
+
+        return jsonify({
+            "status_code": 200,
+            "status": "success",
+            "data": response_data
+        }), 200
+
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+        return jsonify({
+            "status_code": 500,
+            "status": "error",
+            "message": f"Database error: {str(e)}",
+            "data": None
+        }), 500
+        
+    except Exception as e:
+        print(f"Error getting battery chart data: {e}")
+        return jsonify({
+            "status_code": 500,
+            "status": "error", 
+            "message": f"Internal server error: {str(e)}",
+            "data": None
+        }), 500
+
