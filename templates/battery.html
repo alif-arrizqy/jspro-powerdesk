@@ -380,25 +380,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Battery Chart -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="modern-card">
-                <div class="modern-card-header">
-                    <h3 class="modern-card-title">
-                        <i class="fas fa-chart-area"></i>
-                        Battery Pack {{i}} - Performance Chart
-                    </h3>
-                </div>
-                <div class="modern-card-body">
-                    <div class="chart-container">
-                        <canvas id="batteryChart{{i}}"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 {% endfor %}
 
@@ -406,7 +387,14 @@
 
 {% block scripts %}
 <script>
+    // const API_BASE_URL = 'http://{{ ip_address }}/api/v1/monitoring';
+    const API_BASE_URL = 'http://10.10.10.60/api/v1/monitoring';
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Get authentication token and user role from server
+        const userToken = '{{ session.get("auth_token", "") }}';
+        const userRole = '{{ user_role }}';
+
         // Pack selector functionality
         const packSelectors = document.querySelectorAll('.pack-selector');
         const packInformation = document.querySelectorAll('.pack-information');
@@ -432,9 +420,6 @@
                 // Add active class to selected selector
                 this.classList.remove('btn-secondary');
                 this.classList.add('btn-primary');
-                
-                // Initialize chart for selected pack
-                initializeBatteryChart(packNumber);
             });
         });
         
@@ -443,9 +428,58 @@
             packSelectors[0].click();
         }
         
-        // Start battery simulation with dummy data
-        startBatterySimulation();
+        // Start battery monitoring with real API data
+        startBatteryMonitoring();
     });
+
+    // API functions to fetch real data
+    async function fetchBatteryData() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/battery`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            return result.data;
+        } catch (error) {
+            console.error('Error fetching battery data:', error);
+            return null;
+        }
+    }
+
+    async function fetchBatteryActiveData() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/battery/active`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            return result.data;
+        } catch (error) {
+            console.error('Error fetching battery active data:', error);
+            return null;
+        }
+    }
 
     // Helper function to update status indicator elements
     function updateStatusIndicator(elementId, status, activeStates = ['Online', 'ON'], dangerStates = ['Offline', 'modbus error', 'unknown status']) {
@@ -463,130 +497,112 @@
         }
     }
 
-    // Dummy data generation functions
-    function generateDummyBatteryData() {
-        const statuses = ['Online', 'Offline', 'modbus error', 'unknown status'];
-        const mosfetStates = ['ON', 'OFF'];
-        
-        return {
-            packNumber: Math.floor(Math.random() * 4) + 1,
-            packStatus: Math.random() > 0.15 ? 'Online' : statuses[Math.floor(Math.random() * statuses.length)],
-            port: Math.random() > 0.5 ? 'USB0' : 'USB1',
-            voltage: (48 + Math.random() * 6 - 3).toFixed(2), // 45-51V
-            current: (Math.random() * 100 - 50).toFixed(2), // -50 to 50A
-            temperature: (25 + Math.random() * 10).toFixed(1), // 25-35°C
-            soc: Math.floor(Math.random() * 100), // 0-100%
-            soh: Math.floor(85 + Math.random() * 15), // 85-100%
-            cycles: Math.floor(Math.random() * 1000), // 0-1000 cycles
-            capacity: (80 + Math.random() * 20).toFixed(1), // 80-100%
-            cellVoltages: Array.from({length: 16}, () => 
-                (3.2 + Math.random() * 0.4).toFixed(3) // 3.2-3.6V per cell
-            ),
-            maxCellVoltage: (3.4 + Math.random() * 0.2).toFixed(3),
-            minCellVoltage: (3.2 + Math.random() * 0.2).toFixed(3),
-            cellDifference: Math.floor(Math.random() * 200), // 0-200mV
-            pcbCode: `PCB${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-            snCode: `SN${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-            heartbeat: Math.floor(Math.random() * 1000),
-            cmosStatus: mosfetStates[Math.floor(Math.random() * mosfetStates.length)],
-            dmosStatus: mosfetStates[Math.floor(Math.random() * mosfetStates.length)],
-            cmosTemp: (30 + Math.random() * 10).toFixed(1),
-            dmosTemp: (32 + Math.random() * 10).toFixed(1),
-            envTemp: (25 + Math.random() * 8).toFixed(1),
-            topTemp: (28 + Math.random() * 7).toFixed(1),
-            midTemp: (27 + Math.random() * 6).toFixed(1),
-            botTemp: (26 + Math.random() * 5).toFixed(1),
-            lastUpdate: new Date().toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            })
-        };
-    }
-
-    function updateBatteryUI(packNumber, data) {
-        // Update pack status overview
-        const packNumberEl = document.getElementById(`pack${packNumber}-number`);
-        const packStatusEl = document.getElementById(`pack-status-${packNumber}`);
-        const portEl = document.getElementById(`port-${packNumber}`);
-        const voltageEl = document.getElementById(`pack${packNumber}-voltage`);
-        
-        if (packNumberEl) packNumberEl.textContent = packNumber;
-        
-        // Update pack status using helper function
-        updateStatusIndicator(`pack-status-${packNumber}`, data.packStatus, ['Online'], ['Offline']);
-        
-        if (portEl) portEl.textContent = data.port;
-        if (voltageEl) voltageEl.textContent = `${data.voltage} V`;
-
-        // Update additional elements
-        const pcbCodeEl = document.getElementById(`pcb-code-${packNumber}`);
-        const snCodeEl = document.getElementById(`sn-code-${packNumber}`);
-        const heartbeatEl = document.getElementById(`heartbeat-${packNumber}`);
-        
-        if (pcbCodeEl) pcbCodeEl.textContent = data.pcbCode;
-        if (snCodeEl) snCodeEl.textContent = data.snCode;
-        if (heartbeatEl) heartbeatEl.textContent = `Heartbeat: ${data.heartbeat}`;
-
-        // Update last update timestamp
-        const lastUpdateEl = document.getElementById(`last-update-${packNumber}`);
-        if (lastUpdateEl) lastUpdateEl.textContent = `Last Update: ${data.lastUpdate}`;
-
-        // Update key metrics
-        const currentEl = document.getElementById(`pack${packNumber}-current`);
-        const temperatureEl = document.getElementById(`pack${packNumber}-temperature`);
-        const socEl = document.getElementById(`pack${packNumber}-soc`);
-        const sohEl = document.getElementById(`pack${packNumber}-soh`);
-        const cyclesEl = document.getElementById(`pack${packNumber}-cycles`);
-        const capacityEl = document.getElementById(`pack${packNumber}-capacity`);
-
-        if (currentEl) currentEl.textContent = `${data.current} A`;
-        if (temperatureEl) temperatureEl.textContent = `${data.temperature} °C`;
-        if (socEl) socEl.textContent = `${data.soc}%`;
-        if (sohEl) sohEl.textContent = `${data.soh}%`;
-        if (cyclesEl) cyclesEl.textContent = data.cycles;
-        if (capacityEl) capacityEl.textContent = `${data.capacity}%`;
-
-        // Update status information
-        const cellMaxEl = document.getElementById(`cell-max-${packNumber}`);
-        const cellMinEl = document.getElementById(`cell-min-${packNumber}`);
-        const cellDiffEl = document.getElementById(`cell-diff-${packNumber}`);
-
-        if (cellMaxEl) cellMaxEl.textContent = `${data.maxCellVoltage} V`;
-        if (cellMinEl) cellMinEl.textContent = `${data.minCellVoltage} V`;
-        if (cellDiffEl) cellDiffEl.textContent = `${data.cellDifference} mV`;
-
-        // Update MOSFET status using helper function
-        updateStatusIndicator(`cmos-status-${packNumber}`, data.cmosStatus, ['ON'], ['OFF']);
-        updateStatusIndicator(`dmos-status-${packNumber}`, data.dmosStatus, ['ON'], ['OFF']);
-
-        // Update temperature status
-        const cmosTemperatureEl = document.getElementById(`cmos-temp-${packNumber}`);
-        const dmosTemperatureEl = document.getElementById(`dmos-temp-${packNumber}`);
-        const topTemperatureEl = document.getElementById(`top-temp-${packNumber}`);
-        const midTemperatureEl = document.getElementById(`mid-temp-${packNumber}`);
-        const botTemperatureEl = document.getElementById(`bot-temp-${packNumber}`);
-
-        if (cmosTemperatureEl) cmosTemperatureEl.textContent = `${data.cmosTemp} °C`;
-        if (dmosTemperatureEl) dmosTemperatureEl.textContent = `${data.dmosTemp} °C`;
-        if (topTemperatureEl) topTemperatureEl.textContent = `${data.topTemp} °C`;
-        if (midTemperatureEl) midTemperatureEl.textContent = `${data.midTemp} °C`;
-        if (botTemperatureEl) botTemperatureEl.textContent = `${data.botTemp} °C`;
-
-        // Update cell voltages
-        for (let i = 1; i <= 16; i++) {
-            const cellEl = document.getElementById(`pack${packNumber}-cell${i}-voltage`);
-            if (cellEl && data.cellVoltages[i-1]) {
-                cellEl.textContent = `${data.cellVoltages[i-1]} V`;
-            }
+    // Process real battery data and map to UI
+    function updateBatteryUIFromAPI(batteryData, activeData) {
+        if (!batteryData || !batteryData.bms_data) {
+            console.log('No battery data available');
+            return;
         }
 
-        // Update chart data
-        updateBatteryChart(packNumber, data);
+        // Create a map of active slaves for quick lookup
+        const activeSlaves = {};
+        if (activeData && activeData.bms_data) {
+            activeData.bms_data.forEach(slave => {
+                activeSlaves[slave.slave_id] = slave.status;
+            });
+        }
+
+        // Process each BMS data entry
+        batteryData.bms_data.forEach((bms, index) => {
+            const packNumber = bms.slave_id; // Use slave_id as pack number
+            const isActive = activeSlaves[bms.slave_id] || false;
+            
+            // Update pack status overview
+            const packStatusEl = document.getElementById(`pack-status-${packNumber}`);
+            const portEl = document.getElementById(`port-${packNumber}`);
+            const voltageEl = document.getElementById(`pack${packNumber}-voltage`);
+            
+            // Update pack status based on active status
+            updateStatusIndicator(`pack-status-${packNumber}`, isActive ? 'Online' : 'Offline', ['Online'], ['Offline']);
+            
+            if (portEl) portEl.textContent = bms.port || 'Unknown';
+            if (voltageEl) voltageEl.textContent = `${(parseFloat(bms.pack_voltage || 0) / 100).toFixed(2)} V`;
+
+            // Update additional elements
+            const pcbCodeEl = document.getElementById(`pcb-code-${packNumber}`);
+            const snCodeEl = document.getElementById(`sn-code-${packNumber}`);
+            const heartbeatEl = document.getElementById(`heartbeat-${packNumber}`);
+            
+            if (pcbCodeEl) pcbCodeEl.textContent = bms.pcb_code || 'N/A';
+            if (snCodeEl) snCodeEl.textContent = bms.sn1_code || 'N/A';
+            if (heartbeatEl) heartbeatEl.textContent = `Heartbeat: ${bms.counter || 0}`;
+
+            // Update last update timestamp
+            const lastUpdateEl = document.getElementById(`last-update-${packNumber}`);
+            if (lastUpdateEl) lastUpdateEl.textContent = `Last Update: ${bms.last_update || 'N/A'}`;
+
+            // Update key metrics
+            const currentEl = document.getElementById(`pack${packNumber}-current`);
+            const temperatureEl = document.getElementById(`pack${packNumber}-temperature`);
+            const socEl = document.getElementById(`pack${packNumber}-soc`);
+            const sohEl = document.getElementById(`pack${packNumber}-soh`);
+            const cyclesEl = document.getElementById(`pack${packNumber}-cycles`);
+            const capacityEl = document.getElementById(`pack${packNumber}-capacity`);
+
+            if (currentEl) currentEl.textContent = `${parseFloat(bms.pack_current || 0).toFixed(2)} A`;
+            if (temperatureEl) temperatureEl.textContent = `${parseFloat(bms.pack_temperature || 0).toFixed(1)} °C`;
+            if (socEl) socEl.textContent = `${(bms.soc / 100).toFixed(0) || 0}%`;
+            if (sohEl) sohEl.textContent = `${(bms.soh / 100).toFixed(0) || 0}%`;
+            if (cyclesEl) cyclesEl.textContent = bms.cycles || 0;
+            if (capacityEl) capacityEl.textContent = `${(bms.capacity / 100).toFixed(0) || 0}%`;
+
+            // Update status information
+            const cellMaxEl = document.getElementById(`cell-max-${packNumber}`);
+            const cellMinEl = document.getElementById(`cell-min-${packNumber}`);
+            const cellDiffEl = document.getElementById(`cell-diff-${packNumber}`);
+
+            if (cellMaxEl) cellMaxEl.textContent = `${bms.max_cell_voltage || 0} mV`;
+            if (cellMinEl) cellMinEl.textContent = `${bms.min_cell_voltage || 0} mV`;
+            if (cellDiffEl) cellDiffEl.textContent = `${bms.cell_difference || 0} mV`;
+
+            // Update MOSFET status
+            let cmosStatus = 'OFF';
+            let dmosStatus = 'OFF';
+            
+            if (bms.fault_status_flag && Array.isArray(bms.fault_status_flag)) {
+                cmosStatus = bms.fault_status_flag.includes('charge Mosfet ON') ? 'ON' : 'OFF';
+                dmosStatus = bms.fault_status_flag.includes('discharge Mosfet ON') ? 'ON' : 'OFF';
+            }
+            
+            updateStatusIndicator(`cmos-status-${packNumber}`, cmosStatus, ['ON'], ['OFF']);
+            updateStatusIndicator(`dmos-status-${packNumber}`, dmosStatus, ['ON'], ['OFF']);
+
+
+            // Update temperature status
+            const cmosTemperatureEl = document.getElementById(`cmos-temp-${packNumber}`);
+            const dmosTemperatureEl = document.getElementById(`dmos-temp-${packNumber}`);
+            const topTemperatureEl = document.getElementById(`top-temp-${packNumber}`);
+            const midTemperatureEl = document.getElementById(`mid-temp-${packNumber}`);
+            const botTemperatureEl = document.getElementById(`bot-temp-${packNumber}`);
+
+            if (cmosTemperatureEl) cmosTemperatureEl.textContent = `${parseFloat(bms.cmos_temp || 0).toFixed(1)} °C`;
+            if (dmosTemperatureEl) dmosTemperatureEl.textContent = `${parseFloat(bms.dmos_temp || 0).toFixed(1)} °C`;
+            if (topTemperatureEl) topTemperatureEl.textContent = `${parseFloat(bms.env_temp || 0).toFixed(1)} °C`;
+            if (midTemperatureEl) midTemperatureEl.textContent = `${parseFloat(bms.env_temp || 0).toFixed(1)} °C`;
+            if (botTemperatureEl) botTemperatureEl.textContent = `${parseFloat(bms.env_temp || 0).toFixed(1)} °C`;
+
+            // Update cell voltages (if available)
+            for (let i = 1; i <= 16; i++) {
+                const cellEl = document.getElementById(`pack${packNumber}-cell${i}-voltage`);
+                if (cellEl) {
+                    const cellVoltage = bms[`cell_${i}_voltage`] || 0;
+                    cellEl.textContent = `${cellVoltage} mV`;
+                }
+            }
+
+            // Update chart data
+            updateBatteryChart(packNumber, bms);
+        });
     }
 
     function updateBatteryChart(packNumber, data) {
@@ -598,11 +614,11 @@
             
             // Add new data point
             chart.data.labels.push(now);
-            chart.data.datasets[0].data.push(parseFloat(data.voltage));
-            chart.data.datasets[1].data.push(parseFloat(data.current));
-            chart.data.datasets[2].data.push(parseFloat(data.maxCellVoltage));
-            chart.data.datasets[3].data.push(parseFloat(data.minCellVoltage));
-            chart.data.datasets[4].data.push(data.cellDifference);
+            chart.data.datasets[0].data.push(parseFloat(data.pack_voltage || data.voltage || 0));
+            chart.data.datasets[1].data.push(parseFloat(data.pack_current || data.current || 0));
+            chart.data.datasets[2].data.push(parseFloat(data.max_cell_voltage || data.maxCellVoltage || 0));
+            chart.data.datasets[3].data.push(parseFloat(data.min_cell_voltage || data.minCellVoltage || 0));
+            chart.data.datasets[4].data.push(parseFloat(data.cell_difference || data.cellDifference || 0));
             
             // Keep only last 20 data points
             if (chart.data.labels.length > 20) {
@@ -614,135 +630,35 @@
         }
     }
 
-    function startBatterySimulation() {
-        const numberOfBattery = {{ number_of_battery }};
+    async function startBatteryMonitoring() {
+        // Load initial data
+        await loadBatteryData();
         
-        // Update battery data every 2 seconds
-        setInterval(() => {
-            for (let i = 1; i <= numberOfBattery; i++) {
-                const dummyData = generateDummyBatteryData();
-                updateBatteryUI(i, dummyData);
+        // Set up periodic updates every 5 seconds
+        setInterval(async () => {
+            await loadBatteryData();
+        }, 5000);
+    }
+
+    async function loadBatteryData() {
+        try {
+            // Fetch both battery and active data
+            const [batteryData, activeData] = await Promise.all([
+                fetchBatteryData(),
+                fetchBatteryActiveData()
+            ]);
+
+            if (batteryData && batteryData.bms_data && batteryData.bms_data.length > 0) {
+                // Use real API data
+                updateBatteryUIFromAPI(batteryData, activeData);
+                console.log('Updated UI with real battery data');
+            } else {
+                console.log('No battery data available from API');
             }
-        }, 2000);
-        
-        // Initial data load
-        for (let i = 1; i <= numberOfBattery; i++) {
-            const dummyData = generateDummyBatteryData();
-            updateBatteryUI(i, dummyData);
+        } catch (error) {
+            console.error('Error loading battery data:', error);
         }
     }
 
-    function initializeBatteryChart(packNumber) {
-        const chartId = `batteryChart${packNumber}`;
-        
-        // Destroy existing chart if it exists
-        if (window.powerDeskApp && window.powerDeskApp.charts[chartId]) {
-            window.powerDeskApp.destroyChart(chartId);
-        }
-        
-        // Create new chart
-        if (window.powerDeskApp) {
-            window.powerDeskApp.createChart(chartId, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Voltage (V)',
-                            data: [],
-                            borderColor: 'rgb(37, 99, 235)',
-                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                            yAxisID: 'y',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Current (A)',
-                            data: [],
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            yAxisID: 'y1',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Max Cell Voltage (V)',
-                            data: [],
-                            borderColor: 'rgba(239, 66, 66, 1)',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            yAxisID: 'y',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Min Cell Voltage (V)',
-                            data: [],
-                            borderColor: 'rgba(17, 228, 20, 1)',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            yAxisID: 'y',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Cell Difference',
-                            data: [],
-                            borderColor: 'rgba(226, 214, 39, 1)',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            yAxisID: 'y2',
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Time'
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Voltage (V)'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Current (A)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        },
-                        y2: {
-                            type: 'linear',
-                            display: false,
-                            position: 'right',
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: `Battery Pack ${packNumber} - Real-time Performance`
-                        }
-                    }
-                }
-            });
-        }
-    }
 </script>
 {% endblock %}
