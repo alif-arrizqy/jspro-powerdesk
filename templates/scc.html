@@ -40,11 +40,11 @@
                                     <i class="fas fa-satellite"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4700</h3>
+                            <h3 class="stats-card-value" id="vsat-reconnect">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-up me-2"></i>
                                 Vsat Reconnect (mV)
-                            </p>
+                            </p>``
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -55,7 +55,7 @@
                                     <i class="fas fa-satellite"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4600</h3>
+                            <h3 class="stats-card-value" id="vsat-cutoff">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-down me-2"></i>
                                 Vsat Cut Off (mV)
@@ -70,7 +70,7 @@
                                     <i class="fas fa-broadcast-tower"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4900</h3>
+                            <h3 class="stats-card-value" id="bts-reconnect">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-up me-2"></i>
                                 BTS Reconnect (mV)
@@ -85,7 +85,7 @@
                                     <i class="fas fa-broadcast-tower"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value">4800</h3>
+                            <h3 class="stats-card-value" id="bts-cutoff">Loading...</h3>
                             <p class="stats-card-subtitle">
                                 <i class="fas fa-arrow-down me-2"></i>
                                 BTS Cut Off (mV)
@@ -298,19 +298,19 @@
                                         <tbody>
                                             <tr>
                                                 <td>Battery High Temp Protection 1</td>
-                                                <td><span id="scc{{i}}-batt-hi-temp-1" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-batt-hi-temp-protection-1" class="badge">-</span></td>
                                             </tr>
                                             <tr>
                                                 <td>Battery High Temp Protection 2</td>
-                                                <td><span id="scc{{i}}-batt-hi-temp-2" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-batt-hi-temp-protection-2" class="badge">-</span></td>
                                             </tr>
                                             <tr>
                                                 <td>Battery Low Temp Protection 1</td>
-                                                <td><span id="scc{{i}}-batt-lo-temp-1" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-batt-lo-temp-protection-1" class="badge">-</span></td>
                                             </tr>
                                             <tr>
                                                 <td>Battery Low Temp Protection 2</td>
-                                                <td><span id="scc{{i}}-batt-lo-temp-2" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-batt-lo-temp-protection-2" class="badge">-</span></td>
                                             </tr>
                                             <tr>
                                                 <td>Battery Over Discharge</td>
@@ -333,16 +333,48 @@
                                                 <td><span id="scc{{i}}-controller-temp-high" class="badge">-</span></td>
                                             </tr>
                                             <tr>
+                                                <td>Induction Probe Damaged</td>
+                                                <td><span id="scc{{i}}-induction-probe-damaged" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Load Open Circuit</td>
+                                                <td><span id="scc{{i}}-load-open-circuit" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
                                                 <td>Load Over Current/Power</td>
-                                                <td><span id="scc{{i}}-load-over-current" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-load-over-current-power" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Load Short Circuit</td>
+                                                <td><span id="scc{{i}}-load-short" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Battery Detected SLD</td>
+                                                <td><span id="scc{{i}}-oo-battery-detected-sld" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Overcharge Protection</td>
+                                                <td><span id="scc{{i}}-overcharge-protection" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Power Supply Status</td>
+                                                <td><span id="scc{{i}}-power-supply-status" class="badge">-</span></td>
                                             </tr>
                                             <tr>
                                                 <td>PV Input Overpower</td>
-                                                <td><span id="scc{{i}}-pv-overpower" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-pv-input-overpower" class="badge">-</span></td>
                                             </tr>
                                             <tr>
                                                 <td>PV Input Overvoltage</td>
-                                                <td><span id="scc{{i}}-pv-overvolt" class="badge">-</span></td>
+                                                <td><span id="scc{{i}}-pv-input-overvolt" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Solar Panel Reversed</td>
+                                                <td><span id="scc{{i}}-solar-panel-reversed" class="badge">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Solar Panel Working Point Overvoltage</td>
+                                                <td><span id="scc{{i}}-solar-panel-working-point-overvolt" class="badge">-</span></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -369,8 +401,8 @@
                                             <div><span id="scc{{i}}-battery-identification" class="badge">-</span></div>
                                         </div>
                                         <div class="col-6">
-                                            <small class="text-muted">Battery Resistance</small>
-                                            <div><span id="scc{{i}}-battery-resistance" class="badge">-</span></div>
+                                            <small class="text-muted">Battery Inner Resistance</small>
+                                            <div><span id="scc{{i}}-battery-inner-resistance" class="badge">-</span></div>
                                         </div>
                                         <div class="col-6">
                                             <small class="text-muted">Battery Temperature</small>
@@ -499,589 +531,556 @@
 
 {% block scripts %}
 <script>
-    // Initialize power generation chart
+    // Global variables for SCC monitoring
+    let sccChart = null;
+    let updateInterval = null;
+    let chartUpdateInterval = null;
+    
+    // Configuration
+    // const API_BASE_URL = 'http://{{ ip_address }}/api/v1/monitoring';
+    const API_BASE_URL = '/api/v1/monitoring';
+
+    const UPDATE_INTERVAL = 5000; // 5 seconds
+    const CHART_UPDATE_INTERVAL = 60000; // 1 minute
+    
+    // Initialize SCC monitoring
     document.addEventListener('DOMContentLoaded', function() {
+        // Get authentication token and user role from server
+        const userToken = '{{ session.get("auth_token", "") }}';
+        const userRole = '{{ user_role }}';
+
+        initializeSCCChart();
+        startDataFetching();
+        
+        // Initial data load
+        fetchSCCData();
+        fetchChartData();
+    });
+
+    // Initialize power generation chart
+    function initializeSCCChart() {
         const ctx = document.getElementById('powerChart');
-        if (ctx) {
-            // Generate time labels for the last 24 hours
-            const generateTimeLabels = () => {
-                const labels = [];
-                const now = new Date();
-                for (let i = 23; i >= 0; i--) {
-                    const time = new Date(now.getTime() - i * 60 * 60 * 1000);
-                    labels.push(time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-                }
-                return labels;
-            };
+        if (!ctx) return;
 
-            // Generate realistic dummy data for SCC power generation
-            const generatePowerData = (baseValue, variance = 20) => {
-                const data = [];
-                const now = new Date();
-                const currentHour = now.getHours();
-                
-                for (let i = 23; i >= 0; i--) {
-                    const hour = (currentHour - i + 24) % 24;
-                    let power = 0;
-                    
-                    // Simulate solar power generation based on time of day
-                    if (hour >= 6 && hour <= 18) {
-                        // Daytime power generation (6 AM - 6 PM)
-                        const normalizedHour = (hour - 6) / 12; // 0 to 1
-                        const solarCurve = Math.sin(normalizedHour * Math.PI); // Bell curve
-                        power = baseValue * solarCurve * (0.8 + Math.random() * 0.4);
-                    } else {
-                        // Nighttime - minimal or no power
-                        power = Math.random() * 5; // 0-5W noise
-                    }
-                    
-                    // Add some random variance
-                    power += (Math.random() - 0.5) * variance;
-                    data.push(Math.max(0, Math.round(power)));
-                }
-                return data;
-            };
-
-            window.powerDeskApp.createChart('powerChart', {
-                type: 'line',
-                data: {
-                    labels: generateTimeLabels(),
-                    datasets: [
-                        {% for i in range(1, number_of_scc+1) %}
-                        {
-                            label: 'SCC {{i}} Power (W)',
-                            data: generatePowerData({{ 120 + (i * 30) }}, {{ 20 + (i * 5) }}),
-                            borderColor: '{% if i == 1 %}rgb(37, 99, 235){% elif i == 2 %}rgb(16, 185, 129){% elif i == 3 %}rgb(245, 101, 101){% elif i == 4 %}rgb(251, 146, 60){% else %}rgb(168, 85, 247){% endif %}',
-                            backgroundColor: '{% if i == 1 %}rgba(37, 99, 235, 0.1){% elif i == 2 %}rgba(16, 185, 129, 0.1){% elif i == 3 %}rgba(245, 101, 101, 0.1){% elif i == 4 %}rgba(251, 146, 60, 0.1){% else %}rgba(168, 85, 247, 0.1){% endif %}',
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 3,
-                            pointHoverRadius: 6
-                        }{% if not loop.last %},{% endif %}
-                        {% endfor %}
-                    ]
+        sccChart = window.powerDeskApp.createChart('powerChart', {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Power (W)',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)',
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return value + ' W';
-                                }
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Time (24 Hours)',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)',
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
+                scales: {
+                    y: {
+                        beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Real-time Solar Power Generation - Last 24 Hours',
+                            text: 'Battery (V)',
                             font: {
-                                size: 16,
+                                size: 14,
                                 weight: 'bold'
-                            },
-                            padding: 20
+                            }
                         },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: 'white',
-                            bodyColor: 'white',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            displayColors: true,
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y + ' W';
-                                },
-                                afterLabel: function(context) {
-                                    const total = context.chart.data.datasets.reduce((sum, dataset) => {
-                                        return sum + dataset.data[context.dataIndex];
-                                    }, 0);
-                                    return 'Total: ' + total + ' W';
-                                }
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' W';
                             }
                         }
                     },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeInOutQuart'
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (24 Hours)',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                        }
                     }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Real-time Battery Voltage - Last 24 Hours',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        padding: 20
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' V';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+
+    // Start data fetching intervals
+    function startDataFetching() {
+        // Real-time SCC data updates
+        updateInterval = setInterval(fetchSCCData, UPDATE_INTERVAL);
+        
+        // Chart data updates (less frequent)
+        chartUpdateInterval = setInterval(fetchChartData, CHART_UPDATE_INTERVAL);
+    }
+
+    // Fetch real-time SCC data from API
+    async function fetchSCCData() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/scc`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
                 }
             });
 
-            // Function to update chart with new data (simulating real-time updates)
-            const updateChartData = () => {
-                const chart = window.powerDeskApp.getChart('powerChart');
-                if (chart) {
-                    const now = new Date();
-                    const currentHour = now.getHours();
-                    const numberOfScc = {{ number_of_scc }};
-                    
-                    // Generate new data point
-                    const generateCurrentPower = (baseValue) => {
-                        let power = 0;
-                        if (currentHour >= 6 && currentHour <= 18) {
-                            const normalizedHour = (currentHour - 6) / 12;
-                            const solarCurve = Math.sin(normalizedHour * Math.PI);
-                            power = baseValue * solarCurve * (0.8 + Math.random() * 0.4);
-                        } else {
-                            power = Math.random() * 5;
-                        }
-                        return Math.max(0, Math.round(power));
-                    };
-                    
-                    // Remove oldest data point and add new one
-                    const newTimeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                    
-                    chart.data.labels.shift();
-                    chart.data.labels.push(newTimeLabel);
-                    
-                    // Update data for each SCC dataset
-                    for (let i = 0; i < numberOfScc && i < chart.data.datasets.length; i++) {
-                        const baseValue = 120 + (i * 30); // Different base values for each SCC
-                        chart.data.datasets[i].data.shift();
-                        chart.data.datasets[i].data.push(generateCurrentPower(baseValue));
-                    }
-                    
-                    chart.update('none'); // Update without animation for real-time feel
-                }
-            };
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-            // Update chart every 30 seconds
-            setInterval(updateChartData, 30000);
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.data) {
+                updateSCCDisplay(result.data);
+                updateLastUpdateTime(result.data.last_update);
+            } else {
+                console.error('API response error:', result.message || 'Unknown error');
+                showErrorMessage('Failed to fetch SCC data');
+            }
+
+        } catch (error) {
+            console.error('Error fetching SCC data:', error);
+            showErrorMessage('Connection error - using offline mode');
+        }
+    }
+
+    // Fetch chart data from SQLite via API
+    async function fetchChartData() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/scc/chart`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.data && result.data.chart_data) {
+                updateChart(result.data.chart_data);
+            } else {
+                console.error('Chart API response error:', result.message || 'Unknown error');
+            }
+
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+        }
+    }
+
+    // Update SCC display with real data
+    function updateSCCDisplay(data) {
+        // Update relay configuration
+        if (data.relay_configuration) {
+            updateRelayConfiguration(data.relay_configuration);
+        }
+
+        // Update each SCC
+        const numberOfScc = {{ number_of_scc }};
+        for (let i = 1; i <= numberOfScc; i++) {
+            const sccKey = `scc${i}`;
+            const sccData = data[sccKey];
+            
+            if (sccData) {
+                updateSCCCard(i, sccData);
+            }
+        }
+    }
+
+    // Update relay configuration display
+    function updateRelayConfiguration(relayConfig) {
+        // Update relay configuration cards using specific IDs
+        if (relayConfig.vsat_reconnect !== undefined) {
+            updateElement('vsat-reconnect', relayConfig.vsat_reconnect + ' mV');
+        }
+        
+        if (relayConfig.vsat_cutoff !== undefined) {
+            updateElement('vsat-cutoff', relayConfig.vsat_cutoff + ' mV');
+        }
+        
+        if (relayConfig.bts_reconnect !== undefined) {
+            updateElement('bts-reconnect', relayConfig.bts_reconnect + ' mV');
+        }
+        
+        if (relayConfig.bts_cutoff !== undefined) {
+            updateElement('bts-cutoff', relayConfig.bts_cutoff + ' mV');
+        }
+    }
+
+    // Update individual SCC card
+    function updateSCCCard(sccNumber, sccData) {
+        // Device ID and heartbeat
+        updateElement(`scc${sccNumber}-device-id`, `SCC ID: ${sccData.scc_id || 'N/A'}`);
+        updateElement(`scc${sccNumber}-counter-heartbeat`, `Heartbeat: ${sccData.counter_heartbeat || 'N/A'}`);
+        
+        // PV Voltage
+        updateElementWithColor(`pv${sccNumber}-voltage`, 
+            formatValue(sccData.pv_voltage, 'V', 1), 
+            getVoltageColor(sccData.pv_voltage));
+        
+        // PV Current
+        updateElementWithColor(`pv${sccNumber}-current`, 
+            formatValue(sccData.pv_current, 'A', 2), 
+            getCurrentColor(sccData.pv_current));
+        
+        // Load Voltage
+        updateElement(`load${sccNumber}-voltage`, formatValue(sccData.load_voltage, 'V', 1));
+        
+        // Load Current
+        updateElement(`load${sccNumber}-current`, formatValue(sccData.load_current, 'A', 2));
+        
+        // Load Power
+        updateElement(`load${sccNumber}-power`, formatValue(sccData.load_power, 'W', 1));
+        
+        // SCC Status
+        updateStatusBadge(`scc${sccNumber}-status`, sccData.load_status);
+        
+        // Update alarms if available
+        if (sccData.alarm_status) {
+            updateAlarmStatus(sccNumber, sccData.alarm_status);
+        }
+        
+        // Update temperatures
+        if (sccData.battery_temperature !== undefined) {
+            updateElement(`scc${sccNumber}-battery-temp`, formatValue(sccData.battery_temperature, '°C', 1));
+        }
+        
+        if (sccData.device_temperature !== undefined) {
+            updateElement(`scc${sccNumber}-controller-temp`, formatValue(sccData.device_temperature, '°C', 1));
+        }
+    }
+
+    // Update alarm status for SCC
+    function updateAlarmStatus(sccNumber, alarmStatus) {
+        const sccType = '{{ scc_type }}';
+        let activeAlarms = 0;
+        let alarmMessages = [];
+        
+        if (sccType === 'scc-srne') {
+            // Handle SCC-SRNE alarm structure
+            const srneAlarmMap = {
+                'batt_hi_temp_protection_1': 'Battery High Temperature Protection 1',
+                'batt_hi_temp_protection_2': 'Battery High Temperature Protection 2',
+                'batt_lo_temp_protection_1': 'Battery Low Temperature Protection 1',
+                'batt_lo_temp_protection_2': 'Battery Low Temperature Protection 2',
+                'batt_overdisc': 'Battery Over Discharge',
+                'batt_overvolt': 'Battery Overvoltage',
+                'batt_reversed': 'Battery Reversed',
+                'batt_undervolt': 'Battery Undervoltage',
+                'controller_temp_high': 'Controller High Temperature',
+                'induction_probe_damaged': 'Induction Probe Damaged',
+                'load_open_circuit': 'Load Open Circuit',
+                'load_over_current_power': 'Load Over Current/Power',
+                'load_short': 'Load Short Circuit',
+                'oo_battery_detected_sld': 'Battery Detected SLD',
+                'overcharge_protection': 'Overcharge Protection',
+                'power_supply_status': 'Power Supply Status',
+                'pv_input_overpower': 'PV Input Overpower',
+                'pv_input_overvolt': 'PV Input Overvoltage',
+                'solar_panel_reversed': 'Solar Panel Reversed',
+                'solar_panel_working_point_overvolt': 'Solar Panel Working Point Overvoltage'
+            };
+            
+            // Check each SRNE alarm
+            Object.keys(srneAlarmMap).forEach(key => {
+                const value = alarmStatus[key];
+                const elementId = `scc${sccNumber}-${key.replace(/_/g, '-')}`;
+                const element = document.getElementById(elementId);
+                
+                if (element) {
+                    if (value === 1) {
+                        element.textContent = 'ACTIVE';
+                        element.className = 'badge bg-danger';
+                        activeAlarms++;
+                        alarmMessages.push(srneAlarmMap[key]);
+                    } else {
+                        element.textContent = 'NORMAL';
+                        element.className = 'badge bg-success';
+                    }
+                }
+            });
+            
+        } else if (sccType === 'scc-epveper') {
+            // Handle SCC-EPVEPER alarm structure
+            const epveperAlarmMap = {
+                // Alarm status mapping with messages
+                'standby': 'Standby mode',
+                'unrecognized': 'Unrecognized status',
+                'fault': 'Fault detected',
+                'overvoltage': 'Overvoltage condition',
+                'short_circuit': 'Short circuit detected',
+                'abnormal': 'Abnormal condition',
+                'unable': 'Unable to operate',
+                'overload': 'Overload condition',
+                'low_voltage': 'Low voltage detected',
+                'high_voltage': 'High voltage detected',
+                'no_access': 'No access to system',
+                'wrong': 'Wrong operation',
+                'overtemp': 'Overtemperature condition',
+                'lowtemp': 'Low temperature condition',
+                'overdischarge': 'Overdischarge condition',
+                'undervoltage': 'Undervoltage condition'
+            };
+            
+            // Update battery status alarms
+            if (alarmStatus.battery_status) {
+                Object.keys(alarmStatus.battery_status).forEach(key => {
+                    const value = alarmStatus.battery_status[key];
+                    const elementId = `scc${sccNumber}-${key.replace(/_/g, '-')}`;
+                    updateAlarmBadge(elementId, value);
+                    
+                    if (value !== 'normal' && value !== 'running' && epveperAlarmMap[value]) {
+                        activeAlarms++;
+                        alarmMessages.push(`Battery: ${epveperAlarmMap[value]}`);
+                    }
+                });
+            }
+            
+            // Update charging status alarms
+            if (alarmStatus.charging_status) {
+                Object.keys(alarmStatus.charging_status).forEach(key => {
+                    const value = alarmStatus.charging_status[key];
+                    const elementId = `scc${sccNumber}-${key.replace(/_/g, '-')}`;
+                    updateAlarmBadge(elementId, value);
+                    
+                    if (value !== 'normal' && value !== 'running' && value !== 'boost' && value !== 'light_load' && epveperAlarmMap[value]) {
+                        activeAlarms++;
+                        alarmMessages.push(`Charging: ${epveperAlarmMap[value]}`);
+                    }
+                });
+            }
+            
+            // Update discharging status alarms
+            if (alarmStatus.discharging_status) {
+                Object.keys(alarmStatus.discharging_status).forEach(key => {
+                    const value = alarmStatus.discharging_status[key];
+                    const elementId = `scc${sccNumber}-${key.replace(/_/g, '-')}`;
+                    updateAlarmBadge(elementId, value);
+                    
+                    if (value !== 'normal' && value !== 'running' && value !== 'light_load' && epveperAlarmMap[value]) {
+                        activeAlarms++;
+                        alarmMessages.push(`Discharging: ${epveperAlarmMap[value]}`);
+                    }
+                });
+            }
+        }
+        
+        // Update alarm summary
+        const summaryElement = document.getElementById(`scc${sccNumber}-alarm-summary`);
+        if (summaryElement) {
+            if (activeAlarms > 0) {
+                const alarmList = alarmMessages.length > 3 
+                    ? alarmMessages.slice(0, 3).join(', ') + ` and ${alarmMessages.length - 3} more...`
+                    : alarmMessages.join(', ');
+                    
+                summaryElement.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> ${activeAlarms} Active Alarm(s): ${alarmList}</span>`;
+                summaryElement.parentElement.className = 'alert alert-danger mb-3';
+            } else {
+                summaryElement.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> No active alarms</span>`;
+                summaryElement.parentElement.className = 'alert alert-success mb-3';
+            }
+        }
+    }
+
+    // Update chart with new data
+    function updateChart(chartData) {
+        if (!sccChart) return;
+        
+        // Colors for different SCCs
+        const colors = [
+            { border: 'rgb(37, 99, 235)', background: 'rgba(37, 99, 235, 0.1)' },
+            { border: 'rgb(16, 185, 129)', background: 'rgba(16, 185, 129, 0.1)' },
+            { border: 'rgb(245, 101, 101)', background: 'rgba(245, 101, 101, 0.1)' },
+            { border: 'rgb(251, 146, 60)', background: 'rgba(251, 146, 60, 0.1)' },
+            { border: 'rgb(168, 85, 247)', background: 'rgba(168, 85, 247, 0.1)' }
+        ];
+        
+        // Update chart data
+        sccChart.data.labels = chartData.labels;
+        sccChart.data.datasets = chartData.datasets.map((dataset, index) => ({
+            ...dataset,
+            borderColor: colors[index]?.border || colors[0].border,
+            backgroundColor: colors[index]?.background || colors[0].background,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        }));
+        
+        sccChart.update('none');
+    }
+
+    // Utility functions
+    function updateElement(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    function updateElementWithColor(elementId, value, colorClass) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = value;
+            element.className = `stats-card-value ${colorClass}`;
+        }
+    }
+
+    function updateStatusBadge(elementId, status) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = status || 'Unknown';
+            
+            let badgeClass = 'badge ';
+            if (status === 'is running') {
+                badgeClass += 'bg-success';
+            } else if (status === 'is charging') {
+                badgeClass += 'bg-primary';
+            } else if (status === 'is standby') {
+                badgeClass += 'bg-warning';
+            } else {
+                badgeClass += 'bg-danger';
+            }
+            
+            element.className = badgeClass;
+        }
+    }
+
+    function updateAlarmBadge(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = value.toUpperCase();
+            
+            let badgeClass = 'badge ';
+            
+            // Normal/Good states
+            if (value === 'normal' || value === 'running') {
+                badgeClass += 'bg-success';
+            }
+            // Information states
+            else if (value === 'boost' || value === 'light_load' || value === 'no_charging') {
+                badgeClass += 'bg-info';
+            }
+            // Warning states
+            else if (value === 'standby' || value === 'unrecognized' || value === 'abnormal' || 
+                     value === 'low_voltage' || value === 'lowtemp' || value === 'undervoltage') {
+                badgeClass += 'bg-warning';
+            }
+            // Critical/Danger states
+            else if (value === 'fault' || value === 'overvoltage' || value === 'short_circuit' || 
+                     value === 'overload' || value === 'high_voltage' || value === 'wrong' || 
+                     value === 'overtemp' || value === 'overdischarge') {
+                badgeClass += 'bg-danger';
+            }
+            // Inactive/Unable states
+            else if (value === 'unable' || value === 'no_access') {
+                badgeClass += 'bg-secondary';
+            }
+            // Default for unknown states
+            else {
+                badgeClass += 'bg-secondary';
+            }
+            
+            element.className = badgeClass;
+        }
+    }
+
+    function formatValue(value, unit, decimals = 1) {
+        if (value === null || value === undefined || value === -1) {
+            return 'N/A';
+        }
+        return `${parseFloat(value).toFixed(decimals)} ${unit}`;
+    }
+
+    function getVoltageColor(voltage) {
+        if (voltage > 50) return 'text-success';
+        if (voltage > 20) return 'text-warning';
+        return 'text-secondary';
+    }
+
+    function getCurrentColor(current) {
+        if (current > 10) return 'text-success';
+        if (current > 2) return 'text-warning';
+        return 'text-secondary';
+    }
+
+    function updateLastUpdateTime(lastUpdate) {
+        const numberOfScc = {{ number_of_scc }};
+        for (let i = 1; i <= numberOfScc; i++) {
+            updateElement(`last-update-${i}`, `Last Update: ${lastUpdate || 'Unknown'}`);
+        }
+    }
+
+    function showErrorMessage(message) {
+        // You can implement a toast notification or status indicator here
+        console.warn(`SCC Monitoring: ${message}`);
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+        if (chartUpdateInterval) {
+            clearInterval(chartUpdateInterval);
         }
     });
-
-    // Additional dummy data update function for SCC parameters
-    const updateSCCDummyData = () => {
-        const now = new Date();
-        const currentHour = now.getHours();
-        const isDaytime = currentHour >= 6 && currentHour <= 18;
-        const numberOfScc = {{ number_of_scc }};
-        const sccType = '{{ scc_type }}';
-        
-        // Update SCC data dynamically based on number_of_scc
-        for (let i = 1; i <= numberOfScc; i++) {
-            // Device ID
-            const deviceIdElement = document.getElementById(`scc${i}-device-id`);
-            if (deviceIdElement) {
-                const deviceId = sccType === 'scc-srne' ? 
-                    `SRNE-${i}-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}` :
-                    `EPV-${i}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
-                deviceIdElement.textContent = `SCC ID: ${deviceId}`;
-            }
-
-            // Generate realistic voltage and current based on SCC type
-            let pvVoltage, pvCurrent, loadVoltage, loadCurrent;
-            
-            if (sccType === 'scc-srne') {
-                // SRNE typically has different voltage ranges
-                pvVoltage = isDaytime ? 
-                    (35 + Math.random() * 20).toFixed(1) : // 35-55V during day
-                    (5 + Math.random() * 10).toFixed(1);   // 5-15V at night
-                    
-                pvCurrent = isDaytime ? 
-                    (10 + Math.random() * 15).toFixed(2) : // 10-25A during day
-                    (0.1 + Math.random() * 1).toFixed(2);  // 0.1-1.1A at night
-                    
-                loadVoltage = (48.0 + (Math.random() - 0.5) * 2).toFixed(1); // 47-49V
-                loadCurrent = (8 + Math.random() * 7).toFixed(2); // 8-15A
-            } else {
-                // EPVEPER has different characteristics
-                pvVoltage = isDaytime ? 
-                    (45 + Math.random() * 10).toFixed(1) : 
-                    (10 + Math.random() * 5).toFixed(1);
-                    
-                pvCurrent = isDaytime ? 
-                    (8 + Math.random() * 4).toFixed(2) : 
-                    (0.1 + Math.random() * 0.5).toFixed(2);
-                    
-                loadVoltage = (47.8 + (Math.random() - 0.5) * 1.5).toFixed(1);
-                loadCurrent = (5 + Math.random() * 3).toFixed(2);
-            }
-            
-            // Update PV Voltage
-            const pvVoltageElement = document.getElementById(`pv${i}-voltage`);
-            if (pvVoltageElement) {
-                pvVoltageElement.textContent = pvVoltage + ' V';
-                // Add color coding based on voltage level
-                const voltageValue = parseFloat(pvVoltage);
-                if (voltageValue > 50) {
-                    pvVoltageElement.className = 'stats-card-value text-success';
-                } else if (voltageValue > 20) {
-                    pvVoltageElement.className = 'stats-card-value text-warning';
-                } else {
-                    pvVoltageElement.className = 'stats-card-value text-secondary';
-                }
-            }
-            
-            // Update PV Current
-            const pvCurrentElement = document.getElementById(`pv${i}-current`);
-            if (pvCurrentElement) {
-                pvCurrentElement.textContent = pvCurrent + ' A';
-                // Add color coding based on current level
-                const currentValue = parseFloat(pvCurrent);
-                if (currentValue > 10) {
-                    pvCurrentElement.className = 'stats-card-value text-success';
-                } else if (currentValue > 2) {
-                    pvCurrentElement.className = 'stats-card-value text-warning';
-                } else {
-                    pvCurrentElement.className = 'stats-card-value text-secondary';
-                }
-            }
-            
-            // Update Load Voltage
-            const loadVoltageElement = document.getElementById(`load${i}-voltage`);
-            if (loadVoltageElement) {
-                loadVoltageElement.textContent = loadVoltage + ' V';
-            }
-            
-            // Update Load Current
-            const loadCurrentElement = document.getElementById(`load${i}-current`);
-            if (loadCurrentElement) {
-                loadCurrentElement.textContent = loadCurrent + ' A';
-            }
-            
-            // Calculate and update Load Power
-            const loadPower = (parseFloat(loadVoltage) * parseFloat(loadCurrent)).toFixed(1);
-            const loadPowerElement = document.getElementById(`load${i}-power`);
-            if (loadPowerElement) {
-                loadPowerElement.textContent = loadPower + ' W';
-            }
-            
-            // Update SCC Status with more realistic states
-            const statuses = sccType === 'scc-srne' ? 
-                ['Normal', 'Charging', 'Float', 'Boost', 'MPPT'] :
-                ['is running', 'is charging', 'is standby'];
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            const statusElement = document.getElementById(`scc${i}-status`);
-            if (statusElement) {
-                statusElement.textContent = randomStatus;
-                // Update status badge color based on SCC type and status
-                if (sccType === 'scc-srne') {
-                    statusElement.className = 
-                        randomStatus === 'Normal' ? 'badge bg-success' : 
-                        randomStatus === 'Charging' || randomStatus === 'MPPT' ? 'badge bg-primary' : 
-                        randomStatus === 'Boost' ? 'badge bg-info' :
-                        'badge bg-warning';
-                } else {
-                    statusElement.className = 
-                        randomStatus === 'is running' ? 'badge bg-success' : 
-                        randomStatus === 'is charging' ? 'badge bg-primary' : 'badge bg-warning';
-                }
-            }
-            
-            // Update Heartbeat counter with realistic values
-            const heartbeat = Math.floor(Math.random() * 10000) + 1000;
-            const heartbeatElement = document.getElementById(`scc${i}-counter-heartbeat`);
-            if (heartbeatElement) {
-                heartbeatElement.textContent = `Heartbeat: ${heartbeat}`;
-            }
-
-            // Update Last update time
-            const lastUpdateElement = document.getElementById(`last-update-${i}`);
-            if (lastUpdateElement) {
-                lastUpdateElement.textContent = `Last Update: ${now.toLocaleTimeString()}`;
-            }
-        }
-    };
-
-    // Function to update SCC alarm data
-    const updateSCCAlarms = () => {
-        const sccType = '{{ scc_type }}'; // Get SCC type from template
-        const numberOfScc = {{ number_of_scc }};
-        
-        for (let i = 1; i <= numberOfScc; i++) {
-            if (sccType === 'scc-srne') {
-                updateSRNEAlarms(i);
-            } else if (sccType === 'scc-epveper') {
-                updateEPVEPERAlarms(i);
-            }
-        }
-    };
-
-    // Function to update SCC-SRNE alarms
-    const updateSRNEAlarms = (sccNumber) => {
-        const alarmTypes = {
-            'batt-hi-temp-1': 'Battery High Temp Protection 1',
-            'batt-hi-temp-2': 'Battery High Temp Protection 2',
-            'batt-lo-temp-1': 'Battery Low Temp Protection 1',
-            'batt-lo-temp-2': 'Battery Low Temp Protection 2',
-            'batt-overdisc': 'Battery Over Discharge',
-            'batt-overvolt': 'Battery Overvoltage',
-            'batt-reversed': 'Battery Reversed',
-            'batt-undervolt': 'Battery Undervoltage',
-            'controller-temp-high': 'Controller High Temperature',
-            'load-over-current': 'Load Over Current/Power',
-            'pv-overpower': 'PV Input Overpower',
-            'pv-overvolt': 'PV Input Overvoltage'
-        };
-
-        let activeAlarms = [];
-        
-        // Update additional SRNE system information
-        const batteryTemp = (25 + Math.random() * 20).toFixed(1); // 25-45°C
-        const controllerTemp = (30 + Math.random() * 15).toFixed(1); // 30-45°C
-        const chargingModes = ['MPPT', 'Boost', 'Float', 'Equalize'];
-        const batteryTypes = ['Sealed', 'Gel', 'Flooded', 'LiFePO4'];
-        
-        // Update system info elements
-        const batteryTempElement = document.getElementById(`scc${sccNumber}-battery-temp`);
-        if (batteryTempElement) {
-            batteryTempElement.textContent = `${batteryTemp}°C`;
-            batteryTempElement.className = 
-                parseFloat(batteryTemp) > 40 ? 'badge bg-danger' :
-                parseFloat(batteryTemp) > 35 ? 'badge bg-warning' : 'badge bg-info';
-        }
-
-        const controllerTempElement = document.getElementById(`scc${sccNumber}-controller-temp`);
-        if (controllerTempElement) {
-            controllerTempElement.textContent = `${controllerTemp}°C`;
-            controllerTempElement.className = 
-                parseFloat(controllerTemp) > 40 ? 'badge bg-danger' :
-                parseFloat(controllerTemp) > 35 ? 'badge bg-warning' : 'badge bg-info';
-        }
-
-        const chargingModeElement = document.getElementById(`scc${sccNumber}-charging-mode`);
-        if (chargingModeElement) {
-            const randomMode = chargingModes[Math.floor(Math.random() * chargingModes.length)];
-            chargingModeElement.textContent = randomMode;
-            chargingModeElement.className = 
-                randomMode === 'MPPT' ? 'badge bg-success' :
-                randomMode === 'Boost' ? 'badge bg-primary' :
-                randomMode === 'Float' ? 'badge bg-info' : 'badge bg-warning';
-        }
-
-        const batteryTypeElement = document.getElementById(`scc${sccNumber}-battery-type`);
-        if (batteryTypeElement) {
-            const randomType = batteryTypes[Math.floor(Math.random() * batteryTypes.length)];
-            batteryTypeElement.textContent = randomType;
-            batteryTypeElement.className = 'badge bg-secondary';
-        }
-        
-        // Simulate alarm data (mostly 0 with occasional 1)
-        Object.keys(alarmTypes).forEach(alarmKey => {
-            const alarmValue = Math.random() < 0.05 ? 1 : 0; // 5% chance of alarm
-            const element = document.getElementById(`scc${sccNumber}-${alarmKey}`);
-            
-            if (element) {
-                if (alarmValue === 1) {
-                    element.className = 'badge bg-danger';
-                    element.textContent = 'ACTIVE';
-                    activeAlarms.push(alarmTypes[alarmKey]);
-                } else {
-                    element.className = 'badge bg-success';
-                    element.textContent = 'NORMAL';
-                }
-            }
-        });
-
-        // Update alarm summary
-        const summaryElement = document.getElementById(`scc${sccNumber}-alarm-summary`);
-        if (summaryElement) {
-            if (activeAlarms.length > 0) {
-                summaryElement.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> ${activeAlarms.length} Active Alarm(s)</span>`;
-                summaryElement.parentElement.className = 'alert alert-danger mb-3';
-            } else {
-                summaryElement.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> No active alarms</span>`;
-                summaryElement.parentElement.className = 'alert alert-success mb-3';
-            }
-        }
-    };
-
-    // Function to update SCC-EPVEPER alarms
-    const updateEPVEPERAlarms = (sccNumber) => {
-        const normalStatuses = ['normal', 'running', 'boost', 'float', 'light_load', 'moderate', 'rated'];
-        const alarmStatuses = {
-            'standby': { text: 'Standby mode', class: 'bg-warning' },
-            'unrecognized': { text: 'Unrecognized status', class: 'bg-secondary' },
-            'fault': { text: 'Fault detected', class: 'bg-danger' },
-            'overvoltage': { text: 'Overvoltage condition', class: 'bg-danger' },
-            'short_circuit': { text: 'Short circuit detected', class: 'bg-danger' },
-            'abnormal': { text: 'Abnormal condition', class: 'bg-warning' },
-            'unable': { text: 'Unable to operate', class: 'bg-danger' },
-            'overload': { text: 'Overload condition', class: 'bg-danger' },
-            'low_voltage': { text: 'Low voltage detected', class: 'bg-warning' },
-            'high_voltage': { text: 'High voltage detected', class: 'bg-danger' },
-            'no_access': { text: 'No access to system', class: 'bg-secondary' },
-            'wrong': { text: 'Wrong operation', class: 'bg-warning' },
-            'overtemp': { text: 'Overtemperature condition', class: 'bg-danger' },
-            'lowtemp': { text: 'Low temperature condition', class: 'bg-info' },
-            'overdischarge': { text: 'Overdischarge condition', class: 'bg-danger' },
-            'undervoltage': { text: 'Undervoltage condition', class: 'bg-warning' }
-        };
-
-        let activeAlarms = [];
-
-        // Battery Status
-        const batteryStatuses = {
-            'battery-condition': 'Battery Condition',
-            'battery-identification': 'Battery Identification',
-            'battery-resistance': 'Battery Resistance',
-            'battery-temperature': 'Battery Temperature'
-        };
-
-        Object.keys(batteryStatuses).forEach(statusKey => {
-            const element = document.getElementById(`scc${sccNumber}-${statusKey}`);
-            if (element) {
-                // 95% normal, 5% alarm
-                const isAlarm = Math.random() < 0.05;
-                if (isAlarm) {
-                    const alarmKeys = Object.keys(alarmStatuses);
-                    const randomAlarm = alarmKeys[Math.floor(Math.random() * alarmKeys.length)];
-                    const alarmInfo = alarmStatuses[randomAlarm];
-                    
-                    element.className = `badge ${alarmInfo.class}`;
-                    element.textContent = randomAlarm.toUpperCase();
-                    element.title = alarmInfo.text;
-                    activeAlarms.push(`${batteryStatuses[statusKey]}: ${alarmInfo.text}`);
-                } else {
-                    element.className = 'badge bg-success';
-                    element.textContent = 'NORMAL';
-                    element.title = 'Normal operation';
-                }
-            }
-        });
-
-        // Charging Status
-        const chargingStatuses = {
-            'anti-reverse-mosfet': 'Anti Reverse MOSFET',
-            'charging-anti-reverse-mosfet': 'Charging Anti Reverse MOSFET',
-            'charging-condition': 'Charging Condition',
-            'charging-mosfet-short': 'Charging MOSFET Short',
-            'charging-state': 'Charging State',
-            'charging-status': 'Charging Status',
-            'disequilibrium': 'Disequilibrium',
-            'input-over-current': 'Input Over Current',
-            'input-voltage-status': 'Input Voltage Status',
-            'load-mosfet-short': 'Load MOSFET Short',
-            'load-over-current': 'Load Over Current',
-            'load-short': 'Load Short',
-            'pv-input-short': 'PV Input Short'
-        };
-
-        Object.keys(chargingStatuses).forEach(statusKey => {
-            const element = document.getElementById(`scc${sccNumber}-${statusKey}`);
-            if (element) {
-                const isAlarm = Math.random() < 0.05;
-                if (isAlarm) {
-                    const alarmKeys = Object.keys(alarmStatuses);
-                    const randomAlarm = alarmKeys[Math.floor(Math.random() * alarmKeys.length)];
-                    const alarmInfo = alarmStatuses[randomAlarm];
-                    
-                    element.className = `badge ${alarmInfo.class}`;
-                    element.textContent = randomAlarm.toUpperCase();
-                    element.title = alarmInfo.text;
-                    activeAlarms.push(`${chargingStatuses[statusKey]}: ${alarmInfo.text}`);
-                } else {
-                    // Random normal status
-                    const normalStatus = normalStatuses[Math.floor(Math.random() * normalStatuses.length)];
-                    element.className = 'badge bg-success';
-                    element.textContent = normalStatus.toUpperCase();
-                    element.title = 'Normal operation';
-                }
-            }
-        });
-
-        // Discharging Status
-        const dischargingStatuses = {
-            'boost-voltage': 'Boost Voltage',
-            'discharge-short': 'Discharge Short',
-            'discharging-condition': 'Discharging Condition',
-            'discharging-output': 'Discharging Output',
-            'discharging-state': 'Discharging State',
-            'high-voltage-side': 'High Voltage Side',
-            'input-voltage': 'Input Voltage',
-            'output-power': 'Output Power',
-            'output-voltage': 'Output Voltage',
-            'stop-discharging': 'Stop Discharging'
-        };
-
-        Object.keys(dischargingStatuses).forEach(statusKey => {
-            const element = document.getElementById(`scc${sccNumber}-${statusKey}`);
-            if (element) {
-                const isAlarm = Math.random() < 0.05;
-                if (isAlarm) {
-                    const alarmKeys = Object.keys(alarmStatuses);
-                    const randomAlarm = alarmKeys[Math.floor(Math.random() * alarmKeys.length)];
-                    const alarmInfo = alarmStatuses[randomAlarm];
-                    
-                    element.className = `badge ${alarmInfo.class}`;
-                    element.textContent = randomAlarm.toUpperCase();
-                    element.title = alarmInfo.text;
-                    activeAlarms.push(`${dischargingStatuses[statusKey]}: ${alarmInfo.text}`);
-                } else {
-                    const normalStatus = normalStatuses[Math.floor(Math.random() * normalStatuses.length)];
-                    element.className = 'badge bg-success';
-                    element.textContent = normalStatus.toUpperCase();
-                    element.title = 'Normal operation';
-                }
-            }
-        });
-
-        // Update alarm summary
-        const summaryElement = document.getElementById(`scc${sccNumber}-alarm-summary`);
-        if (summaryElement) {
-            if (activeAlarms.length > 0) {
-                summaryElement.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> ${activeAlarms.length} Active Alarm(s)</span>`;
-                summaryElement.parentElement.className = 'alert alert-danger mb-3';
-            } else {
-                summaryElement.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> No active alarms</span>`;
-                summaryElement.parentElement.className = 'alert alert-success mb-3';
-            }
-        }
-    };
-
-    // Update SCC dummy data every 5 seconds
-    setInterval(updateSCCDummyData, 5000);
-    
-    // Update SCC alarms every 10 seconds
-    setInterval(updateSCCAlarms, 10000);
-    
-    // Initial updates
-    updateSCCDummyData();
-    updateSCCAlarms();
 </script>
 {% endblock %}
