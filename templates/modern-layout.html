@@ -111,15 +111,6 @@
                                 </a>
                             </li>
                             {% endif %}
-                            {% if menu_access.services.cockpit %}
-                            <li>
-                                <a href="/cockpit-service" class="nav-link {{ 'active' if request.endpoint == 'cockpit_service' }}">
-                                    <i class="fas fa-terminal"></i>
-                                    <span>Cockpit Terminal</span>
-                                    <div class="nav-indicator"></div>
-                                </a>
-                            </li>
-                            {% endif %}
                             {% if menu_access.services.systemd %}
                             <li>
                                 <a href="/systemd-service" class="nav-link {{ 'active' if request.endpoint == 'systemd_service' }}">
