@@ -570,6 +570,10 @@
             if (cellMaxEl) cellMaxEl.textContent = `${bms.max_cell_voltage || 0} mV`;
             if (cellMinEl) cellMinEl.textContent = `${bms.min_cell_voltage || 0} mV`;
             if (cellDiffEl) cellDiffEl.textContent = `${bms.cell_difference || 0} mV`;
+            // Update pack status to danger
+            if (bms.cell_difference > 300) {
+                updateStatusIndicator(`pack-status-${packNumber}`, 'Danger', ['Danger'], ['Normal']);
+            }
 
             // Update MOSFET status
             let cmosStatus = 'OFF';
