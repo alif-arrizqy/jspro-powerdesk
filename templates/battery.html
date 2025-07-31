@@ -591,11 +591,11 @@
             const midTemperatureEl = document.getElementById(`mid-temp-${packNumber}`);
             const botTemperatureEl = document.getElementById(`bot-temp-${packNumber}`);
 
-            if (cmosTemperatureEl) cmosTemperatureEl.textContent = `${parseFloat(bms.cmos_temp || 0).toFixed(1)} °C`;
-            if (dmosTemperatureEl) dmosTemperatureEl.textContent = `${parseFloat(bms.dmos_temp || 0).toFixed(1)} °C`;
-            if (topTemperatureEl) topTemperatureEl.textContent = `${parseFloat(bms.env_temp || 0).toFixed(1)} °C`;
-            if (midTemperatureEl) midTemperatureEl.textContent = `${parseFloat(bms.env_temp || 0).toFixed(1)} °C`;
-            if (botTemperatureEl) botTemperatureEl.textContent = `${parseFloat(bms.env_temp || 0).toFixed(1)} °C`;
+            if (cmosTemperatureEl) cmosTemperatureEl.textContent = `${parseFloat((bms.fet_temperature * 0.1).toFixed(1) || 0).toFixed(1)} °C`;
+            if (dmosTemperatureEl) dmosTemperatureEl.textContent = `${parseFloat((bms.fet_temperature * 0.1).toFixed(1) || 0).toFixed(1)} °C`;
+            if (topTemperatureEl) topTemperatureEl.textContent = `${parseFloat(((bms.cell_temperature[0] * 0.1).toFixed(1)) || 0).toFixed(1)} °C`;
+            if (midTemperatureEl) midTemperatureEl.textContent = `${parseFloat(((bms.cell_temperature[1] * 0.1).toFixed(1)) || 0).toFixed(1)} °C`;
+            if (botTemperatureEl) botTemperatureEl.textContent = `${parseFloat(((bms.cell_temperature[2] * 0.1).toFixed(1)) || 0).toFixed(1)} °C`;
 
             // Update cell voltages (if available)
             for (let i = 1; i <= 16; i++) {
