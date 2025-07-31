@@ -120,21 +120,30 @@ def get_scc_monitoring():
                 }
 
         # Get relay configuration
+        relay_configuration = {}
+        
         try:
+            device_data = red.hgetall("device_config")
+            handle_relay_data = device_data.get("handle_relay", "{}")
+            
+            if isinstance(handle_relay_data, str):
+                relay_configuration = json.loads(handle_relay_data)
+                relay_configuration = {
+                    "vsat_reconnect": relay_configuration.get("voltage_reconnect_vsat", 'N/A'),
+                    "vsat_cutoff": relay_configuration.get("voltage_cutoff_vsat", 'N/A'),
+                    "bts_reconnect": relay_configuration.get("voltage_reconnect_bts", 'N/A'),
+                    "bts_cutoff": relay_configuration.get("voltage_cutoff_bts", 'N/A')
+                }
+            else:
+                relay_configuration = relay_configuration or {}
+        except Exception as e:
             relay_configuration = {
-                "vsat_reconnect": int(red.hget('relay_config', 'vsat_reconnect') or 4700),
-                "vsat_cutoff": int(red.hget('relay_config', 'vsat_cutoff') or 4600),
-                "bts_reconnect": int(red.hget('relay_config', 'bts_reconnect') or 4900),
-                "bts_cutoff": int(red.hget('relay_config', 'bts_cutoff') or 4800)
+                "vsat_reconnect": 'N/A',
+                "vsat_cutoff": 'N/A',
+                "bts_reconnect": 'N/A',
+                "bts_cutoff": 'N/A'
             }
-        except:
-            relay_configuration = {
-                "vsat_reconnect": 4700,
-                "vsat_cutoff": 4600,
-                "bts_reconnect": 4900,
-                "bts_cutoff": 4800
-            }
-
+        
         response_data = scc_data.copy()
         response_data['relay_configuration'] = relay_configuration
         response_data['last_update'] = str(red.hget('scc_system_info', 'last_update'))
