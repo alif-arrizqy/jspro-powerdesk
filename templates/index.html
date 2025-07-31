@@ -503,7 +503,6 @@ async function fetchAPIData(endpoint) {
         }
         
         const data = await response.json();
-        console.log(`✅ Successfully fetched data from ${endpoint}:`, data);
         return data;
         
     } catch (error) {
@@ -514,8 +513,6 @@ async function fetchAPIData(endpoint) {
 
 // Update system resources data
 function updateSystemResources(data) {
-    console.log('System resources data received:', data);
-    
     if (!data || data.status_code !== 200) {
         console.warn('Invalid system resources data received');
         console.warn('Data:', data);
