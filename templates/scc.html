@@ -771,17 +771,13 @@
         updateElement(`scc${sccNumber}-counter-heartbeat`, `Heartbeat: ${sccData.counter_heartbeat || 'N/A'}`);
         
         // PV Voltage
-        updateElementWithColor(`pv${sccNumber}-voltage`, 
-            formatValue(sccData.pv_voltage, 'V', 1), 
-            getVoltageColor(sccData.pv_voltage));
+        updateElementWithColor(`pv${sccNumber}-voltage`, formatValue(sccData.pv_voltage, 'V', 2));
         
         // PV Current
-        updateElementWithColor(`pv${sccNumber}-current`, 
-            formatValue(sccData.pv_current, 'A', 2), 
-            getCurrentColor(sccData.pv_current));
+        updateElementWithColor(`pv${sccNumber}-current`, formatValue(sccData.pv_current, 'A', 2));
         
         // Load Voltage
-        updateElement(`load${sccNumber}-voltage`, formatValue(sccData.load_voltage, 'V', 1));
+        updateElement(`load${sccNumber}-voltage`, formatValue(sccData.load_voltage, 'V', 2));
         
         // Load Current
         updateElement(`load${sccNumber}-current`, formatValue(sccData.load_current, 'A', 2));
@@ -1047,18 +1043,6 @@
             return 'N/A';
         }
         return `${parseFloat(value).toFixed(decimals)} ${unit}`;
-    }
-
-    function getVoltageColor(voltage) {
-        if (voltage > 50) return 'text-success';
-        if (voltage > 20) return 'text-warning';
-        return 'text-secondary';
-    }
-
-    function getCurrentColor(current) {
-        if (current > 10) return 'text-success';
-        if (current > 2) return 'text-warning';
-        return 'text-secondary';
     }
 
     function updateLastUpdateTime(lastUpdate) {
