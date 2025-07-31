@@ -531,7 +531,7 @@
             // Update pack status based on active status
             updateStatusIndicator(`pack-status-${packNumber}`, isActive ? 'Online' : 'Offline', ['Online'], ['Offline']);
             
-            if (portEl) portEl.textContent = bms.port || 'Unknown';
+            if (portEl) portEl.textContent = bms.port.toUpperCase() || 'Unknown';
             if (voltageEl) voltageEl.textContent = `${(parseFloat(bms.pack_voltage || 0) / 100).toFixed(2)} V`;
 
             // Update additional elements
