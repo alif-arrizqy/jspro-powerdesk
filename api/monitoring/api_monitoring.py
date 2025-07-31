@@ -352,7 +352,6 @@ def get_battery_monitoring():
         
         response_data = {
             "bms_data": bms_data,
-            "active_slaves_config": active_slaves_config,
             "last_update": last_update
         }
 
@@ -376,6 +375,13 @@ def get_battery_monitoring_active():
     """Get active battery monitoring data based on bms_active_slaves configuration"""
     try:
         bms_data = []
+        
+        # Get Battery Voltage
+        try:
+            battery_voltage = int(red.hget('avg_volt', 'voltage'))
+        except Exception as e:
+            print(f"Error getting battery voltage: {e}")
+            battery_voltage = 'N/A'
         
         # Get active slaves configuration from Redis
         try:
@@ -443,6 +449,7 @@ def get_battery_monitoring_active():
                     bms_data.append(bms_info)
 
         response_data = {
+            "battery_voltage": battery_voltage,
             "bms_data": bms_data,
             "last_update": last_update
         }
