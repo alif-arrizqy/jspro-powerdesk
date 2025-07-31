@@ -70,7 +70,8 @@ def index():
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
             'ip_address': '192.168.1.1',
-            'number_of_scc': number_of_scc
+            'number_of_scc': number_of_scc,
+            'number_of_battery': number_of_batt,
         }
         
         # Audit page access
@@ -85,8 +86,8 @@ def index():
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
-            'number_of_scc': number_of_scc
+            'number_of_scc': number_of_scc,
+            'number_of_battery': number_of_batt,
         }
     return render_template('index.html', **context)
 
