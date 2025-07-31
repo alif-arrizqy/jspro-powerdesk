@@ -509,6 +509,12 @@
         if (activeData && activeData.bms_data) {
             activeData.bms_data.forEach(slave => {
                 activeSlaves[slave.slave_id] = slave.status;
+                const packButton = document.getElementById(`pack${slave.slave_id}-button`);
+                if (packButton) {
+                    packButton.classList.remove('btn-secondary', 'btn-primary');
+                    packButton.classList.add(slave.status ? 'btn-success' : 'btn-dark');
+                    updateStatusIndicator(`pack-status-${slave.slave_id}`, slave.status ? 'Online' : 'Offline', ['Online'], ['Offline']);
+                }
             });
         }
 
