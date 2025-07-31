@@ -729,6 +729,18 @@ body {
     color: var(--white);
 }
 
+/* Battery Overview */
+.btn-display {
+    pointer-events: none; /* supaya tidak bisa diklik */
+    cursor: default; /* tidak menunjukkan pointer tangan */
+    opacity: 1; /* tetap terlihat jelas */
+    box-shadow: none;
+}
+
+.btn-display:hover {
+    filter: none; /* hilangkan efek hover */
+}
+
 /* Forms */
 .form-group {
     margin-bottom: 1.5rem;
