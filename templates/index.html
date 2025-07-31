@@ -466,6 +466,7 @@ async function initializeDashboardData() {
         if (systemResources) updateSystemResources(systemResources);
         if (deviceInfo) updateDeviceInformation(deviceInfo);
         if (systemdStatus) updateServiceStatus(systemdStatus);
+        if (batteryData) updateBatteryOverview(batteryData);
         if (sccData) updateSCCOverview(sccData);
 
     } catch (error) {
@@ -683,6 +684,38 @@ const sccDeviceIds = {
     'epveper': ['1', '2']
 };
 
+// Update Battery Overview
+function updateBatteryOverview(data) {
+    if (!data || data.status_code !== 200) {
+        console.warn('Invalid battery data received');
+        return;
+    }
+
+    const batteryData = data.data;
+
+    // Battery Voltage
+    const batteryVoltageElement = document.getElementById('battery-voltage');
+    if (batteryVoltageElement && batteryData.battery_voltage !== undefined) {
+        const voltage = (batteryData.battery_voltage / 100);
+        if (voltage === -1 || isNaN(voltage)) {
+            batteryVoltageElement.textContent = 'N/A';
+            batteryVoltageElement.classList.add('text-muted');
+        } else {
+            batteryVoltageElement.textContent = `${voltage.toFixed(2)} V`;
+            batteryVoltageElement.classList.remove('text-muted');
+        }
+    }
+    
+    const activePack = batteryData.bms_data.forEach((pack, index) => {
+        const packButton = document.getElementById(`pack${index + 1}-status`);
+        if (packButton) {
+            packButton.classList.remove('btn-secondary');
+            packButton.classList.add(pack.status ? 'btn-success' : 'btn-dark');
+        }
+    });
+
+
+}
 // Update SCC IDs based on type
 function updateSCCIds(sccType) {
     const sccIdsElement = document.getElementById('scc-ids');
