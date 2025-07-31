@@ -987,10 +987,10 @@
             let badgeClass = 'badge ';
             if (status === 'is running') {
                 badgeClass += 'bg-success';
-            } else if (status === 'is charging') {
-                badgeClass += 'bg-primary';
             } else if (status === 'is standby') {
                 badgeClass += 'bg-warning';
+            } else if (status === 'modbus error') {
+                badgeClass += 'bg-danger';
             } else {
                 badgeClass += 'bg-danger';
             }
