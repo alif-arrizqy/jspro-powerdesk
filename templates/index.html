@@ -586,16 +586,16 @@ function updateStatusIndicator(elementId, status) {
     // Red status indicators (error/inactive states)
     else if (normalizedStatus === 'inactive' || normalizedStatus === 'is standby' || normalizedStatus === 'modbus error') {
         let displayText = 'Inactive';
-        if (normalizedStatus === 'standby') displayText = 'Standby';
+        if (normalizedStatus === 'is standby') displayText = 'Standby';
         else if (normalizedStatus === 'modbus error') displayText = 'Modbus Error';
         
         element.textContent = displayText;
-        element.className = 'status-indicator badge bg-danger text-white';
+        element.className = 'status-indicator badge bg-warning text-white';
     } 
     else {
         // Default fallback for any unexpected status
         element.textContent = status;
-        element.className = 'status-indicator badge bg-secondary text-white';
+        element.className = 'status-indicator badge bg-danger text-white';
     }
 }
 
@@ -802,7 +802,7 @@ function updateSCCOverview(data) {
                 load{{i}}VoltageDetailElement.textContent = 'N/A';
                 load{{i}}VoltageDetailElement.classList.add('text-muted');
             } else {
-                load{{i}}VoltageDetailElement.textContent = `${voltage.toFixed(1)} V`;
+                load{{i}}VoltageDetailElement.textContent = `${voltage.toFixed(2)} V`;
                 load{{i}}VoltageDetailElement.classList.remove('text-muted');
             }
         }
