@@ -605,35 +605,7 @@
                     cellEl.textContent = `${cellVoltage} mV`;
                 }
             }
-
-            // Update chart data
-            updateBatteryChart(packNumber, bms);
         });
-    }
-
-    function updateBatteryChart(packNumber, data) {
-        const chartId = `batteryChart${packNumber}`;
-        
-        if (window.powerDeskApp && window.powerDeskApp.charts[chartId]) {
-            const chart = window.powerDeskApp.charts[chartId];
-            const now = new Date().toLocaleTimeString();
-            
-            // Add new data point
-            chart.data.labels.push(now);
-            chart.data.datasets[0].data.push(parseFloat(data.pack_voltage || data.voltage || 0));
-            chart.data.datasets[1].data.push(parseFloat(data.pack_current || data.current || 0));
-            chart.data.datasets[2].data.push(parseFloat(data.max_cell_voltage || data.maxCellVoltage || 0));
-            chart.data.datasets[3].data.push(parseFloat(data.min_cell_voltage || data.minCellVoltage || 0));
-            chart.data.datasets[4].data.push(parseFloat(data.cell_difference || data.cellDifference || 0));
-            
-            // Keep only last 20 data points
-            if (chart.data.labels.length > 20) {
-                chart.data.labels.shift();
-                chart.data.datasets.forEach(dataset => dataset.data.shift());
-            }
-            
-            chart.update('none');
-        }
     }
 
     async function startBatteryMonitoring() {
