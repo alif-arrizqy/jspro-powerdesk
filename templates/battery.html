@@ -597,11 +597,11 @@
             if (midTemperatureEl) midTemperatureEl.textContent = `${parseFloat(((bms.cell_temperature[1] * 0.1).toFixed(1)) || 0).toFixed(1)} °C`;
             if (botTemperatureEl) botTemperatureEl.textContent = `${parseFloat(((bms.cell_temperature[2] * 0.1).toFixed(1)) || 0).toFixed(1)} °C`;
 
-            // Update cell voltages (if available)
+            // Update cell voltages
             for (let i = 1; i <= 16; i++) {
                 const cellEl = document.getElementById(`pack${packNumber}-cell${i}-voltage`);
                 if (cellEl) {
-                    const cellVoltage = bms[`cell_${i}_voltage`] || 0;
+                    const cellVoltage = bms.cell_voltage[i - 1] || 0;
                     cellEl.textContent = `${cellVoltage} mV`;
                 }
             }
