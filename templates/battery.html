@@ -214,8 +214,11 @@
                                         <i class="fas fa-balance-scale"></i>
                                     </div>
                                 </div>
-                                <h3 class="stats-card-value" id="cell-diff-{{i}}">Loading...</h3>
-                                <p class="stats-card-subtitle">Cell Voltage Difference</p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h3 class="stats-card-value mb-0" id="cell-diff-{{i}}">Loading...</h3>
+                                    <span class="status-indicator ms-2" id="cell-diff-status-{{i}}">Loading</span>
+                                </div>
+                                <p class="stats-card-subtitle mt-2">Cell Voltage Difference</p>
                             </div>
                         </div>
                     </div>
@@ -390,6 +393,26 @@
     // const API_BASE_URL = 'http://{{ ip_address }}/api/v1/monitoring';
     const API_BASE_URL = 'http://10.10.10.60/api/v1/monitoring';
 
+    // Battery monitoring thresholds and configuration
+    const BATTERY_CONFIG = {
+        cellDifferenceThresholds: {
+            normal: 100,    // 0-100mV = Normal (Green)
+            warning: 200,   // 101-200mV = Warning (Yellow) 
+            critical: 300   // >200mV = Critical (Red)
+        },
+        temperatureThresholds: {
+            normal: 45,     // 0-45°C = Normal
+            warning: 60,    // 46-60°C = Warning
+            critical: 80    // >60°C = Critical
+        },
+        voltageThresholds: {
+            cellMin: 3000,  // Minimum safe cell voltage (mV)
+            cellMax: 4200,  // Maximum safe cell voltage (mV)
+            packMin: 48000, // Minimum safe pack voltage (mV)
+            packMax: 67200  // Maximum safe pack voltage (mV)
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         // Get authentication token and user role from server
         const userToken = '{{ session.get("auth_token", "") }}';
@@ -482,18 +505,84 @@
     }
 
     // Helper function to update status indicator elements
-    function updateStatusIndicator(elementId, status, activeStates = ['Online', 'ON'], dangerStates = ['Offline', 'modbus error', 'unknown status']) {
+    function updateStatusIndicator(elementId, status, activeStates = ['Online', 'ON', 'Normal'], warningStates = ['Warning', 'warning'], dangerStates = ['Offline', 'modbus error', 'unknown status', 'Danger', 'Critical', 'OFF']) {
         const element = document.getElementById(elementId);
         if (element) {
             element.textContent = status;
             
-            if (activeStates.includes(status)) {
+            // Convert status to lowercase for case-insensitive comparison
+            const statusLower = typeof status === 'string' ? status.toLowerCase() : String(status).toLowerCase();
+            
+            // Helper function for case-insensitive array inclusion check
+            const includes = (arr, val) => {
+                return arr.some(item => {
+                    const itemLower = typeof item === 'string' ? item.toLowerCase() : String(item).toLowerCase();
+                    const valLower = typeof val === 'string' ? val.toLowerCase() : String(val).toLowerCase();
+                    return itemLower === valLower;
+                });
+            };
+            
+            // Apply appropriate CSS class based on status
+            if (includes(activeStates, statusLower)) {
                 element.className = 'status-indicator active';
-            } else if (dangerStates.includes(status)) {
+            } else if (includes(warningStates, statusLower)) {
+                element.className = 'status-indicator warning';
+            } else if (includes(dangerStates, statusLower)) {
                 element.className = 'status-indicator danger';
             } else {
                 element.className = 'status-indicator inactive';
             }
+        }
+    }
+
+    // Helper function to determine cell difference status based on thresholds
+    function getCellDifferenceStatus(cellDifference) {
+        const diff = parseFloat(cellDifference || 0);
+        
+        if (diff <= BATTERY_CONFIG.cellDifferenceThresholds.normal) {
+            return {
+                status: 'Normal',
+                className: 'active',
+                description: 'Cell balance good'
+            };
+        } else if (diff <= BATTERY_CONFIG.cellDifferenceThresholds.warning) {
+            return {
+                status: 'Warning',
+                className: 'warning', 
+                description: 'Cell imbalance detected'
+            };
+        } else {
+            return {
+                status: 'Critical',
+                className: 'danger',
+                description: 'Severe cell imbalance'
+            };
+        }
+    }
+
+    // Helper function to determine cell voltage status
+    function getCellVoltageStatus(voltage) {
+        const volt = parseFloat(voltage || 0);
+        
+        if (volt < BATTERY_CONFIG.voltageThresholds.cellMin) {
+            return { status: 'Low', className: 'danger' };
+        } else if (volt > BATTERY_CONFIG.voltageThresholds.cellMax) {
+            return { status: 'High', className: 'danger' };
+        } else {
+            return { status: 'Normal', className: 'active' };
+        }
+    }
+
+    // Helper function to determine temperature status  
+    function getTemperatureStatus(temperature) {
+        const temp = parseFloat(temperature || 0);
+        
+        if (temp <= BATTERY_CONFIG.temperatureThresholds.normal) {
+            return { status: 'Normal', className: 'active' };
+        } else if (temp <= BATTERY_CONFIG.temperatureThresholds.warning) {
+            return { status: 'Warning', className: 'warning' };
+        } else {
+            return { status: 'Critical', className: 'danger' };
         }
     }
 
@@ -570,11 +659,11 @@
             if (cellMaxEl) cellMaxEl.textContent = `${bms.max_cell_voltage || 0} mV`;
             if (cellMinEl) cellMinEl.textContent = `${bms.min_cell_voltage || 0} mV`;
             if (cellDiffEl) cellDiffEl.textContent = `${bms.cell_difference || 0} mV`;
-            // Update pack status to danger
-            if (bms.cell_difference > 300) {
-                updateStatusIndicator(`pack-status-${packNumber}`, 'Danger', ['Danger'], ['Normal']);
-            }
-
+            
+            // Update cell difference status using helper function
+            const cellDiffStatusInfo = getCellDifferenceStatus(bms.cell_difference);
+            updateStatusIndicator(`cell-diff-status-${packNumber}`, cellDiffStatusInfo.status, ['Normal'], ['Warning'], ['Critical']);
+            
             // Update MOSFET status
             let cmosStatus = 'OFF';
             let dmosStatus = 'OFF';
