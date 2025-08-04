@@ -9,7 +9,7 @@ def register_blueprints(app):
     # Import blueprints here to avoid circular imports
     from .device import device_bp
     from .monitoring import monitoring_bp
-    # from .loggers import loggers_bp  # Uncomment when loggers blueprint is ready
+    from .logger import logger_bp
     
     # Register error handlers first
     register_error_handlers(app)
@@ -20,7 +20,7 @@ def register_blueprints(app):
     # Register v1 API blueprints with URL prefixes
     app.register_blueprint(device_bp, url_prefix='/api/v1/device')
     app.register_blueprint(monitoring_bp, url_prefix='/api/v1/monitoring')
-    # app.register_blueprint(loggers_bp, url_prefix='/api/v1/loggers')  # Uncomment when ready
+    app.register_blueprint(logger_bp, url_prefix='/api/v1/loggers')
     
     print("✅ All API blueprints registered successfully")
 
@@ -163,6 +163,16 @@ def api_v1_info():
                         "/battery",
                         "/battery/active"
                     ]
+                },
+                "loggers": {
+                    "url_prefix": "/api/v1/loggers",
+                    "description": "Historical data logs from Redis and SQLite",
+                    "endpoints": [
+                        "/data/redis",
+                        "/data/sqlite", 
+                        "/data/overview",
+                        "/scc-alarm"
+                    ]
                 }
             },
             "documentation": "See API Documentation for JSPro Powerdesk.md"
@@ -238,6 +248,46 @@ def monitoring_module_info():
     }), 200
 
 
+@api.route('/v1/loggers', methods=['GET'])
+def loggers_module_info():
+    """Loggers module information endpoint"""
+    return jsonify({
+        "status_code": 200,
+        "status": "success",
+        "data": {
+            "module": "loggers",
+            "description": "Historical data logs from Redis and SQLite storage",
+            "base_url": "/api/v1/loggers",
+            "endpoints": [
+                {
+                    "path": "/api/v1/loggers/data/redis",
+                    "methods": ["GET", "POST"],
+                    "description": "Get or store historical data in Redis",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/loggers/data/sqlite",
+                    "methods": ["GET", "POST"], 
+                    "description": "Get or store historical data in SQLite",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/loggers/data/overview",
+                    "methods": ["GET"],
+                    "description": "Get storage overview and statistics",
+                    "authentication": "required"
+                },
+                {
+                    "path": "/api/v1/loggers/scc-alarm",
+                    "methods": ["GET", "DELETE"],
+                    "description": "Get or clear SCC alarm logs",
+                    "authentication": "required"
+                }
+            ]
+        }
+    }), 200
+
+
 # ============== Wildcard Route for Unknown API Endpoints ===========================
 @api.route('/<path:unknown_path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def api_not_found(unknown_path):
@@ -269,6 +319,10 @@ def api_not_found(unknown_path):
                 "monitoring_module": {
                     "path": "/api/v1/monitoring/",
                     "description": "Monitoring data endpoints"
+                },
+                "loggers_module": {
+                    "path": "/api/v1/loggers/",
+                    "description": "Historical data logs endpoints"
                 }
             }
         }
