@@ -170,7 +170,7 @@
 
 <!-- Service Log Modal -->
 <div class="modal fade" id="serviceLogModal" tabindex="-1" aria-labelledby="serviceLogModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title" id="serviceLogModalLabel">
@@ -181,15 +181,23 @@
             </div>
             <div class="modal-body p-0">
                 <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-outline-primary btn-sm" onclick="refreshServiceLogs();">
-                            <i class="fas fa-sync-alt me-1"></i>
-                            Refresh
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="clearLogView();">
-                            <i class="fas fa-eraser me-1"></i>
-                            Clear View
-                        </button>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-primary btn-sm" onclick="refreshServiceLogs();">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearLogView();">
+                                <i class="fas fa-eraser me-1"></i>
+                                Clear View
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="log-file-select" class="form-label mb-0 fw-bold">Log File:</label>
+                            <select class="form-select form-select-sm" id="log-file-select" onchange="changeLogFile();">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
                     </div>
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="auto-refresh-logs">
@@ -198,7 +206,7 @@
                         </label>
                     </div>
                 </div>
-                <div id="service-log-content" style="height: 400px; overflow-y: auto; background-color: #1e1e1e; color: #ffffff; font-family: 'Courier New', monospace; padding: 15px; font-size: 12px;">
+                <div id="service-log-content" style="height: 500px; overflow-y: auto; background-color: #1e1e1e; color: #ffffff; font-family: 'Courier New', monospace; padding: 15px; font-size: 12px;">
                     <div class="text-center text-muted">
                         <i class="fas fa-spinner fa-spin me-2"></i>
                         Loading logs...
@@ -226,100 +234,106 @@
     // List of services to monitor
     const services = [
         {
-            name: 'redis.service',
-            displayName: 'Redis Database',
-            description: 'In-memory data structure store',
-            category: 'database',
-            critical: true
-        },
-        {
             name: 'mqtt_publish.service',
             displayName: 'MQTT Publisher',
             description: 'MQTT message publishing service',
             category: 'communication',
-            critical: true
+            critical: true,
+            hasLogs: true,
+            logFiles: ['mqtt_errors.log', 'mqtt_warnings.log', 'mqtt_all.log']
         },
         {
-            name: 'accumulate_energy.service',
-            displayName: 'Energy Accumulator',
-            description: 'Energy data accumulation service',
-            category: 'data',
-            critical: false
+            name: 'redis.service',
+            displayName: 'Redis Database',
+            description: 'In-memory data structure store',
+            category: 'database',
+            critical: true,
+            hasLogs: false
         },
         {
-            name: 'device_config_loader.service',
-            displayName: 'Device Config Loader',
-            description: 'Device configuration loading service',
-            category: 'config',
-            critical: false
-        },
-        {
-            name: 'device_config_loader.timer',
-            displayName: 'Device Config Timer',
-            description: 'Device configuration timer',
-            category: 'config',
-            critical: false
-        },
-        {
-            name: 'scc.service',
-            displayName: 'Solar Charge Controller',
-            description: 'SCC data collection service',
-            category: 'hardware',
-            critical: true
-        },
-        {
-            name: 'scc_logs.service',
-            displayName: 'SCC Logs',
-            description: 'SCC logging service',
-            category: 'logging',
-            critical: false
-        },
-        {
-            name: 'scc_logs.timer',
-            displayName: 'SCC Logs Timer',
-            description: 'SCC logging timer',
-            category: 'logging',
-            critical: false
-        },
-        {
-            name: 'store_data_5min.service',
-            displayName: 'Data Storage (5min)',
-            description: '5-minute data storage service',
-            category: 'data',
-            critical: false
-        },
-        {
-            name: 'store_data_5min.timer',
-            displayName: 'Data Storage Timer',
-            description: '5-minute data storage timer',
-            category: 'data',
-            critical: false
+            name: 'snmp_handler.service',
+            displayName: 'SNMP Handler',
+            description: 'SNMP data handler service',
+            category: 'communication',
+            critical: false,
+            hasLogs: false
         },
         {
             name: 'thread_bms.service',
             displayName: 'BMS Thread',
             description: 'Battery Management System service',
             category: 'hardware',
-            critical: true
+            critical: true,
+            hasLogs: true,
+            logFiles: ['bms_errors.log', 'bms_warnings.log', 'bms_all.log']
+        },
+        {
+            name: 'scc.service',
+            displayName: 'Solar Charge Controller',
+            description: 'SCC data collection service',
+            category: 'hardware',
+            critical: true,
+            hasLogs: true,
+            logFiles: ['scc_errors.log', 'scc_warnings.log', 'scc_all.log']
+        },
+        {
+            name: 'store_data_5min.timer',
+            displayName: 'Data Storage Timer',
+            description: '5-minute data storage timer',
+            category: 'data',
+            critical: false,
+            hasLogs: false
+        },
+        {
+            name: 'accumulate_energy.service',
+            displayName: 'Energy Accumulator',
+            description: 'Energy data accumulation service',
+            category: 'data',
+            critical: false,
+            hasLogs: false
+        },
+        {
+            name: 'webapp.service',
+            displayName: 'Web Application',
+            description: 'JSPro PowerDesk web application service',
+            category: 'web',
+            critical: true,
+            hasLogs: false
         }
     ];
     
+    const API_BASE_URL = '/api/v1/device';
+    // const API_BASE_URL = 'http://10.10.10.60/api/v1/device';
+
     // Get service status
     async function getServiceStatus(serviceName) {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         try {
-            const response = await fetch(`/api/systemd/status/${serviceName}`, {
-                method: 'GET',
+            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
-                }
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    service: serviceName,
+                    action: 'status'
+                })
             });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            return await response.json();
+            const result = await response.json();
+            return result.data || { 
+                status: 'unknown', 
+                enabled: false, 
+                active: false, 
+                running: false,
+                error: 'No data received' 
+            };
         } catch (error) {
             console.error(`Failed to get status for ${serviceName}:`, error);
             return { 
@@ -340,7 +354,8 @@
             'data': 'fas fa-chart-line',
             'config': 'fas fa-cog',
             'hardware': 'fas fa-microchip',
-            'logging': 'fas fa-file-alt'
+            'logging': 'fas fa-file-alt',
+            'web': 'fas fa-globe'
         };
         return icons[category] || 'fas fa-cog';
     }
@@ -409,9 +424,11 @@
                             <button class="btn btn-outline-info btn-sm" onclick="showServiceAction('${isEnabled ? 'disable' : 'enable'}', '${service.name}');">
                                 <i class="fas fa-${isEnabled ? 'times' : 'check'}"></i> ${isEnabled ? 'Disable' : 'Enable'}
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="showServiceLogs('${service.name}');">
-                                <i class="fas fa-file-alt"></i> Logs
-                            </button>
+                            ${service.hasLogs ? `
+                                <button class="btn btn-outline-secondary btn-sm" onclick="showServiceLogs('${service.name}');">
+                                    <i class="fas fa-file-alt"></i> Logs
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -542,6 +559,9 @@
     
     // Execute service action
     async function executeServiceAction() {
+        // Get authentication token and user role from server
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         const password = document.getElementById('action-password').value;
         const confirmed = document.getElementById('action-confirm').checked;
         const passwordInput = document.getElementById('action-password');
@@ -564,11 +584,8 @@
             return;
         }
         
-        // Validate password (simple validation)
-        const validPasswords = {
-            'apt': 'apt123',
-            'teknisi': 'teknisi123'
-        };
+        // Validate password (loaded from environment variables)
+        const validPasswords = {{ user_passwords | tojson }};
         
         if (validPasswords[currentUser] !== password) {
             passwordInput.classList.add('is-invalid');
@@ -581,13 +598,15 @@
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
         
         try {
-            const response = await fetch(`/api/systemd/${serviceActionData.action}/${serviceActionData.serviceName}`, {
+            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                    'Authorization': `Bearer ${userToken}`
                 },
                 body: JSON.stringify({
+                    service: serviceActionData.serviceName,
+                    action: serviceActionData.action,
                     password: password,
                     user: currentUser
                 })
@@ -640,12 +659,28 @@
         const modal = document.getElementById('serviceLogModal');
         const title = document.getElementById('serviceLogModalLabel');
         const content = document.getElementById('service-log-content');
+        const logFileSelect = document.getElementById('log-file-select');
         
-        title.innerHTML = `<i class="fas fa-file-alt me-2"></i>Service Logs - ${serviceName}`;
+        // Find service configuration
+        const serviceConfig = services.find(s => s.name === serviceName);
+        
+        title.innerHTML = `<i class="fas fa-file-alt me-2"></i>Service Logs - ${serviceConfig ? serviceConfig.displayName : serviceName}`;
         content.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading logs...</div>';
+        
+        // Populate log file options
+        logFileSelect.innerHTML = '';
+        if (serviceConfig && serviceConfig.logFiles) {
+            serviceConfig.logFiles.forEach(logFile => {
+                const option = document.createElement('option');
+                option.value = logFile;
+                option.textContent = logFile;
+                logFileSelect.appendChild(option);
+            });
+        }
         
         // Store current service for log refresh
         window.currentLogService = serviceName;
+        window.currentLogFile = serviceConfig && serviceConfig.logFiles ? serviceConfig.logFiles[0] : '';
         
         const logModal = new bootstrap.Modal(modal);
         logModal.show();
@@ -653,20 +688,36 @@
         await refreshServiceLogs();
     }
     
+    // Change log file
+    function changeLogFile() {
+        const logFileSelect = document.getElementById('log-file-select');
+        window.currentLogFile = logFileSelect.value;
+        refreshServiceLogs();
+    }
+    
     // Refresh service logs
     async function refreshServiceLogs() {
+        // Get authentication token and user role from server
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         const serviceName = window.currentLogService;
+        const logFile = window.currentLogFile;
         const content = document.getElementById('service-log-content');
         
-        if (!serviceName) return;
+        if (!serviceName || !logFile) return;
         
         try {
-            const response = await fetch(`/api/systemd/logs/${serviceName}`, {
-                method: 'GET',
+            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
-                }
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    service: serviceName,
+                    action: 'logs',
+                    log_file: logFile
+                })
             });
             
             if (!response.ok) {
@@ -675,8 +726,8 @@
             
             const result = await response.json();
             
-            if (result.logs) {
-                content.innerHTML = `<pre style="color: #ffffff; margin: 0;">${result.logs}</pre>`;
+            if (result.data && result.data.logs) {
+                content.innerHTML = `<pre style="color: #ffffff; margin: 0;">${result.data.logs}</pre>`;
                 // Auto-scroll to bottom
                 content.scrollTop = content.scrollHeight;
             } else {
@@ -697,30 +748,47 @@
     
     // Download service logs
     async function downloadServiceLogs() {
+        // Get authentication token and user role from server
+        const userToken = '{{ session.get("auth_token", "") }}';
+        
         const serviceName = window.currentLogService;
-        if (!serviceName) return;
+        const logFile = window.currentLogFile;
+        if (!serviceName || !logFile) return;
         
         try {
-            const response = await fetch(`/api/systemd/logs/${serviceName}?download=true`, {
-                method: 'GET',
+            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+                method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
-                }
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    service: serviceName,
+                    action: 'download_logs',
+                    log_file: logFile
+                })
             });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${serviceName}-logs-${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            const result = await response.json();
+            
+            if (result.data && result.data.logs) {
+                // Create downloadable file
+                const blob = new Blob([result.data.logs], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } else {
+                throw new Error('No log data received');
+            }
             
         } catch (error) {
             console.error('Failed to download logs:', error);
@@ -752,6 +820,10 @@
     
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
+        // Get authentication token and user role from server
+        const userToken = '{{ session.get("auth_token", "") }}';
+        const userRole = '{{ user_role }}';
+
         loadAllServices();
         
         // Auto-refresh services every 30 seconds

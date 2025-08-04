@@ -351,7 +351,13 @@ def systemd_service():
             'site_name': site_name,
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1'
+            'ip_address': '192.168.1.1',
+            # User passwords for service authentication
+            'user_passwords': {
+                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
+                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+            }
         }
         
         # Audit page access
@@ -366,7 +372,13 @@ def systemd_service():
             'site_name': 'Site Name',
             'scc_type': scc_type,
             # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1'
+            'ip_address': '192.168.1.1',
+            # User passwords for service authentication
+            'user_passwords': {
+                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
+                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+            }
         }
     return render_template('systemd-service.html', **context)
 
