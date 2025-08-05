@@ -246,7 +246,6 @@ def paginate_data(data=None, limit=50, offset=0, total_records=None):
         # Return page_info only when no data provided
         return page_info
 
-
 def delete_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug_mode=False):
     """
     Optimized delete Redis stream entries by timestamp with validation
@@ -405,7 +404,6 @@ def delete_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug
             "total_deleted": 0,
             "timestamp_exists": False
         }
-
 
 def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data', limit=100, offset=0, debug_mode=False):
     """
@@ -571,7 +569,6 @@ def delete_sqlite_by_timestamp(conn, timestamp, table_name='bms_data', match_typ
             "deleted_count": 0,
             "timestamp_exists": False
         }
-
 
 def store_sqlite_data_batch(conn, site_id, site_name, records, table_name='bms_data', debug_mode=False):
     """
