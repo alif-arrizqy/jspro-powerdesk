@@ -1,15 +1,11 @@
 # SQLite database path
 from datetime import datetime
 import sqlite3
-import os
-import redis
-import sys
+import json
 from ..redisconnection import connection as red
+from config import PATH
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
-SQLITE_DB_PATH = os.getenv('SQLITE_DB_PATH', './data/powerdesk.db')
+SQLITE_DB_PATH = f'{PATH}/data_storage.db'
 
 def get_sqlite_connection():
     """Get SQLite database connection"""
