@@ -533,11 +533,34 @@ All API responses follow a consistent structure:
 **Endpoint:** `DELETE /api/v1/loggers/data/redis/:timestamp`
 
 **Response:**
+
+**Success**
 ```json
 {
-    "status_code": 200,
+    "data": {
+        "bms_deleted": 10,
+        "debug_info": null,
+        "energy_deleted": 1,
+        "total_deleted": 11
+    },
+    "message": "Successfully deleted entries with timestamp exactly matching '20250804T154003'",
     "status": "success",
-    "message": "Redis data deleted successfully"
+    "status_code": 200
+}
+```
+
+**Error 404 - ts not found**
+```
+{
+    "data": {
+        "bms_deleted": 0,
+        "energy_deleted": 0,
+        "timestamp_exists": false,
+        "total_deleted": 0
+    },
+    "message": "Timestamp exact match '20250804T154003' not found in Redis streams",
+    "status": "error",
+    "status_code": 404
 }
 ```
 
