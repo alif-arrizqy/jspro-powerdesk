@@ -58,7 +58,7 @@ def get_redis_data():
         
         # Smart limit handling: smaller default when no date filter to prevent memory issues
         default_limit = 55 if (start_date or end_date) else 22
-        limit = min(int(request.args.get('limit', default_limit)), 110)  # Max 100 records
+        limit = min(int(request.args.get('limit', default_limit)), 11000)  # Max 11000 records
         offset = int(request.args.get('offset', 0))
         debug_mode = request.args.get('debug', 'false').lower() == 'true'
 
