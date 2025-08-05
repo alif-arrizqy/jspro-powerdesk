@@ -162,7 +162,9 @@ def get_redis_data():
             "status_code": 200,
             "status": "success",
             "data": {
-                **paginated_data,
+                "records": paginated_data['records'],
+                "total_records": paginated_data['total_records'],
+                "page_info": paginated_data['page_info'],
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }
@@ -380,13 +382,14 @@ def delete_all_redis_data():
 @api_session_required
 def get_sqlite_data():
     """
-    Get historical data from SQLite with filtering options
+    Get historical data from SQLite with optimized filtering options
     Query parameters:
     - start_date: Start date (ISO 8601 format)
     - end_date: End date (ISO 8601 format)
-    - limit: Maximum records (default: 100)
+    - limit: Maximum records (default: 100, max: 1000)
     - offset: Records to skip (default: 0)
-    - table: Specific table name (optional)
+    - table: Specific table name (default: 'bms_data')
+    - debug: Enable debug mode (true/false)
     """
     try:
         conn = get_sqlite_connection()
@@ -397,14 +400,15 @@ def get_sqlite_data():
                 "message": "SQLite database unavailable"
             }), 503
 
-        # Parse query parameters
+        # Parse query parameters with validation
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         limit = min(int(request.args.get('limit', 100)), 1000)
         offset = int(request.args.get('offset', 0))
-        table_name = request.args.get('table', 'energy_logs')
+        table_name = request.args.get('table', 'bms_data')
+        debug_mode = request.args.get('debug', 'false').lower() == 'true'
 
-        # Validate dates
+        # Validate dates first
         start_dt = validate_date_format(start_date) if start_date else None
         end_dt = validate_date_format(end_date) if end_date else None
         
@@ -412,56 +416,181 @@ def get_sqlite_data():
             return jsonify({
                 "status_code": 400,
                 "status": "error",
-                "message": "Invalid start_date format"
+                "message": "Invalid start_date format",
+                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
+            }), 400
+            
+        if end_date and end_dt is False:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid end_date format", 
+                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
             }), 400
 
-        # Build SQL query
-        base_query = f"SELECT * FROM {table_name}"
-        count_query = f"SELECT COUNT(*) as total FROM {table_name}"
-        conditions = []
-        params = []
+        # Validate table name (basic SQL injection prevention)
+        if not table_name.replace('_', '').replace('-', '').isalnum():
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid table name format"
+            }), 400
 
-        if start_dt:
-            conditions.append("created_at >= ?")
-            params.append(start_dt.strftime("%Y-%m-%d %H:%M:%S"))
-            
-        if end_dt:
-            conditions.append("created_at <= ?")
-            params.append(end_dt.strftime("%Y-%m-%d %H:%M:%S"))
-
-        if conditions:
-            where_clause = " WHERE " + " AND ".join(conditions)
-            base_query += where_clause
-            count_query += where_clause
-
-        # Get total count
-        cursor = conn.execute(count_query, params)
-        total_records = cursor.fetchone()['total']
-
-        # Get paginated data
-        query = f"{base_query} ORDER BY created_at DESC LIMIT ? OFFSET ?"
-        cursor = conn.execute(query, params + [limit, offset])
-        
-        records = []
-        for row in cursor.fetchall():
-            record = dict(row)
-            records.append(record)
-
+        # Process SQLite data using optimized helper function
+        result = process_sqlite_data(conn, start_dt, end_dt, table_name, limit, offset, debug_mode)
         conn.close()
 
-        return jsonify({
+        # Check for errors
+        if "error" in result:
+            return jsonify({
+                "status_code": 500,
+                "status": "error", 
+                "message": "Failed to retrieve SQLite data",
+                "error": result["error"]
+            }), 500
+
+        # Build successful response with dynamic pagination
+        response_data = {
             "status_code": 200,
             "status": "success",
             "data": {
-                "records": records,
-                "total_records": total_records,
-                "page_info": {
-                    "limit": limit,
-                    "offset": offset,
-                    "has_next": (offset + limit) < total_records,
-                    "has_prev": offset > 0
-                },
+                "records": result["records"],
+                "total_records": result["total_records"],
+                "page_info": result["page_info"],
+                "processed_count": result["processed_count"],
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+        }
+
+        # Add debug info if requested
+        if debug_mode and result.get("debug_info"):
+            response_data["debug_info"] = result["debug_info"]
+
+        # Add helpful message when no records found
+        if result["total_records"] == 0:
+            if start_dt or end_dt:
+                response_data["message"] = "No records found in the specified date range."
+            else:
+                response_data["message"] = "No records found in the table."
+
+        return jsonify(response_data), 200
+    except sqlite3.Error as e:
+        return jsonify({
+            "status_code": 500,
+            "status": "error",
+            "message": "SQLite database error",
+            "error": str(e)
+        }), 500
+    except ValueError as e:
+        return jsonify({
+            "status_code": 400,
+            "status": "error",
+            "message": "Invalid parameter value",
+            "error": str(e)
+        }), 400
+    except Exception as e:
+        error_response = {
+            "status_code": 500,
+            "status": "error",
+            "message": "Failed to retrieve SQLite data",
+            "error": str(e)
+        }
+        
+        return jsonify(error_response), 500
+
+
+@logger_bp.route('/data/sqlite/<timestamp>', methods=['DELETE'])
+@api_session_required
+def delete_sqlite_data_by_timestamp(timestamp):
+    """
+    Delete SQLite data by timestamp with validation
+    Supports both exact timestamp match and prefix match
+    
+    Parameters:
+    - timestamp: Timestamp to delete (exact match or prefix)
+    
+    Query parameters:
+    - match_type: 'exact' (default) or 'prefix'
+    - table: Target table name (default: 'bms_data')
+    - debug: Enable debug mode (true/false)
+    """
+    try:
+        conn = get_sqlite_connection()
+        if not conn:
+            return jsonify({
+                "status_code": 503,
+                "status": "error",
+                "message": "SQLite database unavailable"
+            }), 503
+
+        # Get query parameters
+        match_type = request.args.get('match_type', 'exact').lower()
+        table_name = request.args.get('table', 'bms_data')
+        debug_mode = request.args.get('debug', 'false').lower() == 'true'
+        
+        # Validate match_type
+        if match_type not in ['exact', 'prefix']:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid match_type. Must be 'exact' or 'prefix'"
+            }), 400
+
+        # Validate table name (SQL injection prevention)
+        if not table_name.replace('_', '').replace('-', '').isalnum():
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid table name format"
+            }), 400
+
+        # Validate timestamp format (basic validation)
+        if not timestamp or len(timestamp) < 8:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid timestamp format. Timestamp too short."
+            }), 400
+
+        # Delete data using optimized helper function
+        result = delete_sqlite_data_by_timestamp(
+            conn, timestamp, table_name, match_type, debug_mode
+        )
+        
+        conn.close()
+
+        # Check for errors
+        if "error" in result:
+            return jsonify({
+                "status_code": 500,
+                "status": "error",
+                "message": "Failed to delete SQLite data by timestamp",
+                "error": result["error"]
+            }), 500
+
+        # Check if timestamp exists - return error if not found
+        if not result.get("timestamp_exists", False):
+            return jsonify({
+                "status_code": 404,
+                "status": "error",
+                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in table '{table_name}'",
+                "data": {
+                    "deleted_count": 0,
+                    "timestamp_exists": False,
+                    "table_name": table_name
+                }
+            }), 404
+
+        # Success response when timestamp found and deleted
+        return jsonify({
+            "status_code": 200,
+            "status": "success",
+            "message": f"Successfully deleted {result['deleted_count']} records with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}' from table '{table_name}'",
+            "data": {
+                "deleted_count": result["deleted_count"],
+                "timestamp_exists": result["timestamp_exists"],
+                "table_name": table_name,
+                "debug_info": result.get("debug_info") if debug_mode else None
             }
         }), 200
 
@@ -473,103 +602,29 @@ def get_sqlite_data():
             "error": str(e)
         }), 500
     except Exception as e:
-        return jsonify({
+        error_response = {
             "status_code": 500,
             "status": "error",
-            "message": "Failed to retrieve SQLite data",
+            "message": "Failed to delete SQLite data by timestamp",
             "error": str(e)
-        }), 500
-
-
-@logger_bp.route('/data/sqlite', methods=['POST'])
-@api_session_required
-def store_sqlite_data():
-    """Store data to SQLite database"""
-    try:
-        conn = get_sqlite_connection()
-        if not conn:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "SQLite database unavailable"
-            }), 503
-
-        data = request.get_json()
-        if not data:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid request body"
-            }), 400
-
-        site_id = data.get('site_id')
-        site_name = data.get('site_name')
-        table_name = data.get('table_name', 'energy_logs')
-        records = data.get('data', [])
-
-        if not site_id or not records:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Missing required fields"
-            }), 400
-
-        # Create table if not exists
-        create_table_query = f"""
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            site_id TEXT NOT NULL,
-            site_name TEXT,
-            timestamp TEXT,
-            energy_data TEXT,
-            bms_data TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-        conn.execute(create_table_query)
-
-        # Insert records
-        stored_count = 0
-        for record in records:
-            insert_query = f"""
-            INSERT INTO {table_name} (site_id, site_name, timestamp, energy_data, bms_data)
-            VALUES (?, ?, ?, ?, ?)
-            """
-            conn.execute(insert_query, (
-                site_id,
-                site_name,
-                record.get('timestamp', datetime.now().isoformat()),
-                json.dumps(record.get('energy_data', {})),
-                json.dumps(record.get('bms_data', []))
-            ))
-            stored_count += 1
-
-        conn.commit()
-        conn.close()
-
-        return jsonify({
-            "status_code": 201,
-            "status": "success",
-            "message": "SQLite data stored successfully",
-            "data": {
-                "records_stored": stored_count,
-                "table_name": table_name
-            }
-        }), 201
-
-    except Exception as e:
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to store SQLite data",
-            "error": str(e)
-        }), 500
+        }
+        
+        return jsonify(error_response), 500
 
 
 @logger_bp.route('/data/sqlite/<int:record_id>', methods=['DELETE'])
 @api_session_required
 def delete_sqlite_data(record_id):
-    """Delete specific SQLite data by ID"""
+    """
+    Delete specific SQLite data by ID with validation
+    
+    Parameters:
+    - record_id: Database record ID to delete
+    
+    Query parameters:
+    - table: Target table name (default: 'bms_data')
+    - debug: Enable debug mode (true/false)
+    """
     try:
         conn = get_sqlite_connection()
         if not conn:
@@ -579,33 +634,188 @@ def delete_sqlite_data(record_id):
                 "message": "SQLite database unavailable"
             }), 503
 
-        table_name = request.args.get('table', 'energy_logs')
+        table_name = request.args.get('table', 'bms_data')
+        debug_mode = request.args.get('debug', 'false').lower() == 'true'
         
-        cursor = conn.execute(f"DELETE FROM {table_name} WHERE id = ?", (record_id,))
-        conn.commit()
-        
-        if cursor.rowcount > 0:
-            conn.close()
+        # Validate table name (SQL injection prevention)
+        if not table_name.replace('_', '').replace('-', '').isalnum():
             return jsonify({
-                "status_code": 200,
-                "status": "success",
-                "message": "SQLite data deleted successfully"
-            }), 200
-        else:
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid table name format"
+            }), 400
+
+        # Validate record_id
+        if record_id <= 0:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid record ID. Must be positive integer."
+            }), 400
+
+        # Check if record exists first
+        check_query = f"SELECT COUNT(*) as count FROM {table_name} WHERE id = ?"
+        cursor = conn.execute(check_query, (record_id,))
+        exists = cursor.fetchone()['count'] > 0
+
+        if not exists:
             conn.close()
             return jsonify({
                 "status_code": 404,
                 "status": "error",
-                "message": "SQLite data not found"
+                "message": f"Record with ID {record_id} not found in table '{table_name}'"
             }), 404
 
-    except Exception as e:
+        # Delete the record
+        delete_query = f"DELETE FROM {table_name} WHERE id = ?"
+        cursor = conn.execute(delete_query, (record_id,))
+        conn.commit()
+        
+        deleted_count = cursor.rowcount
+        conn.close()
+        
+        # Build response
+        response_data = {
+            "status_code": 200,
+            "status": "success",
+            "message": f"Successfully deleted record ID {record_id} from table '{table_name}'",
+            "data": {
+                "deleted_record_id": record_id,
+                "deleted_count": deleted_count,
+                "table_name": table_name
+            }
+        }
+
+        if debug_mode:
+            response_data["debug_info"] = {
+                "record_id": record_id,
+                "table_name": table_name,
+                "deleted_count": deleted_count
+            }
+
+        return jsonify(response_data), 200
+
+    except sqlite3.Error as e:
         return jsonify({
+            "status_code": 500,
+            "status": "error",
+            "message": "SQLite database error",
+            "error": str(e)
+        }), 500
+    except Exception as e:
+        error_response = {
             "status_code": 500,
             "status": "error",
             "message": "Failed to delete SQLite data",
             "error": str(e)
+        }
+        
+        return jsonify(error_response), 500
+
+
+@logger_bp.route('/data/sqlite', methods=['DELETE'])
+@api_session_required
+def delete_all_sqlite_data():
+    """
+    Delete all SQLite data from specified table
+    
+    Query parameters:
+    - table: Target table name (default: 'bms_data')
+    - confirm: Must be 'yes' to confirm deletion (required)
+    - debug: Enable debug mode (true/false)
+    """
+    try:
+        conn = get_sqlite_connection()
+        if not conn:
+            return jsonify({
+                "status_code": 503,
+                "status": "error",
+                "message": "SQLite database unavailable"
+            }), 503
+
+        table_name = request.args.get('table', 'bms_data')
+        confirm = request.args.get('confirm', '').lower()
+        debug_mode = request.args.get('debug', 'false').lower() == 'true'
+        
+        # Validate table name (SQL injection prevention)
+        if not table_name.replace('_', '').replace('-', '').isalnum():
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid table name format"
+            }), 400
+
+        # Require confirmation for safety
+        if confirm != 'yes':
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all data."
+            }), 400
+
+        # Get count before deletion
+        count_query = f"SELECT COUNT(*) as total FROM {table_name}"
+        cursor = conn.execute(count_query)
+        total_before = cursor.fetchone()['total']
+
+        if total_before == 0:
+            conn.close()
+            return jsonify({
+                "status_code": 200,
+                "status": "success",
+                "message": f"Table '{table_name}' is already empty",
+                "data": {
+                    "deleted_count": 0,
+                    "table_name": table_name
+                }
+            }), 200
+
+        # Delete all records
+        delete_query = f"DELETE FROM {table_name}"
+        cursor = conn.execute(delete_query)
+        conn.commit()
+        
+        deleted_count = cursor.rowcount
+        conn.close()
+
+        # Build response
+        response_data = {
+            "status_code": 200,
+            "status": "success",
+            "message": f"Successfully deleted all {deleted_count} records from table '{table_name}'",
+            "data": {
+                "deleted_count": deleted_count,
+                "table_name": table_name,
+                "records_before_deletion": total_before
+            }
+        }
+
+        if debug_mode:
+            response_data["debug_info"] = {
+                "table_name": table_name,
+                "records_before": total_before,
+                "records_deleted": deleted_count,
+                "confirmation_required": True
+            }
+
+        return jsonify(response_data), 200
+
+    except sqlite3.Error as e:
+        return jsonify({
+            "status_code": 500,
+            "status": "error",
+            "message": "SQLite database error",
+            "error": str(e)
         }), 500
+    except Exception as e:
+        error_response = {
+            "status_code": 500,
+            "status": "error",
+            "message": "Failed to delete all SQLite data",
+            "error": str(e)
+        }
+        
+        return jsonify(error_response), 500
 
 
 # ============== Storage Overview Endpoint ===========================
@@ -664,11 +874,29 @@ def get_storage_overview():
         try:
             conn = get_sqlite_connection()
             if conn:
-                cursor = conn.execute("SELECT COUNT(*) as total FROM energy_logs")
-                result = cursor.fetchone()
-                if result:
-                    overview_data["storage_overview"]["sqlite_storage"] = result['total']
-                    overview_data["data_statistics"]["sqlite_records"] = result['total']
+                # Get total records from both tables
+                total_sqlite_records = 0
+                
+                # Count bms_data records
+                try:
+                    cursor = conn.execute("SELECT COUNT(*) as total FROM bms_data")
+                    result = cursor.fetchone()
+                    if result:
+                        total_sqlite_records += result['total']
+                except:
+                    pass
+                
+                # Count energy_data records
+                try:
+                    cursor = conn.execute("SELECT COUNT(*) as total FROM energy_data")
+                    result = cursor.fetchone()
+                    if result:
+                        total_sqlite_records += result['total']
+                except:
+                    pass
+                
+                overview_data["storage_overview"]["sqlite_storage"] = total_sqlite_records
+                overview_data["data_statistics"]["sqlite_records"] = total_sqlite_records
                 conn.close()
         except:
             pass
@@ -763,16 +991,16 @@ def get_scc_alarm_history():
         # Sort by timestamp (newest first)
         all_alarms.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
 
-        # Paginate
+        # Paginate using dynamic pagination system
         paginated_data = paginate_data(all_alarms, limit, offset)
 
         return jsonify({
             "status_code": 200,
             "status": "success",
             "data": {
-                "logger_records": len(all_alarms),
-                "logs": paginated_data['records'],
-                **paginated_data['page_info'],
+                "records": paginated_data['records'],
+                "total_records": paginated_data['total_records'],
+                "page_info": paginated_data['page_info'],
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }), 200
