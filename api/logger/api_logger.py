@@ -13,6 +13,8 @@ import shutil
 from functools import wraps
 from ..redisconnection import connection as red
 from .helper import *
+from functions import get_disk_detail
+from config import PATH
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -740,8 +742,10 @@ def get_storage_overview():
     try:
         overview_data = {
             "storage_overview": {
-                "redis_storage": 0,
-                "sqlite_storage": 0,
+                "redis_storage": 0.0,  # in MB
+                "redis_storage_unit": "MB",
+                "sqlite_storage": 0.0,  # in MB  
+                "sqlite_storage_unit": "MB",
                 "disk_usage": {
                     "free": 0.0,
                     "total": 0.0
@@ -756,10 +760,17 @@ def get_storage_overview():
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        # Get Redis statistics
+        # Get Redis statistics and memory usage
         if red:
             try:
-                # Get stream info for both streams
+                # Get Redis memory usage for all keys
+                redis_info = red.info('memory')
+                redis_used_memory = redis_info.get('used_memory', 0)
+                # Convert bytes to MB
+                redis_storage_mb = round(redis_used_memory / (1024 * 1024), 2)
+                overview_data["storage_overview"]["redis_storage"] = redis_storage_mb
+                
+                # Get stream info for both streams (record counts)
                 bms_count = 0
                 energy_count = 0
                 
@@ -776,18 +787,25 @@ def get_storage_overview():
                     pass
                 
                 total_redis_entries = bms_count + energy_count
-                overview_data["storage_overview"]["redis_storage"] = total_redis_entries
                 overview_data["data_statistics"]["logger_records"] = total_redis_entries
                 overview_data["data_statistics"]["bms_records"] = bms_count
                 overview_data["data_statistics"]["energy_records"] = energy_count
-            except:
+            except Exception:
                 pass
 
-        # Get SQLite statistics
+        # Get SQLite statistics and file size
         try:
+            # Get SQLite database file size
+            sqlite_db_path = f'{PATH}/data_storage.db'
+            if os.path.exists(sqlite_db_path):
+                sqlite_file_size = os.path.getsize(sqlite_db_path)
+                # Convert bytes to MB
+                sqlite_storage_mb = round(sqlite_file_size / (1024 * 1024), 2)
+                overview_data["storage_overview"]["sqlite_storage"] = sqlite_storage_mb
+            
+            # Get record counts from SQLite
             conn = get_sqlite_connection()
             if conn:
-                # Get total records from both tables
                 total_sqlite_records = 0
                 
                 # Count bms_data records
@@ -796,7 +814,7 @@ def get_storage_overview():
                     result = cursor.fetchone()
                     if result:
                         total_sqlite_records += result['total']
-                except:
+                except Exception:
                     pass
                 
                 # Count energy_data records
@@ -805,22 +823,24 @@ def get_storage_overview():
                     result = cursor.fetchone()
                     if result:
                         total_sqlite_records += result['total']
-                except:
+                except Exception:
                     pass
                 
-                overview_data["storage_overview"]["sqlite_storage"] = total_sqlite_records
                 overview_data["data_statistics"]["sqlite_records"] = total_sqlite_records
                 conn.close()
-        except:
+        except Exception:
             pass
 
         # Get disk usage (simplified)
         try:
-            total, used, free = shutil.disk_usage(".")
-            overview_data["storage_overview"]["disk_usage"] = {
-                "free": round(free / (1024**3), 1),  # GB
-                "total": round(total / (1024**3), 1)  # GB
+            disk = get_disk_detail()
+            disk_usage = {
+                "free": round(disk.free / (1024**3), 1),  # Convert to GB
+                "used": round(disk.used / (1024**3), 1),  # Convert to GB
+                "total": round(disk.total / (1024**3), 1),  # Convert to GB
+                "unit": "GB"
             }
+            overview_data["storage_overview"]["disk_usage"] = disk_usage
         except:
             pass
 
