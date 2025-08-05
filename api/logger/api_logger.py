@@ -322,7 +322,12 @@ def delete_redis_by_ts(timestamp):
 @logger_bp.route('/data/redis', methods=['DELETE'])
 @api_session_required
 def delete_all_redis_data():
-    """Delete all Redis stream data (both BMS and Energy streams)"""
+    """
+    Delete all Redis stream data (both BMS and Energy streams)
+    
+    Query parameters:
+    - confirm: Must be 'yes' to confirm deletion (required)
+    """
     try:
         if not red:
             return jsonify({
@@ -330,6 +335,17 @@ def delete_all_redis_data():
                 "status": "error",
                 "message": "Redis service unavailable"
             }), 503
+
+        # Get query parameters
+        confirm = request.args.get('confirm', '').lower()
+        
+        # Require confirmation for safety
+        if confirm != 'yes':
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all Redis data."
+            }), 400
 
         # Delete entire streams using DEL command
         bms_deleted = 0
