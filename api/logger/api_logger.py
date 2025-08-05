@@ -223,6 +223,100 @@ def get_redis_data():
             
         return jsonify(error_response), 500
 
+
+@logger_bp.route('/data/redis/<timestamp>', methods=['DELETE'])
+@api_session_required
+def delete_redis_by_ts(timestamp):
+    """
+    Delete Redis stream data by timestamp with validation
+    Supports both exact timestamp match and prefix match
+    
+    Parameters:
+    - timestamp: Timestamp to delete (exact match or prefix)
+    
+    Query parameters:
+    - match_type: 'exact' (default) or 'prefix'
+    - debug: Enable debug mode (true/false)
+    """
+    try:
+        if not red:
+            return jsonify({
+                "status_code": 503,
+                "status": "error", 
+                "message": "Redis service unavailable"
+            }), 503
+
+        # Get query parameters
+        match_type = request.args.get('match_type', 'exact').lower()
+        debug_mode = request.args.get('debug', 'false').lower() == 'true'
+        
+        # Validate match_type
+        if match_type not in ['exact', 'prefix']:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid match_type. Must be 'exact' or 'prefix'"
+            }), 400
+
+        # Validate timestamp format (basic validation)
+        if not timestamp or len(timestamp) < 8:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid timestamp format. Timestamp too short."
+            }), 400
+
+        # Delete from both streams using optimized helper function
+        result = delete_entries_by_timestamp(red, timestamp, match_type, debug_mode)
+        
+        # Check if there was an error
+        if "error" in result:
+            return jsonify({
+                "status_code": 500,
+                "status": "error",
+                "message": "Failed to delete Redis stream data by timestamp",
+                "error": result["error"]
+            }), 500
+        
+        # Check if timestamp exists - return error if not found
+        if not result.get("timestamp_exists", False):
+            return jsonify({
+                "status_code": 404,
+                "status": "error",
+                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in Redis streams",
+                "data": {
+                    "bms_deleted": 0,
+                    "energy_deleted": 0,
+                    "total_deleted": 0,
+                    "timestamp_exists": False
+                }
+            }), 404
+        
+        # Success response when timestamp found and deleted
+        return jsonify({
+            "status_code": 200,
+            "status": "success", 
+            "message": f"Successfully deleted {result['total_deleted']} entries with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}'",
+            "data": {
+                "bms_deleted": result["bms_deleted"],
+                "energy_deleted": result["energy_deleted"],
+                "total_deleted": result["total_deleted"],
+                "timestamp_exists": result["timestamp_exists"],
+                "debug_info": result.get("debug_info") if debug_mode else None
+            }
+        }), 200
+
+    except Exception as e:
+        error_response = {
+            "status_code": 500,
+            "status": "error",
+            "message": "Failed to delete Redis stream data by timestamp",
+            "error": str(e)
+        }
+        
+        return jsonify(error_response), 500
+
+
 @logger_bp.route('/data/redis', methods=['DELETE'])
 @api_session_required
 def delete_all_redis_data():

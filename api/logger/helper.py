@@ -190,3 +190,163 @@ def paginate_data(data, limit, offset):
             'has_prev': offset > 0
         }
     }
+
+
+def delete_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug_mode=False):
+    """
+    Optimized delete Redis stream entries by timestamp with validation
+    
+    Parameters:
+    - redis_conn: Redis connection object
+    - timestamp: Timestamp to delete (exact match or prefix)
+    - match_type: 'exact' or 'prefix'
+    - debug_mode: Enable debug information
+    
+    Returns:
+    - Dictionary with deletion results and validation
+    """
+    try:
+        if not redis_conn:
+            return {
+                "error": "Redis connection unavailable",
+                "bms_deleted": 0,
+                "energy_deleted": 0,
+                "total_deleted": 0,
+                "timestamp_exists": False
+            }
+        
+        result = {
+            "bms_deleted": 0,
+            "energy_deleted": 0,
+            "total_deleted": 0,
+            "timestamp_exists": False,
+            "debug_info": {} if debug_mode else None
+        }
+        
+        if debug_mode:
+            result["debug_info"] = {
+                "timestamp_filter": timestamp,
+                "match_type": match_type,
+                "streams_processed": [],
+                "entries_found": {},
+                "validation_method": "fast_search_before_delete"
+            }
+        
+        # First, validate if timestamp exists (fast validation)
+        timestamp_found = False
+        
+        # Process both streams with optimized validation and deletion
+        for stream_name, stream_key in [('bms', 'stream:bms'), ('energy', 'stream:energy')]:
+            deleted_count = 0
+            stream_has_timestamp = False
+            
+            try:
+                # Check if stream exists first
+                try:
+                    stream_info = redis_conn.xinfo_stream(stream_key)
+                    total_entries = stream_info['length']
+                    if total_entries == 0:
+                        continue
+                except:
+                    continue  # Stream doesn't exist, skip
+                
+                if debug_mode:
+                    result["debug_info"]["streams_processed"].append(stream_name)
+                    result["debug_info"]["entries_found"][stream_name] = total_entries
+                
+                # Optimized search: Use XRANGE with efficient scanning
+                if match_type == 'exact':
+                    # For exact match, use more efficient chunked scanning
+                    chunk_size = 100
+                    start_id = "-"
+                    entries_to_delete = []
+                    
+                    while True:
+                        # Get chunk of entries
+                        chunk = redis_conn.xrange(stream_key, min=start_id, count=chunk_size)
+                        if not chunk:
+                            break
+                        
+                        # Scan chunk for exact timestamp match
+                        for entry_id, fields in chunk:
+                            # Fast field extraction
+                            timestamp_field = fields.get(b'timestamp') or fields.get('timestamp')
+                            if timestamp_field:
+                                entry_timestamp = timestamp_field.decode('utf-8') if isinstance(timestamp_field, bytes) else timestamp_field
+                                
+                                if entry_timestamp == timestamp:
+                                    entries_to_delete.append(entry_id)
+                                    stream_has_timestamp = True
+                                    timestamp_found = True
+                        
+                        # If we found matches in exact mode, we can stop after this chunk
+                        if stream_has_timestamp and match_type == 'exact':
+                            break
+                            
+                        # Update start_id for next chunk
+                        start_id = f"({chunk[-1][0].decode('utf-8') if isinstance(chunk[-1][0], bytes) else str(chunk[-1][0])}"
+                        
+                elif match_type == 'prefix':
+                    # For prefix match, scan all but with optimized field access
+                    chunk_size = 100
+                    start_id = "-"
+                    entries_to_delete = []
+                    
+                    while True:
+                        chunk = redis_conn.xrange(stream_key, min=start_id, count=chunk_size)
+                        if not chunk:
+                            break
+                            
+                        for entry_id, fields in chunk:
+                            timestamp_field = fields.get(b'timestamp') or fields.get('timestamp')
+                            if timestamp_field:
+                                entry_timestamp = timestamp_field.decode('utf-8') if isinstance(timestamp_field, bytes) else timestamp_field
+                                
+                                if entry_timestamp.startswith(timestamp):
+                                    entries_to_delete.append(entry_id)
+                                    stream_has_timestamp = True
+                                    timestamp_found = True
+                        
+                        # Update start_id for next chunk
+                        start_id = f"({chunk[-1][0].decode('utf-8') if isinstance(chunk[-1][0], bytes) else str(chunk[-1][0])}"
+                
+                # Delete matching entries in batch
+                if entries_to_delete:
+                    # Delete in chunks if there are many entries
+                    if len(entries_to_delete) > 100:
+                        for i in range(0, len(entries_to_delete), 100):
+                            chunk_to_delete = entries_to_delete[i:i+100]
+                            deleted_count += redis_conn.xdel(stream_key, *chunk_to_delete)
+                    else:
+                        deleted_count = redis_conn.xdel(stream_key, *entries_to_delete)
+                
+                # Update result
+                if stream_name == 'bms':
+                    result["bms_deleted"] = deleted_count
+                else:
+                    result["energy_deleted"] = deleted_count
+                    
+                if debug_mode and entries_to_delete:
+                    if "matches_found" not in result["debug_info"]:
+                        result["debug_info"]["matches_found"] = {}
+                    result["debug_info"]["matches_found"][stream_name] = len(entries_to_delete)
+                    
+            except Exception as e:
+                if debug_mode:
+                    if "errors" not in result["debug_info"]:
+                        result["debug_info"]["errors"] = {}
+                    result["debug_info"]["errors"][stream_name] = str(e)
+        
+        result["total_deleted"] = result["bms_deleted"] + result["energy_deleted"]
+        result["timestamp_exists"] = timestamp_found
+        
+        return result
+        
+    except Exception as e:
+        return {
+            "error": str(e),
+            "bms_deleted": 0,
+            "energy_deleted": 0,
+            "total_deleted": 0,
+            "timestamp_exists": False
+        }
