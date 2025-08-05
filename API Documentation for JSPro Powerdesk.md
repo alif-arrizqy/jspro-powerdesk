@@ -564,6 +564,24 @@ All API responses follow a consistent structure:
 }
 ```
 
+#### 7.4 Delete All Redis Data
+**Endpoint:** `DELETE /api/v1/loggers/data/redis`
+
+**Response:**
+```json
+{
+    "data": {
+        "bms_entries_deleted": 102856,
+        "energy_entries_deleted": 8668,
+        "total_deleted": 111524
+    },
+    "message": "All Redis stream data deleted successfully",
+    "status": "success",
+    "status_code": 200
+}
+```
+
+
 ### 8. Historical Data - SQLite Storage
 
 #### 8.1. Get SQLite Data Logs
