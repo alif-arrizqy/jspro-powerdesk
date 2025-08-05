@@ -158,34 +158,93 @@ def convert_to_redis_timestamp_format(dt):
     """Convert datetime object to Redis timestamp format (YYYYMMDDTHHMMSS)"""
     return dt.strftime('%Y%m%dT%H%M%S') if dt else None
 
-def paginate_data(data, limit, offset):
-    """Memory-efficient data pagination"""
-    total = len(data)
-    if offset >= total:
-        return {
-            'records': [],
-            'total_records': total,
-            'page_info': {
-                'limit': limit,
-                'offset': offset,
-                'has_next': False,
-                'has_prev': offset > 0
-            }
-        }
+def paginate_data(data=None, limit=50, offset=0, total_records=None):
+    """
+    Universal pagination function for any type of data or pagination info only
     
-    end = min(offset + limit, total)
-    paginated = data[offset:end]
+    Parameters:
+    - data: List of data to paginate (optional - can be None for page_info only)
+    - limit: Maximum records per page
+    - offset: Records to skip
+    - total_records: Total count (required if data is None, optional otherwise)
     
-    return {
-        'records': paginated,
+    Returns:
+    - Dictionary with paginated data (if data provided) and comprehensive page info
+    """
+    # Handle edge cases
+    if limit <= 0:
+        limit = 1
+    if offset < 0:
+        offset = 0
+    
+    # Determine total records
+    if total_records is not None:
+        total = total_records
+    elif data is not None:
+        total = len(data)
+    else:
+        raise ValueError("Either 'data' or 'total_records' must be provided")
+    
+    if total < 0:
+        total = 0
+    
+    # Calculate pagination metrics
+    current_page = (offset // limit) + 1
+    total_pages = max(1, (total + limit - 1) // limit)
+    
+    # Calculate showing range
+    if data is not None:
+        # When data is provided, calculate based on actual data slice
+        if offset >= len(data):
+            paginated = []
+            showing_from = 0
+            showing_to = 0
+            showing_count = 0
+        else:
+            end = min(offset + limit, len(data))
+            paginated = data[offset:end]
+            showing_from = offset + 1 if paginated else 0
+            showing_to = offset + len(paginated)
+            showing_count = len(paginated)
+    else:
+        # When no data provided, calculate theoretical ranges
+        if offset >= total:
+            showing_from = 0
+            showing_to = 0
+            showing_count = 0
+        else:
+            showing_from = offset + 1
+            showing_to = min(offset + limit, total)
+            showing_count = max(0, showing_to - offset)
+        paginated = None  # No data to paginate
+    
+    # Build comprehensive page info
+    page_info = {
+        'limit': limit,
+        'offset': offset,
+        'current_page': current_page,
+        'total_pages': total_pages,
         'total_records': total,
-        'page_info': {
-            'limit': limit,
-            'offset': offset,
-            'has_next': end < total,
-            'has_prev': offset > 0
-        }
+        'has_next': (offset + limit) < total,
+        'has_prev': offset > 0,
+        'showing_from': showing_from,
+        'showing_to': showing_to,
+        'showing_count': showing_count,
+        'is_first_page': current_page == 1,
+        'is_last_page': current_page == total_pages,
+        'records_remaining': max(0, total - (offset + limit))
     }
+    
+    # Return based on whether data was provided
+    if data is not None:
+        return {
+            'records': paginated if paginated is not None else [],
+            'total_records': total,
+            'page_info': page_info
+        }
+    else:
+        # Return page_info only when no data provided
+        return page_info
 
 
 def delete_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug_mode=False):
@@ -345,4 +404,252 @@ def delete_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug
             "energy_deleted": 0,
             "total_deleted": 0,
             "timestamp_exists": False
+        }
+
+
+def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data', limit=100, offset=0, debug_mode=False):
+    """
+    Optimized SQLite data processing with filtering and pagination
+    
+    Parameters:
+    - conn: SQLite connection object
+    - start_dt: Start datetime filter
+    - end_dt: End datetime filter 
+    - table_name: Target table name
+    - limit: Maximum records to return
+    - offset: Records to skip for pagination
+    - debug_mode: Enable debug information
+    
+    Returns:
+    - Dictionary with processed data and metadata
+    """
+    try:
+        if not conn:
+            return {
+                "records": [],
+                "total_records": 0,
+                "page_info": {},
+                "error": "SQLite connection unavailable"
+            }
+        
+        # Build optimized SQL query
+        base_query = f"SELECT * FROM {table_name}"
+        count_query = f"SELECT COUNT(*) as total FROM {table_name}"
+        conditions = []
+        params = []
+
+        print(f"Processing {table_name} with limit={limit}, offset={offset}, start_dt={start_dt}, end_dt={end_dt}")
+        # Add date filters if provided
+        if start_dt:
+            conditions.append("collection_time >= ?")
+            params.append(start_dt.strftime("%Y-%m-%d %H:%M:%S"))
+            
+        if end_dt:
+            conditions.append("collection_time <= ?") 
+            params.append(end_dt.strftime("%Y-%m-%d %H:%M:%S"))
+
+        # Apply WHERE clause if conditions exist
+        if conditions:
+            where_clause = " WHERE " + " AND ".join(conditions)
+            base_query += where_clause
+            count_query += where_clause
+
+        # Get total count efficiently
+        cursor = conn.execute(count_query, params)
+        total_records = cursor.fetchone()['total']
+
+        # Get paginated data with proper ordering
+        query = f"{base_query} ORDER BY collection_time DESC LIMIT ? OFFSET ?"
+        cursor = conn.execute(query, params + [limit, offset])
+        
+        # Process records efficiently
+        records = []
+        for row in cursor.fetchall():
+            record = dict(row)
+            # Parse JSON fields if they exist
+            for json_field in ['energy_data', 'bms_data']:
+                if json_field in record and record[json_field]:
+                    try:
+                        record[json_field] = json.loads(record[json_field])
+                    except:
+                        pass  # Keep as string if JSON parsing fails
+            records.append(record)
+
+        # Build pagination info using the unified pagination function
+        page_info = paginate_data(data=None, limit=limit, offset=offset, total_records=total_records)
+
+        return {
+            "records": records,
+            "total_records": total_records,
+            "page_info": page_info,
+            "processed_count": len(records),
+            "debug_info": {
+                "table_name": table_name,
+                "query_params": params,
+                "conditions_applied": len(conditions)
+            } if debug_mode else None
+        }
+
+    except Exception as e:
+        return {
+            "records": [],
+            "total_records": 0,
+            "page_info": {},
+            "error": str(e)
+        }
+
+
+def delete_sqlite_data_by_timestamp(conn, timestamp, table_name='bms_data', match_type='exact', debug_mode=False):
+    """
+    Delete SQLite data by timestamp with validation
+    
+    Parameters:
+    - conn: SQLite connection object
+    - timestamp: Timestamp to delete
+    - table_name: Target table name
+    - match_type: 'exact' or 'prefix'
+    - debug_mode: Enable debug information
+    
+    Returns:
+    - Dictionary with deletion results and validation
+    """
+    try:
+        if not conn:
+            return {
+                "error": "SQLite connection unavailable", 
+                "deleted_count": 0,
+                "timestamp_exists": False
+            }
+
+        # Build query based on match type
+        if match_type == 'exact':
+            check_query = f"SELECT COUNT(*) as count FROM {table_name} WHERE timestamp = ?"
+            delete_query = f"DELETE FROM {table_name} WHERE timestamp = ?"
+            params = [timestamp]
+        elif match_type == 'prefix':
+            check_query = f"SELECT COUNT(*) as count FROM {table_name} WHERE timestamp LIKE ?"
+            delete_query = f"DELETE FROM {table_name} WHERE timestamp LIKE ?"
+            params = [f"{timestamp}%"]
+        else:
+            return {
+                "error": "Invalid match_type. Must be 'exact' or 'prefix'",
+                "deleted_count": 0,
+                "timestamp_exists": False
+            }
+
+        # Check if timestamp exists
+        cursor = conn.execute(check_query, params)
+        existing_count = cursor.fetchone()['count']
+        
+        result = {
+            "deleted_count": 0,
+            "timestamp_exists": existing_count > 0,
+            "debug_info": {} if debug_mode else None
+        }
+
+        if debug_mode:
+            result["debug_info"] = {
+                "timestamp_filter": timestamp,
+                "match_type": match_type,
+                "table_name": table_name,
+                "existing_records": existing_count
+            }
+
+        # Only delete if records exist
+        if existing_count > 0:
+            cursor = conn.execute(delete_query, params)
+            conn.commit()
+            result["deleted_count"] = cursor.rowcount
+            
+            if debug_mode:
+                result["debug_info"]["actual_deleted"] = cursor.rowcount
+
+        return result
+
+    except Exception as e:
+        return {
+            "error": str(e),
+            "deleted_count": 0,
+            "timestamp_exists": False
+        }
+
+
+def store_sqlite_data_batch(conn, site_id, site_name, records, table_name='bms_data', debug_mode=False):
+    """
+    Optimized batch storage for SQLite data
+    
+    Parameters:
+    - conn: SQLite connection object
+    - site_id: Site identifier
+    - site_name: Site name
+    - records: List of records to store
+    - table_name: Target table name
+    - debug_mode: Enable debug information
+    
+    Returns:
+    - Dictionary with storage results
+    """
+    try:
+        if not conn:
+            return {
+                "error": "SQLite connection unavailable",
+                "records_stored": 0
+            }
+
+        # Create table if not exists with optimized schema
+        create_table_query = f"""
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            site_id TEXT NOT NULL,
+            site_name TEXT,
+            timestamp TEXT NOT NULL,
+            energy_data TEXT,
+            bms_data TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_timestamp (timestamp),
+            INDEX idx_created_at (created_at),
+            INDEX idx_site_id (site_id)
+        )
+        """
+        conn.execute(create_table_query)
+
+        # Prepare batch insert
+        insert_query = f"""
+        INSERT INTO {table_name} (site_id, site_name, timestamp, energy_data, bms_data)
+        VALUES (?, ?, ?, ?, ?)
+        """
+
+        # Batch insert for better performance
+        batch_data = []
+        for record in records:
+            batch_data.append((
+                site_id,
+                site_name,
+                record.get('timestamp', datetime.now().isoformat()),
+                json.dumps(record.get('energy_data', {})) if record.get('energy_data') else None,
+                json.dumps(record.get('bms_data', [])) if record.get('bms_data') else None
+            ))
+
+        # Execute batch insert
+        cursor = conn.executemany(insert_query, batch_data)
+        conn.commit()
+        
+        result = {
+            "records_stored": cursor.rowcount,
+            "table_name": table_name
+        }
+
+        if debug_mode:
+            result["debug_info"] = {
+                "batch_size": len(batch_data),
+                "site_id": site_id,
+                "site_name": site_name
+            }
+
+        return result
+
+    except Exception as e:
+        return {
+            "error": str(e),
+            "records_stored": 0
         }
