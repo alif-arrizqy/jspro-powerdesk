@@ -553,9 +553,7 @@ def delete_sqlite_data_by_timestamp(timestamp):
             }), 400
 
         # Delete data using optimized helper function
-        result = delete_sqlite_data_by_timestamp(
-            conn, timestamp, table_name, match_type, debug_mode
-        )
+        result = delete_sqlite_by_timestamp(conn, timestamp, table_name, match_type, debug_mode)
         
         conn.close()
 

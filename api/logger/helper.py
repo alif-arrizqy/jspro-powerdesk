@@ -498,8 +498,7 @@ def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data',
             "error": str(e)
         }
 
-
-def delete_sqlite_data_by_timestamp(conn, timestamp, table_name='bms_data', match_type='exact', debug_mode=False):
+def delete_sqlite_by_timestamp(conn, timestamp, table_name='bms_data', match_type='exact', debug_mode=False):
     """
     Delete SQLite data by timestamp with validation
     
