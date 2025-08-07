@@ -460,12 +460,10 @@ def site_information():
             'device_version': data.get('device_version'),
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
-            # 'ip_address_secondary': get_ip_address('eth1'),
             # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
             # 'gateway': get_gateway('eth0'),
             'ip_address': '192.168.1.1',
             'ip_address_primary': '192.168.1.1',
-            'ip_address_secondary': '192.168.1.2',
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
@@ -490,12 +488,10 @@ def site_information():
             'device_version': data.get('device_version'),
             # 'ip_address': get_ip_address('eth0'),
             # 'ip_address_primary': get_ip_address('eth0'),
-            # 'ip_address_secondary': get_ip_address('eth1'),
             # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
             # 'gateway': get_gateway('eth0'),
             'ip_address': '192.168.1.1',
             'ip_address_primary': '192.168.1.1',
-            'ip_address_secondary': '192.168.1.2',
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
@@ -517,22 +513,23 @@ def setting_device():
     # path config device
     path = f'{PATH}/config_device.json'
     
-    form_site_location = request.form.get('site-location-form')
+    form_site_information = request.form.get('site-information-form')
     form_device_model = request.form.get('device-info-form')
+    form_device_version = request.form.get('device-version-form')
 
     if request.method == 'POST':
         data = request.form.to_dict()
         
-        if form_site_location:
-            response = update_site_location(path, data)
+        if form_site_information:
+            response = update_site_information(path, data)
             # add site name to redis
-            red.hset('site_name', 'site_name', data.get('site-name'))
+            # red.hset('site_name', 'site_name', data.get('site-name'))
             
             if response:
-                flash('Site Location has been updated successfully', 'success')
-                audit_access(username, 'device_settings', 'update_site_location')
+                flash('Site Information has been updated successfully', 'success')
+                audit_access(username, 'device_settings', 'update_site_information')
             else:
-                flash('Failed to update Site Location', 'danger')
+                flash('Failed to update Site Information', 'danger')
             return redirect(url_for('setting_device'))
         
         if form_device_model:
@@ -542,6 +539,15 @@ def setting_device():
                 audit_access(username, 'device_settings', 'update_device_model')
             else:
                 flash('Failed to update Device Info', 'danger')
+            return redirect(url_for('setting_device'))
+        
+        if form_device_version:
+            response = update_device_version(path, data)
+            if response:
+                flash('Device Version has been updated successfully', 'success')
+                audit_access(username, 'device_settings', 'update_device_version')
+            else:
+                flash('Failed to update Device Version', 'danger')
             return redirect(url_for('setting_device'))
     
     try:
@@ -604,31 +610,34 @@ def setting_ip():
     
     site_name = ""
     
+    # path config device
+    path = f'{PATH}/config_device.json'
+    
     if request.method == 'POST':
-        path = './commands/change_ip.py'
-        
         data = request.form.to_dict()        
         is_valid = validate_setting_ip(request.form)
         if is_valid:
-            type_ip_address = data.get('type-ip-address')
-            ip_address_primary = data.get('ip-address-primary')
-            ip_address_secondary = data.get('ip-address-secondary')
-            subnet_mask = data.get('net-mask')
-            gateway = data.get('gateway')
+            # Save to config_device.json
+            response = update_ip_configuration(path, data)
             
-            if type_ip_address == 'ip-primary':
-                status = change_ip(path, ip_address_primary, gateway, subnet_mask)
-            if type_ip_address == 'ip-secondary':
-                status = change_ip(path, ip_address_secondary, gateway, subnet_mask)
-            
-            if status:
-                flash('IP Address has been changed successfully', 'success')
+            if response:
+                flash('IP Configuration has been saved successfully', 'success')
                 audit_access(username, 'ip_configuration', 'update_ip_settings')
+                
+                # Also update the actual network configuration if needed
+                change_ip_path = './commands/change_ip.py'
+                type_ip_address = data.get('type-ip-address')
+                ip_address_primary = data.get('ip-address-primary')
+                subnet_mask = data.get('net-mask')
+                gateway = data.get('gateway')
+                
+                if type_ip_address == 'ip-primary' and ip_address_primary:
+                    change_ip(change_ip_path, ip_address_primary, gateway, subnet_mask)
             else:
-                flash('Failed to change IP Address', 'danger')
+                flash('Failed to save IP Configuration', 'danger')
             return redirect(url_for('setting_ip'))
         else:
-            flash('Invalid IP Address', 'danger')
+            flash('Invalid IP Address format', 'danger')
             return redirect(url_for('setting_ip'))
     try:
         # Get user role and menu access
@@ -642,6 +651,12 @@ def setting_ip():
         with open('./data_site.json', 'r') as f:
             data_ip = json.load(f)
         
+        # Read IP configuration from config_device.json
+        with open(path, 'r') as f:
+            config_data = json.load(f)
+        
+        ip_config = config_data.get('ip_configuration', {})
+        
         context = {
             'username': username,
             'user_role': user_role,
@@ -649,16 +664,11 @@ def setting_ip():
             'site_name': site_name,
             'data_ip': data_ip,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            # 'ip_address_primary': get_ip_address('eth0'),
-            # 'ip_address_secondary': get_ip_address('eth1'),
-            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
-            # 'gateway': get_gateway('eth0'),
-            'ip_address': '192.168.1.1',
-            'ip_address_primary': '192.168.1.1',
-            'ip_address_secondary': '192.168.1.2',
-            'subnet_mask': '/29',
-            'gateway': '192.168.1.1'
+            # Use data from config_device.json if available, otherwise use defaults
+            'ip_address': ip_config.get('ip_address_primary', '192.168.1.1'),
+            'ip_address_primary': ip_config.get('ip_address_primary', '192.168.1.1'),
+            'subnet_mask': ip_config.get('subnet_mask', '/29'),
+            'gateway': ip_config.get('gateway', '192.168.1.1')
         }
         
         # Audit page access
@@ -667,6 +677,13 @@ def setting_ip():
     except Exception as e:
         print(f"setting_ip() error: {e}")
         
+        # Fallback to default data_ip
+        try:
+            with open('./data_site.json', 'r') as f:
+                data_ip = json.load(f)
+        except:
+            data_ip = []
+        
         context = {
             'username': username,
             'user_role': get_user_role(username),
@@ -674,14 +691,8 @@ def setting_ip():
             'site_name': 'Site Name',
             'data_ip': data_ip,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            # 'ip_address_primary': get_ip_address('eth0'),
-            # 'ip_address_secondary': get_ip_address('eth1'),
-            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
-            # 'gateway': get_gateway('eth0'),
             'ip_address': '192.168.1.1',
             'ip_address_primary': '192.168.1.1',
-            'ip_address_secondary': '192.168.1.2',
             'subnet_mask': '/29',
             'gateway': '192.168.1.1'
         }
