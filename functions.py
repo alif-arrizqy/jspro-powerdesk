@@ -74,7 +74,7 @@ def get_disk_detail():
     return disk
 
 
-def update_site_location(path, form):
+def update_site_information(path, form):
     data = {}
     for key, value in form.items():
         data[key] = value
@@ -87,9 +87,9 @@ def update_site_location(path, form):
     with open(path, 'r') as f:
         json_data = json.load(f)
 
-    json_data['site_location']['site_id'] = site_id
-    json_data['site_location']['site_name'] = site_name
-    json_data['site_location']['address'] = address
+    json_data['site_information']['site_id'] = site_id
+    json_data['site_information']['site_name'] = site_name
+    json_data['site_information']['address'] = address
 
     #  write to json file
     with open(path, 'w') as f:
@@ -117,6 +117,35 @@ def update_device_model(path, form):
     json_data['device_model']['serial_number'] = serial_number
     json_data['device_model']['software_version'] = software_version
     json_data['device_model']['hardware_version'] = hardware_version
+
+    # write to json file
+    with open(path, 'w') as f:
+        json.dump(json_data, f, indent=4)
+    return True
+
+
+def update_device_version(path, form):
+    data = {}
+    for key, value in form.items():
+        data[key] = value
+
+    ehub_version = data.get('ehub-version')
+    panel2_type = data.get('panel2-type')
+    site_type = data.get('site-type')
+    scc_type = data.get('scc-type')
+    scc_source = data.get('scc-source')
+    battery_type = data.get('battery-type')
+
+    # open json file
+    with open(path, 'r') as f:
+        json_data = json.load(f)
+
+    json_data['device_version']['ehub_version'] = ehub_version
+    json_data['device_version']['panel2_type'] = panel2_type
+    json_data['device_version']['site_type'] = site_type
+    json_data['device_version']['scc_type'] = scc_type
+    json_data['device_version']['scc_source'] = scc_source
+    json_data['device_version']['battery_type'] = battery_type
 
     # write to json file
     with open(path, 'w') as f:
@@ -155,7 +184,7 @@ def update_scc_type(path, form):
 
     scc_type = data.get('scc-type')
     scc_source = data.get('scc-source')
-    print(scc_type, scc_source)
+    
     port = data.get('scc-port')
     host = data.get('scc-host')
     scan = data.get('scc-scan')
@@ -230,75 +259,75 @@ def update_config_cutoff_reconnect(path, form):
     return False
 
 def update_config_scc(path, form):
-    data = {}
+    form_data = {}
     for key, value in form.items():
-        if key == 'submit':
+        if key == 'submit' or key == 'config-scc-form':
             continue
         else:
-            data[key] = value
+            form_data[key] = value
 
-    # scc srne
-    if number_of_scc == 3:
-        battery_capacity = int(data.get('battery_capacity'))
-        system_voltage = int(data.get('system_voltage'))
-        battery_type = int(data.get('battery_type'))
-        overvoltage_threshold = int(data.get('overvoltage_threshold'))
-        charging_limit_voltage = int(data.get('charging_limit_voltage'))
-        equalizing_charge_voltage = int(data.get('equalizing_charge_voltage'))
-        boost_charging_voltage = int(data.get('boost_charging_voltage'))
-        floating_charging_voltage = int(data.get('floating_charging_voltage'))
-        boost_charging_recovery_voltage = int(data.get('boost_charging_recovery_voltage'))
-        overdischarge_time_delay = int(data.get('overdischarge_time_delay'))
-        equalizing_charging_time = int(data.get('equalizing_charging_time'))
-        boost_charging_time = int(data.get('boost_charging_time'))
-        equalizing_charging_interval = int(data.get('equalizing_charging_interval'))
-        temperature_comp = int(data.get('temperature_comp'))
-        
-        if overvoltage_threshold > charging_limit_voltage > equalizing_charge_voltage > boost_charging_voltage > floating_charging_voltage > boost_charging_recovery_voltage:
-            # read json file
-            with open(path, 'r') as f:
-                data = json.load(f)
-
-            data['scc_srne']['parameter']['battery_capacity'] = battery_capacity
-            data['scc_srne']['parameter']['system_voltage'] = system_voltage
-            data['scc_srne']['parameter']['battery_type'] = battery_type
-            data['scc_srne']['parameter']['overvoltage_threshold'] = overvoltage_threshold
-            data['scc_srne']['parameter']['charging_limit_voltage'] = charging_limit_voltage
-            data['scc_srne']['parameter']['equalizing_charge_voltage'] = equalizing_charge_voltage
-            data['scc_srne']['parameter']['boost_charging_voltage'] = boost_charging_voltage
-            data['scc_srne']['parameter']['floating_charging_voltage'] = floating_charging_voltage
-            data['scc_srne']['parameter']['boost_charging_recovery_voltage'] = boost_charging_recovery_voltage
-            data['scc_srne']['parameter']['overdischarge_time_delay'] = overdischarge_time_delay
-            data['scc_srne']['parameter']['equalizing_charging_time'] = equalizing_charging_time
-            data['scc_srne']['parameter']['boost_charging_time'] = boost_charging_time
-            data['scc_srne']['parameter']['equalizing_charging_interval'] = equalizing_charging_interval
-            data['scc_srne']['parameter']['temperature_comp'] = temperature_comp
-
-            # write json file
-            with open(path, 'w') as f:
-                json.dump(data, f, indent=4)
-            return True
-        else:
-            return False
+    # Read json file first
+    with open(path, 'r') as f:
+        data = json.load(f)
     
-    # scc epveper
-    if number_of_scc == 2:
-        overvoltage_disconnect = int(data.get('overvoltage_disconnect'))
-        charging_limit_voltage = int(data.get('charging_limit_voltage'))
-        overvoltage_reconnect = int(data.get('overvoltage_reconnect'))
+    # Get scc type from device_version
+    scc_type = data.get('device_version', {}).get('scc_type', '')
+    scc_type_underscore = scc_type.replace('-', '_')
+    
+    # Update parameters based on scc type
+    if scc_type_underscore in data:
+        if 'parameter' not in data[scc_type_underscore]:
+            data[scc_type_underscore]['parameter'] = {}
+        
+        # Update all parameters from form
+        for key, value in form_data.items():
+            try:
+                # Try to convert to int if possible
+                if value.isdigit():
+                    data[scc_type_underscore]['parameter'][key] = int(value)
+                else:
+                    data[scc_type_underscore]['parameter'][key] = value
+            except:
+                data[scc_type_underscore]['parameter'][key] = value
+        
+        # Write json file
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=4)
+        return True
+    
+    return False
 
-        if overvoltage_disconnect > charging_limit_voltage > overvoltage_reconnect:
-            # read json file
-            with open(path, 'r') as f:
-                data = json.load(f)
 
-            data['scc_epveper']['parameter']['overvoltage_disconnect'] = overvoltage_disconnect
-            data['scc_epveper']['parameter']['charging_limit_voltage'] = charging_limit_voltage
-            data['scc_epveper']['parameter']['overvoltage_reconnect'] = overvoltage_reconnect
+def update_ip_configuration(path, form):
+    """Update IP configuration in config_device.json"""
+    form_data = {}
+    for key, value in form.items():
+        form_data[key] = value
 
-            # write json file
-            with open(path, 'w') as f:
-                json.dump(data, f, indent=4)
-            return True
-        else:
-            return False
+    # Read json file first
+    with open(path, 'r') as f:
+        data = json.load(f)
+    
+    # Ensure ip_configuration section exists
+    if 'ip_configuration' not in data:
+        data['ip_configuration'] = {}
+    
+    # Update IP configuration from form
+    ip_address_primary = form_data.get('ip-address-primary')
+    net_mask = form_data.get('net-mask')
+    gateway = form_data.get('gateway')
+    site = form_data.get('site')
+    
+    if ip_address_primary:
+        data['ip_configuration']['ip_address_primary'] = ip_address_primary
+    if net_mask:
+        data['ip_configuration']['subnet_mask'] = net_mask
+    if gateway:
+        data['ip_configuration']['gateway'] = gateway
+    if site:
+        data['ip_configuration']['site'] = site
+    
+    # Write json file
+    with open(path, 'w') as f:
+        json.dump(data, f, indent=4)
+    return True
