@@ -21,19 +21,18 @@
 
 <!-- Configuration Forms -->
 <div class="row">
-    <!-- Site Location -->
+    <!-- Site Information -->
     <div class="col-lg-6 mb-4">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-map-marker-alt text-success me-2"></i>
-                    Site Location
+                    Site Information
                 </h5>
             </div>
             <div class="modern-card-body">
                 <form method="POST">
-                    <input type="hidden" name="site-location-form" value="site-location-form">
-                    
+                    <input type="hidden" name="site-information-form" value="site-information-form">
                     <div class="mb-3">
                         <label for="site-id" class="form-label">
                             <i class="fas fa-id-card me-2"></i>
@@ -92,51 +91,54 @@
                                 <input type="text" class="form-control" name="ehub-version" id="ehub-version" placeholder="Enter Ehub Version" value="{{device_version.ehub_version}}">
                             </div>
                             <div class="mb-3">
-                                <div class="mb-3">
-                                    <label for="panel2-type" class="form-label">
-                                        <i class="fas fa-solar-panel me-2"></i>
-                                        Panel 2 Type
-                                    </label>
-                                    <input type="text" class="form-control" name="panel2-type" id="panel2-type" placeholder="Enter Panel 2 Type" value="{{device_version.panel2_type}}">
-                                </div>
+                                <label for="panel2-type" class="form-label">
+                                    <i class="fas fa-solar-panel me-2"></i>
+                                    Panel 2 Type
+                                </label>
+                                <input type="text" class="form-control" name="panel2-type" id="panel2-type" placeholder="Enter Panel 2 Type" value="{{device_version.panel2_type}}">
                             </div>
                             <div class="mb-3">
-                                <div class="mb-3">
-                                    <label for="site-type" class="form-label">
-                                        <i class="fas fa-sitemap me-2"></i>
-                                        Site Type
-                                    </label>
-                                    <input type="text" class="form-control" name="site-type" id="site-type" placeholder="Enter Site Type" value="{{device_version.site_type}}">
-                                </div>
+                                <label for="site-type" class="form-label">
+                                    <i class="fas fa-sitemap me-2"></i>
+                                    Site Type
+                                </label>
+                                <input type="text" class="form-control" name="site-type" id="site-type" placeholder="Enter Site Type" value="{{device_version.site_type}}">
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="mb-3">
-                                <div class="mb-3">
-                                    <label for="scc-type" class="form-label">
-                                        <i class="fas fa-plug me-2"></i>
-                                        SCC Type
-                                    </label>
-                                    <input type="text" class="form-control" name="scc-type" id="scc-type" placeholder="Enter SCC Type" value="{{device_version.scc_type}}">
-                                </div>
+                                <label for="scc-type" class="form-label">
+                                    <i class="fas fa-plug me-2"></i>
+                                    SCC Type
+                                </label>
+                                <select class="form-control" name="scc-type" id="scc-type">
+                                    <option value="" disabled {% if not device_version.scc_type %}selected{% endif %}>Select SCC Type</option>
+                                    <option value="scc-srne" {% if device_version.scc_type == 'scc-srne' %}selected{% endif %}>SCC SRNE</option>
+                                    <option value="scc-epveper" {% if device_version.scc_type == 'scc-epveper' %}selected{% endif %}>SCC EPVEPER</option>
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <div class="mb-3">
-                                    <label for="scc-source" class="form-label">
-                                        <i class="fas fa-power-off me-2"></i>
-                                        SCC Source
-                                    </label>
-                                    <input type="text" class="form-control" name="scc-source" id="scc-source" placeholder="Enter SCC Source" value="{{device_version.scc_source}}">
-                                </div>
+                                <label for="scc-source" class="form-label">
+                                    <i class="fas fa-power-off me-2"></i>
+                                    SCC Source
+                                </label>
+                                <select class="form-control" name="scc-source" id="scc-source">
+                                    <option value="" disabled {% if not device_version.scc_source %}selected{% endif %}>Select SCC Source</option>
+                                    <option value="serial" {% if device_version.scc_source == 'serial' %}selected{% endif %}>Serial</option>
+                                    <option value="usb" {% if device_version.scc_source == 'usb' %}selected{% endif %}>USB</option>
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <div class="mb-3">
-                                    <label for="battery-type" class="form-label">
-                                        <i class="fas fa-battery-full me-2"></i>
-                                        Battery Type
-                                    </label>
-                                    <input type="text" class="form-control" name="battery-type" id="battery-type" placeholder="Enter Battery Type" value="{{device_version.battery_type}}">
-                                </div>
+                                <label for="battery-type" class="form-label">
+                                    <i class="fas fa-battery-full me-2"></i>
+                                    Battery Type
+                                </label>
+                                <select class="form-control" name="battery-type" id="battery-type">
+                                    <option value="" disabled {% if not device_version.battery_type %}selected{% endif %}>Select Battery Type</option>
+                                    <option value="talis5" {% if device_version.battery_type == 'talis5' %}selected{% endif %}>Talis5</option>
+                                    <option value="jspro" {% if device_version.battery_type == 'jspro' %}selected{% endif %}>JSPro</option>
+                                    <option value="mix" {% if device_version.battery_type == 'mix' %}selected{% endif %}>Mix</option>
+                                </select>
                             </div>
                         </div>
                         <div class="d-grid">
@@ -261,7 +263,7 @@
         const forms = document.querySelectorAll('form');
         forms.forEach(form => {
             form.addEventListener('submit', function(e) {
-                const inputs = form.querySelectorAll('input[required], textarea[required]');
+                const inputs = form.querySelectorAll('input[required], textarea[required], select[required]');
                 let isValid = true;
                 
                 inputs.forEach(input => {
@@ -284,7 +286,7 @@
         });
         
         // Add input change handlers
-        const inputs = document.querySelectorAll('input, textarea');
+        const inputs = document.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('input', function() {
                 if (this.value.trim()) {
@@ -294,7 +296,57 @@
                     this.classList.remove('is-valid');
                 }
             });
+            
+            // For select elements, also listen to change event
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.classList.remove('is-valid');
+                    }
+                });
+            }
         });
+        
+        // SCC Type and Source interaction
+        const sccTypeSelect = document.getElementById('scc-type');
+        const sccSourceSelect = document.getElementById('scc-source');
+        
+        if (sccTypeSelect && sccSourceSelect) {
+            sccTypeSelect.addEventListener('change', function() {
+                // Enable/disable source options based on SCC type
+                const sccType = this.value;
+                const sourceOptions = sccSourceSelect.querySelectorAll('option');
+                
+                sourceOptions.forEach(option => {
+                    if (option.value === '') return; // Skip default option
+                    
+                    // Enable all options by default
+                    option.disabled = false;
+                    option.style.display = 'block';
+                });
+                
+                // Add visual feedback
+                this.style.borderColor = '#28a745';
+                setTimeout(() => {
+                    this.style.borderColor = '';
+                }, 1000);
+            });
+        }
+        
+        // Battery Type interaction
+        const batteryTypeSelect = document.getElementById('battery-type');
+        if (batteryTypeSelect) {
+            batteryTypeSelect.addEventListener('change', function() {
+                // Add visual feedback
+                this.style.borderColor = '#17a2b8';
+                setTimeout(() => {
+                    this.style.borderColor = '';
+                }, 1000);
+            });
+        }
         
         // Show success message on form submission
         const urlParams = new URLSearchParams(window.location.search);
