@@ -6,15 +6,18 @@ try:
     if device is not None:
         device = json.loads(device)
     else:
+        print("No device version found in Redis.")
         device = None
 except Exception as e:
     print(f"Error fetching device version: {e}")
     device = None
 
 if device is None:
+    scc_type = "scc-epveper"
     number_of_scc = 2
     number_of_batt = 10
     number_of_cell = 16
+    slave_ids = 10
 else:
     scc_type = device.get('scc_type')
 
