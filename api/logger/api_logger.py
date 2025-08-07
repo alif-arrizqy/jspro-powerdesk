@@ -743,9 +743,9 @@ def get_storage_overview():
         overview_data = {
             "storage_overview": {
                 "redis_storage": 0.0,  # in MB
-                "redis_storage_unit": "MB",
+                "unit": "MB",
                 "sqlite_storage": 0.0,  # in MB  
-                "sqlite_storage_unit": "MB",
+                "unit": "MB",
                 "disk_usage": {
                     "free": 0.0,
                     "total": 0.0
