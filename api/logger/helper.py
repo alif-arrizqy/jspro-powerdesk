@@ -649,3 +649,125 @@ def store_sqlite_data_batch(conn, site_id, site_name, records, table_name='bms_d
             "error": str(e),
             "records_stored": 0
         }
+
+
+def delete_scc_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug_mode=False):
+    """
+    Delete SCC stream entries by timestamp with validation
+    
+    Parameters:
+    - redis_conn: Redis connection object
+    - timestamp: Timestamp to delete (exact match or prefix)
+    - match_type: 'exact' or 'prefix'
+    - debug_mode: Enable debug information
+    
+    Returns:
+    - Dictionary with deletion results and validation
+    """
+    try:
+        if not redis_conn:
+            return {
+                "error": "Redis connection unavailable",
+                "deleted_count": 0,
+                "timestamp_exists": False
+            }
+        
+        result = {
+            "deleted_count": 0,
+            "timestamp_exists": False,
+            "debug_info": {} if debug_mode else None
+        }
+        
+        if debug_mode:
+            result["debug_info"] = {
+                "timestamp_filter": timestamp,
+                "match_type": match_type,
+                "stream_processed": "scc-logs:data",
+                "entries_found": [],
+                "validation_method": "timestamp_matching"
+            }
+        
+        stream_key = 'scc-logs:data'
+        deleted_count = 0
+        timestamp_found = False
+        
+        try:
+            # Check if stream exists first
+            try:
+                stream_info = redis_conn.xinfo_stream(stream_key)
+                if debug_mode:
+                    result["debug_info"]["stream_length"] = stream_info['length']
+            except Exception:
+                # Stream doesn't exist
+                if debug_mode:
+                    result["debug_info"]["stream_status"] = "Stream does not exist"
+                return result
+            
+            # Get entries and find matching timestamps
+            entries_to_delete = []
+            
+            # Use XRANGE to get all entries (could be optimized for large streams)
+            entries = redis_conn.xrange(stream_key)
+            
+            for entry_id, fields in entries:
+                try:
+                    # Get timestamp from entry
+                    entry_timestamp = fields.get(b'timestamp', b'').decode('utf-8') if isinstance(fields.get(b'timestamp', b''), bytes) else fields.get('timestamp', '')
+                    
+                    # Check if timestamp matches
+                    if match_type == 'exact':
+                        if entry_timestamp == timestamp:
+                            entries_to_delete.append(entry_id)
+                            timestamp_found = True
+                    else:  # prefix match
+                        if entry_timestamp.startswith(timestamp):
+                            entries_to_delete.append(entry_id)
+                            timestamp_found = True
+                    
+                    if debug_mode:
+                        result["debug_info"]["entries_found"].append({
+                            "entry_id": entry_id.decode('utf-8') if isinstance(entry_id, bytes) else str(entry_id),
+                            "timestamp": entry_timestamp,
+                            "matched": entry_timestamp == timestamp if match_type == 'exact' else entry_timestamp.startswith(timestamp)
+                        })
+                        
+                except Exception as parse_error:
+                    if debug_mode:
+                        result["debug_info"].setdefault("parsing_errors", []).append(str(parse_error))
+                    continue
+            
+            # Delete matched entries
+            if entries_to_delete:
+                for entry_id in entries_to_delete:
+                    try:
+                        redis_conn.xdel(stream_key, entry_id)
+                        deleted_count += 1
+                    except Exception as delete_error:
+                        if debug_mode:
+                            result["debug_info"].setdefault("deletion_errors", []).append(str(delete_error))
+                        continue
+            
+            if debug_mode:
+                result["debug_info"]["entries_to_delete_count"] = len(entries_to_delete)
+                result["debug_info"]["successfully_deleted"] = deleted_count
+            
+        except Exception as stream_error:
+            if debug_mode:
+                result["debug_info"]["stream_error"] = str(stream_error)
+            return {
+                "error": f"Error processing SCC stream: {str(stream_error)}",
+                "deleted_count": 0,
+                "timestamp_exists": False
+            }
+        
+        result["deleted_count"] = deleted_count
+        result["timestamp_exists"] = timestamp_found
+        
+        return result
+
+    except Exception as e:
+        return {
+            "error": str(e),
+            "deleted_count": 0,
+            "timestamp_exists": False
+        }
