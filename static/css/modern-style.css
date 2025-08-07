@@ -1754,3 +1754,338 @@ body,
 .dark-theme ::-webkit-scrollbar-thumb:hover {
     background: #6b7280;
 }
+
+/* ===== DISK USAGE COMPONENT STYLES ===== */
+/* Light Theme Disk Usage */
+.disk-usage-container {
+    padding: 24px;
+    background: var(--white);
+    border-radius: var(--border-radius);
+}
+
+.disk-progress-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.disk-progress-wrapper .progress {
+    height: 28px;
+    border-radius: 14px;
+    background-color: var(--gray-200);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.disk-progress-wrapper .progress-bar {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 28px;
+    position: relative;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.progress-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    line-height: 28px;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    font-weight: 700;
+    font-size: 13px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+.disk-stat-item {
+    padding: 20px 16px;
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, var(--white) 0%, var(--gray-100) 100%);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+}
+
+.disk-stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+}
+
+.disk-stat-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+}
+
+.disk-stat-item:hover::before {
+    opacity: 1;
+}
+
+.disk-stat-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    transition: transform var(--transition-normal);
+}
+
+.disk-stat-item:hover .disk-stat-icon {
+    transform: scale(1.1);
+}
+
+.disk-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 6px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.disk-stat-label {
+    font-size: 11px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+#disk-status-badge {
+    border-radius: 25px;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 10px 20px;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+#disk-status-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.badge-success-custom {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-success-custom:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.badge-warning-custom {
+    background: linear-gradient(135deg, var(--warning-color), #d97706);
+    color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-warning-custom:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.badge-danger-custom {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+    color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-danger-custom:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.badge-info-custom {
+    background: linear-gradient(135deg, var(--info-color), #2563eb);
+    color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-info-custom:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Progress Bar Animation */
+@keyframes diskProgress {
+    0% { 
+        width: 0%; 
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% { 
+        width: var(--progress-width);
+        opacity: 1;
+    }
+}
+
+.progress-bar-animated-custom {
+    animation: diskProgress 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Theme Disk Usage */
+.dark-theme .disk-usage-container {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #374151;
+}
+
+.dark-theme .disk-progress-wrapper .progress {
+    background-color: #374151;
+    border: 1px solid #4b5563;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .progress-text {
+    color: #f8fafc;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.dark-theme .disk-stat-item {
+    background: linear-gradient(135deg, #1e293b 0%, #111827 100%);
+    border: 1px solid #374151;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.dark-theme .disk-stat-item::before {
+    background: linear-gradient(90deg, #60a5fa, #3b82f6);
+}
+
+.dark-theme .disk-stat-item:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    border-color: #3b82f6;
+}
+
+.dark-theme .disk-stat-value {
+    color: #f8fafc;
+}
+
+.dark-theme .disk-stat-label {
+    color: #94a3b8;
+}
+
+.dark-theme #disk-status-badge {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .badge-success-custom {
+    background: linear-gradient(135deg, #10b981, #047857);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.dark-theme .badge-success-custom:hover {
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.dark-theme .badge-warning-custom {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.dark-theme .badge-warning-custom:hover {
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.dark-theme .badge-danger-custom {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.dark-theme .badge-danger-custom:hover {
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+.dark-theme .badge-info-custom {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+.dark-theme .badge-info-custom:hover {
+    box-shadow: 0 6px 16px rgba(96, 165, 250, 0.4);
+}
+
+/* Responsive Design for Disk Usage */
+@media (max-width: 768px) {
+    .disk-usage-container {
+        padding: 16px;
+    }
+    
+    .disk-stat-item {
+        margin-bottom: 12px;
+        padding: 16px 12px;
+    }
+    
+    .disk-stat-value {
+        font-size: 18px;
+    }
+    
+    .disk-stat-icon {
+        font-size: 24px;
+    }
+    
+    .disk-progress-wrapper .progress {
+        height: 24px;
+    }
+    
+    .progress-text {
+        line-height: 24px;
+        font-size: 12px;
+    }
+    
+    #disk-status-badge {
+        font-size: 11px;
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .disk-stat-item {
+        text-align: center;
+    }
+    
+    .disk-stat-value {
+        font-size: 16px;
+    }
+    
+    .disk-stat-icon {
+        font-size: 20px;
+    }
+}
