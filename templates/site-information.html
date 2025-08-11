@@ -79,7 +79,7 @@
         <div class="modern-card">
             <div class="modern-card-header">
                 <h2 class="modern-card-title">
-                    <i class="fas fa-map-marker-alt"></i>
+                    <i class="fas fa-map-marker-alt text-success"></i>
                     Site Location
                 </h2>
             </div>
@@ -112,7 +112,25 @@
                             <textarea class="form-control" id="address" rows="3" readonly>{{site_information.address}}</textarea>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Network Configuration -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-network-wired text-info"></i>
+                    Network Configuration
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="ip-address-primary" class="form-label">
                                 <i class="fas fa-network-wired me-2"></i>
@@ -121,8 +139,7 @@
                             <input type="text" class="form-control" id="ip-address-primary" value="{{ip_address_primary}}" readonly>
                         </div>
                     </div>
-
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="net-mask" class="form-label">
                                 <i class="fas fa-mask me-2"></i>
@@ -131,7 +148,7 @@
                             <input type="text" class="form-control" id="net-mask" value="{{subnet_mask}}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="gateway" class="form-label">
                                 <i class="fas fa-route me-2"></i>
@@ -152,7 +169,7 @@
         <div class="modern-card">
             <div class="modern-card-header">
                 <h2 class="modern-card-title">
-                    <i class="fas fa-microchip"></i>
+                    <i class="fas fa-microchip text-primary"></i>
                     Device Information
                 </h2>
             </div>
@@ -215,21 +232,12 @@
         <div class="modern-card">
             <div class="modern-card-header">
                 <h2 class="modern-card-title">
-                    <i class="fas fa-cogs"></i>
+                    <i class="fas fa-cogs text-warning"></i>
                     System Configuration
                 </h2>
             </div>
             <div class="modern-card-body">
                 <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="ehub-version" class="form-label">
-                                <i class="fas fa-server me-2"></i>
-                                EHUB Version
-                            </label>
-                            <input type="text" class="form-control" id="ehub-version" value="{{device_version.ehub_version}}" readonly>
-                        </div>
-                    </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="panel2-type" class="form-label">
@@ -266,20 +274,10 @@
                             <input type="text" class="form-control" id="scc-source" value="{{device_version.scc_source}}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="battery-type" class="form-label">
-                                <i class="fas fa-battery-full me-2"></i>
-                                Battery Type
-                            </label>
-                            <input type="text" class="form-control" id="battery-type" value="{{device_version.battery_type}}" readonly>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 
 {% endblock %}
