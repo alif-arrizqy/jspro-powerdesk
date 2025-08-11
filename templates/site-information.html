@@ -2,6 +2,77 @@
 {% block breadcrumbs %}Site Information{% endblock breadcrumbs %}
 
 {% block content %}
+
+<!-- Site Information Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-info-circle"></i>
+                    Site Information Overview
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <!-- Site ID -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Site ID</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">{{site_information.site_id or 'N/A'}}</h3>
+                            <p class="stats-card-subtitle">Unique Identifier</p>
+                        </div>
+                    </div>
+                    <!-- SCC Type -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">SCC Type</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">{{device_version.scc_type or 'N/A'}}</h3>
+                            <p class="stats-card-subtitle">System Version</p>
+                        </div>
+                    </div>
+                    <!-- Battery Type -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Battery Type</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-battery-full"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">{{device_version.battery_type or 'N/A'}}</h3>
+                            <p class="stats-card-subtitle">Power Storage</p>
+                        </div>
+                    </div>
+                    <!-- USB Type -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">USB Type</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-usb"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value">{{device_version.usb_type or 'N/A'}}</h3>
+                            <p class="stats-card-subtitle">Connection Mode</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Site Location -->
 <div class="row mb-4">
     <div class="col-12">
