@@ -140,6 +140,17 @@
                                     <option value="mix" {% if device_version.battery_type == 'mix' %}selected{% endif %}>Mix</option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label for="usb-type" class="form-label">
+                                    <i class="fas fa-usb-full me-2"></i>
+                                    USB Type
+                                </label>
+                                <select class="form-control" name="usb-type" id="usb-type">
+                                    <option value="" disabled {% if not device_version.usb_type %}selected{% endif %}>Select USB Type</option>
+                                    <option value="talis5" {% if device_version.usb_type == 'talis5' %}selected{% endif %}>Seri</option>
+                                    <option value="jspro" {% if device_version.usb_type == 'jspro' %}selected{% endif %}>Paralel</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="d-grid">
                             <div class="alert alert-warning" role="alert">
