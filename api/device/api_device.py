@@ -73,6 +73,27 @@ def run_systemctl_command(action, service):
                 'error': result.stderr
             }
             
+            # Also get quick status check for cross-validation
+            try:
+                is_active_cmd = ['sudo', 'systemctl', 'is-active', service]
+                is_active_result = subprocess.run(is_active_cmd, capture_output=True, text=True, timeout=10)
+                is_active_status = is_active_result.stdout.strip()
+                
+                is_enabled_cmd = ['sudo', 'systemctl', 'is-enabled', service]
+                is_enabled_result = subprocess.run(is_enabled_cmd, capture_output=True, text=True, timeout=10)
+                is_enabled_status = is_enabled_result.stdout.strip()
+                
+                # Debug info
+                status_info['debug'] = {
+                    'is_active': is_active_status,
+                    'is_enabled': is_enabled_status
+                }
+                
+            except Exception as e:
+                status_info['debug'] = {
+                    'error': f'Failed to get quick status: {str(e)}'
+                }
+            
             # Parse the output to get status information
             lines = result.stdout.split('\n')
             for line in lines:
@@ -82,13 +103,57 @@ def run_systemctl_command(action, service):
                         status_info['status'] = 'active'
                         status_info['active'] = True
                         status_info['running'] = True
+                    elif 'active (waiting)' in line:
+                        # For timers that are active but waiting
+                        status_info['status'] = 'active'
+                        status_info['active'] = True
+                        status_info['running'] = False  # Timer is waiting, not running
+                    elif 'active (elapsed)' in line:
+                        # For timers that have elapsed
+                        status_info['status'] = 'active'
+                        status_info['active'] = True
+                        status_info['running'] = False
                     elif 'inactive' in line:
                         status_info['status'] = 'inactive'
+                        status_info['active'] = False
+                        status_info['running'] = False
                     elif 'failed' in line:
                         status_info['status'] = 'failed'
+                        status_info['active'] = False
+                        status_info['running'] = False
+                    else:
+                        # Fallback: check if line contains 'active'
+                        if 'active' in line.lower():
+                            status_info['status'] = 'active'
+                            status_info['active'] = True
+                            # For timers, they might be active but not running
+                            status_info['running'] = 'running' in line.lower()
                 elif 'Loaded:' in line:
                     if 'enabled' in line:
                         status_info['enabled'] = True
+                    elif 'disabled' in line:
+                        status_info['enabled'] = False
+            
+            # Cross-validate with quick status check
+            if 'debug' in status_info and 'is_active' in status_info['debug']:
+                is_active_status = status_info['debug']['is_active']
+                is_enabled_status = status_info['debug']['is_enabled']
+                
+                # If parsing failed but quick check succeeded, use quick check result
+                if status_info['status'] == 'unknown' and is_active_status == 'active':
+                    status_info['status'] = 'active'
+                    status_info['active'] = True
+                    # For timers, they are active but not necessarily running
+                    if service.endswith('.timer'):
+                        status_info['running'] = False  # Timers don't "run" like services
+                    else:
+                        status_info['running'] = True
+                
+                # Update enabled status from quick check
+                if is_enabled_status == 'enabled':
+                    status_info['enabled'] = True
+                elif is_enabled_status == 'disabled':
+                    status_info['enabled'] = False
             
             return {
                 'success': True,
