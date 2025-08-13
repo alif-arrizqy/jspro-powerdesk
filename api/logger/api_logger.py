@@ -867,25 +867,86 @@ def get_scc_alarm_overview():
     """Get SCC alarm log overview from Redis Stream"""
     try:
         total_alarms = 0
+        active_alarms = 0
+        last_alarm_time = None
+        alarm_types = {}
+        severity_count = {
+            'critical': 0,
+            'warning': 0,
+            'info': 0
+        }
         
-        # Get alarm count from Redis Stream
+        # Get alarm count and statistics from Redis Stream
         if red:
             try:
+                # Check if stream exists
                 stream_info = red.xinfo_stream('scc-logs:data')
                 total_alarms = stream_info['length']
+                
+                # Get recent entries to analyze patterns (last 100 entries)
+                recent_entries = red.xrevrange('scc-logs:data', '+', '-', count=100)
+                
+                for entry_id, fields in recent_entries:
+                    try:
+                        # Parse timestamp from entry ID
+                        timestamp_ms = int(entry_id.split(b'-')[0])
+                        entry_time = datetime.fromtimestamp(timestamp_ms / 1000)
+                        
+                        if not last_alarm_time or entry_time > last_alarm_time:
+                            last_alarm_time = entry_time
+                        
+                        # Parse alarm data if available
+                        if b'data' in fields:
+                            import json
+                            alarm_data = json.loads(fields[b'data'].decode())
+                            
+                            # Count different alarm types and severities
+                            for scc_id, scc_data in alarm_data.items():
+                                if isinstance(scc_data, dict) and 'alarm' in scc_data:
+                                    alarm_obj = scc_data['alarm']
+                                    if alarm_obj:
+                                        active_alarms += 1
+                                        
+                                        # Categorize alarms by type and severity
+                                        for alarm_type, alarm_status in alarm_obj.items():
+                                            if alarm_type not in alarm_types:
+                                                alarm_types[alarm_type] = 0
+                                            alarm_types[alarm_type] += 1
+                                            
+                                            # Categorize by severity
+                                            if alarm_status in ['fault', 'overvoltage', 'short_circuit', 'overload', 'high_voltage', 'wrong', 'overtemp', 'overdischarge']:
+                                                severity_count['critical'] += 1
+                                            elif alarm_status in ['warning', 'unrecognized', 'abnormal', 'low_voltage', 'undervoltage', 'lowtemp']:
+                                                severity_count['warning'] += 1
+                                            else:
+                                                severity_count['info'] += 1
+                                                
+                    except Exception as e:
+                        continue
+                        
             except Exception:
                 # Stream doesn't exist yet
                 total_alarms = 0
 
+        overview_data = {
+            "total_alarms": total_alarms,
+            "active_alarms": active_alarms,
+            "last_alarm_time": last_alarm_time.strftime("%Y-%m-%d %H:%M:%S") if last_alarm_time else None,
+            "alarm_statistics": {
+                "severity_breakdown": severity_count,
+                "top_alarm_types": dict(sorted(alarm_types.items(), key=lambda x: x[1], reverse=True)[:10])
+            },
+            "stream_info": {
+                "stream_name": "scc-logs:data",
+                "total_entries": total_alarms
+            },
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
         return jsonify({
             "status_code": 200,
             "status": "success",
-            "data": {
-                "data_statistics": {
-                    "total_scc_logs": total_alarms,
-                    "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
-            }
+            "data": overview_data
         }), 200
 
     except Exception as e:
@@ -974,39 +1035,58 @@ def get_scc_alarm_history():
         all_records = []
         for entry_id, fields in entries:
             try:
+                # Parse timestamp from entry ID (milliseconds)
+                timestamp_ms = int(entry_id.split(b'-')[0]) if isinstance(entry_id, bytes) else int(entry_id.split('-')[0])
+                entry_time = datetime.fromtimestamp(timestamp_ms / 1000)
+                
                 # Decode entry data
                 timestamp = fields.get(b'timestamp', b'').decode('utf-8') if isinstance(fields.get(b'timestamp', b''), bytes) else fields.get('timestamp', '')
                 data_json = fields.get(b'data', b'').decode('utf-8') if isinstance(fields.get(b'data', b''), bytes) else fields.get('data', '')
                 
                 # Parse SCC data
+                import json
                 scc_data = json.loads(data_json) if data_json else {}
+                
+                # Extract individual alarms from SCC data
+                alarms = []
+                for scc_id, scc_info in scc_data.items():
+                    if isinstance(scc_info, dict) and 'alarm' in scc_info:
+                        alarm_obj = scc_info.get('alarm')
+                        if alarm_obj and isinstance(alarm_obj, dict):
+                            for alarm_type, alarm_status in alarm_obj.items():
+                                if alarm_status and alarm_status != 'normal':
+                                    alarms.append({
+                                        'scc_id': scc_id,
+                                        'alarm_type': alarm_type,
+                                        'alarm_status': alarm_status,
+                                        'battery_voltage': scc_info.get('battery_voltage', 0),
+                                        'battery_temperature': scc_info.get('battery_temperature', 0),
+                                        'device_temperature': scc_info.get('device_temperature', 0),
+                                        'load_status': scc_info.get('load_status', 'unknown')
+                                    })
                 
                 # Format record
                 record = {
                     'stream_id': entry_id.decode('utf-8') if isinstance(entry_id, bytes) else str(entry_id),
-                    'timestamp': timestamp,
-                    'scc_data': scc_data
+                    'timestamp': timestamp or entry_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    'entry_time': entry_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    'total_alarms': len(alarms),
+                    'alarms': alarms,
+                    'raw_scc_data': scc_data
                 }
-                
-                # Apply additional date filtering if needed (for precision)
-                if start_dt or end_dt:
-                    record_dt = validate_date_format(timestamp)
-                    if record_dt:
-                        if start_dt and record_dt < start_dt:
-                            continue
-                        if end_dt and record_dt > end_dt:
-                            continue
                 
                 all_records.append(record)
                 
             except Exception as e:
-                if debug_mode and debug_info:
-                    debug_info.setdefault("parsing_errors", []).append(str(e))
+                if debug_mode:
+                    if "parsing_errors" not in debug_info:
+                        debug_info["parsing_errors"] = []
+                    debug_info["parsing_errors"].append(f"Error parsing entry {entry_id}: {str(e)}")
                 continue
 
         # Sort by timestamp (newest first) if not already sorted by XREVRANGE
         if redis_start_ts or redis_end_ts:
-            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+            all_records.sort(key=lambda x: x.get('entry_time', ''), reverse=True)
 
         # Paginate results
         paginated_data = paginate_data(all_records, limit, offset)
@@ -1018,16 +1098,20 @@ def get_scc_alarm_history():
                 "records": paginated_data['records'],
                 "total_records": paginated_data['total_records'],
                 "page_info": paginated_data['page_info'],
+                "stream_info": {
+                    "stream_name": "scc-logs:data",
+                    "total_entries_processed": len(all_records)
+                },
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }
 
         # Add helpful message when no records found
         if len(all_records) == 0:
-            if start_dt or end_dt:
-                response_data["message"] = "No SCC logs found in the specified date range."
+            if redis_start_ts or redis_end_ts:
+                response_data["message"] = "No SCC alarm logs found for the specified date range"
             else:
-                response_data["message"] = "No SCC logs found."
+                response_data["message"] = "No SCC alarm logs available"
 
         # Add debug info if requested
         if debug_mode and debug_info:
@@ -1083,6 +1167,7 @@ def download_scc_alarms():
                 data_json = fields.get(b'data', b'').decode('utf-8') if isinstance(fields.get(b'data', b''), bytes) else fields.get('data', '')
                 
                 # Parse SCC data
+                import json
                 scc_data = json.loads(data_json) if data_json else {}
                 
                 # Format log entry
@@ -1094,16 +1179,21 @@ def download_scc_alarms():
                 
                 all_logs.append(log_entry)
                 
-            except Exception:
+            except Exception as e:
                 continue
 
         return jsonify({
             "status_code": 200,
             "status": "success",
             "data": {
-                "total_records": len(all_logs),
-                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "logs": all_logs
+                "logs": all_logs,
+                "total_logs": len(all_logs),
+                "download_info": {
+                    "requested_limit": limit,
+                    "actual_downloaded": len(all_logs),
+                    "stream_name": "scc-logs:data"
+                },
+                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }), 200
 
@@ -1111,7 +1201,7 @@ def download_scc_alarms():
         return jsonify({
             "status_code": 500,
             "status": "error",
-            "message": "Failed to download SCC alarms",
+            "message": "Failed to download SCC alarm logs",
             "error": str(e)
         }), 500
 
@@ -1141,7 +1231,7 @@ def clear_scc_alarms():
             return jsonify({
                 "status_code": 400,
                 "status": "error",
-                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all SCC logs."
+                "message": "Deletion requires confirmation. Add '?confirm=yes' to proceed."
             }), 400
 
         # Get count before deletion
@@ -1149,8 +1239,7 @@ def clear_scc_alarms():
         try:
             stream_info = red.xinfo_stream('scc-logs:data')
             deleted_count = stream_info['length']
-            
-            # Delete entire stream
+            # Delete the entire stream
             red.delete('scc-logs:data')
         except Exception:
             # Stream doesn't exist
@@ -1159,9 +1248,11 @@ def clear_scc_alarms():
         return jsonify({
             "status_code": 200,
             "status": "success",
-            "message": "SCC logs deleted successfully",
+            "message": f"Successfully cleared {deleted_count} SCC alarm logs",
             "data": {
-                "deleted_records": deleted_count
+                "deleted_count": deleted_count,
+                "stream_name": "scc-logs:data",
+                "cleared_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }), 200
 
@@ -1169,181 +1260,6 @@ def clear_scc_alarms():
         return jsonify({
             "status_code": 500,
             "status": "error",
-            "message": "Failed to clear SCC alarms",
-            "error": str(e)
-        }), 500
-
-
-# ============== SCC Data Endpoints (Additional) ===========================
-
-@logger_bp.route('/data/scc', methods=['GET'])
-@api_session_required
-def get_scc_data():
-    """
-    Get SCC data from Redis Stream with filtering options (alias for /scc-alarm/history)
-    Query parameters:
-    - start_date: Start date (ISO 8601 format)
-    - end_date: End date (ISO 8601 format)
-    - limit: Maximum records (default: 50, max: 1000)
-    - offset: Records to skip (default: 0)
-    - debug: Enable debug mode (true/false)
-    """
-    # Redirect to scc-alarm/history with same parameters
-    return get_scc_alarm_history()
-
-
-@logger_bp.route('/data/scc/<timestamp>', methods=['DELETE'])
-@api_session_required
-def delete_scc_data_by_timestamp(timestamp):
-    """
-    Delete SCC data by timestamp from Redis Stream
-    Supports both exact timestamp match and prefix match
-    
-    Parameters:
-    - timestamp: Timestamp to delete (exact match or prefix)
-    
-    Query parameters:
-    - match_type: 'exact' (default) or 'prefix'
-    - confirm: Must be 'yes' to confirm deletion (required)
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "Redis service unavailable"
-            }), 503
-
-        # Get query parameters
-        match_type = request.args.get('match_type', 'exact').lower()
-        confirm = request.args.get('confirm', '').lower()
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-        
-        # Require confirmation for safety
-        if confirm != 'yes':
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion."
-            }), 400
-        
-        # Validate match_type
-        if match_type not in ['exact', 'prefix']:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid match_type. Must be 'exact' or 'prefix'"
-            }), 400
-
-        # Validate timestamp format (basic validation)
-        if not timestamp or len(timestamp) < 8:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid timestamp format. Timestamp too short."
-            }), 400
-
-        # Delete from SCC stream using helper function
-        result = delete_scc_entries_by_timestamp(red, timestamp, match_type, debug_mode)
-        
-        # Check for errors
-        if "error" in result:
-            return jsonify({
-                "status_code": 500,
-                "status": "error",
-                "message": "Failed to delete SCC data by timestamp",
-                "error": result["error"]
-            }), 500
-
-        # Check if timestamp exists - return error if not found
-        if not result.get("timestamp_exists", False):
-            return jsonify({
-                "status_code": 404,
-                "status": "error",
-                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in SCC logs stream",
-                "data": {
-                    "deleted_count": 0,
-                    "timestamp_exists": False
-                }
-            }), 404
-
-        # Success response when timestamp found and deleted
-        return jsonify({
-            "status_code": 200,
-            "status": "success",
-            "message": f"Successfully deleted {result['deleted_count']} SCC entries with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}'",
-            "data": {
-                "deleted_count": result["deleted_count"],
-                "timestamp_exists": result["timestamp_exists"],
-                "debug_info": result.get("debug_info") if debug_mode else None
-            }
-        }), 200
-
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to delete SCC data by timestamp",
-            "error": str(e)
-        }
-        
-        return jsonify(error_response), 500
-
-
-@logger_bp.route('/data/scc', methods=['DELETE'])
-@api_session_required  
-def delete_all_scc_data():
-    """
-    Delete all SCC data from Redis Stream
-    
-    Query parameters:
-    - confirm: Must be 'yes' to confirm deletion (required)
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "Redis service unavailable"
-            }), 503
-
-        # Get query parameters
-        confirm = request.args.get('confirm', '').lower()
-        
-        # Require confirmation for safety
-        if confirm != 'yes':
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all SCC data."
-            }), 400
-
-        # Get count before deletion
-        deleted_count = 0
-        try:
-            stream_info = red.xinfo_stream('scc-logs:data')
-            deleted_count = stream_info['length']
-            
-            # Delete entire stream
-            red.delete('scc-logs:data')
-        except Exception:
-            # Stream doesn't exist
-            deleted_count = 0
-
-        return jsonify({
-            "status_code": 200,
-            "status": "success",
-            "message": "All SCC data deleted successfully",
-            "data": {
-                "deleted_records": deleted_count
-            }
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to delete all SCC data",
+            "message": "Failed to clear SCC alarm logs",
             "error": str(e)
         }), 500
