@@ -225,11 +225,98 @@
 </div>
 {% endblock content %}
 
+{% block head %}
+<style>
+    .alert-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .modern-card.border-success {
+        border-left: 4px solid var(--success-color) !important;
+    }
+    
+    .modern-card.border-warning {
+        border-left: 4px solid var(--warning-color) !important;
+    }
+    
+    .modern-card.border-danger {
+        border-left: 4px solid var(--danger-color) !important;
+    }
+    
+    .stats-card-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    #service-log-content {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock head %}
+
 {% block scripts %}
 <script>
     const currentUser = "{{ username }}";
+    // const API_BASE_URL = '/api/v1/device';
+    const API_BASE_URL = 'http://11.12.13.3/api/v1/device';
+    
     let serviceActionData = {};
     let logRefreshInterval = null;
+    
+    // Debug function
+    window.debugSystemdAPI = async function() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        console.log('=== DEBUG SYSTEMD API ===');
+        console.log('API URL:', API_BASE_URL);
+        console.log('User Token:', userToken);
+        console.log('Current User:', currentUser);
+        
+        try {
+            const testPayload = {
+                service: 'webapp.service',
+                action: 'status'
+            };
+            
+            console.log('Test Payload:', testPayload);
+            
+            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(testPayload),
+                credentials: 'same-origin'
+            });
+            
+            console.log('Response Status:', response.status);
+            console.log('Response Headers:', [...response.headers.entries()]);
+            
+            const responseText = await response.text();
+            console.log('Raw Response:', responseText);
+            
+            try {
+                const jsonResponse = JSON.parse(responseText);
+                console.log('Parsed JSON:', jsonResponse);
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+            }
+            
+        } catch (error) {
+            console.error('Request Error:', error);
+        }
+        
+        console.log('=== END DEBUG ===');
+    };
     
     // List of services to monitor
     const services = [
@@ -302,38 +389,97 @@
         }
     ];
     
-    const API_BASE_URL = '/api/v1/device';
-    // const API_BASE_URL = 'http://10.10.10.60/api/v1/device';
+    // Get service status overview from server
+    async function getServicesOverview() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
+        try {
+            console.log('Getting services overview...');
+            
+            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            
+            console.log('Overview response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('HTTP error for overview:', response.status, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Overview result:', result);
+            
+            if (result.status === 'success' && result.data) {
+                return result.data;
+            } else {
+                console.warn('Invalid response for overview:', result);
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            console.error('Failed to get services overview:', error);
+            throw error;
+        }
+    }
 
     // Get service status
     async function getServiceStatus(serviceName) {
         const userToken = '{{ session.get("auth_token", "") }}';
 
         try {
+            console.log(`Getting status for service: ${serviceName}`);
+            
             const response = await fetch(`${API_BASE_URL}/systemd-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     service: serviceName,
                     action: 'status'
-                })
+                }),
+                credentials: 'same-origin'
             });
             
+            console.log(`Response status for ${serviceName}:`, response.status);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error(`HTTP error for ${serviceName}:`, response.status, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
             
             const result = await response.json();
-            return result.data || { 
-                status: 'unknown', 
-                enabled: false, 
-                active: false, 
-                running: false,
-                error: 'No data received' 
-            };
+            console.log(`Result for ${serviceName}:`, result);
+            
+            if (result.success && result.data) {
+                return {
+                    status: result.data.status || 'unknown',
+                    enabled: result.data.enabled || false,
+                    active: result.data.active || false,
+                    running: result.data.running || false,
+                    output: result.data.output || '',
+                    error: result.data.error || '',
+                    debug: result.data.debug || null
+                };
+            } else {
+                console.warn(`Invalid response for ${serviceName}:`, result);
+                return { 
+                    status: 'unknown', 
+                    enabled: false, 
+                    active: false, 
+                    running: false,
+                    error: result.error || 'Invalid response format' 
+                };
+            }
         } catch (error) {
             console.error(`Failed to get status for ${serviceName}:`, error);
             return { 
@@ -361,18 +507,34 @@
     }
     
     // Get status badge
-    function getStatusBadge(status, active, running) {
-        if (status === 'active' && running) {
-            return '<span class="badge bg-success">Active</span>';
-        } else if (status === 'inactive') {
-            return '<span class="badge bg-warning">Inactive</span>';
-        } else if (status === 'failed') {
-            return '<span class="badge bg-danger">Failed</span>';
-        } else if (status === 'unknown') {
-            return '<span class="badge bg-secondary">Unknown</span>';
+    function getStatusBadge(status, active, running, serviceName = '') {
+        // Special handling for timers
+        if (serviceName.endsWith('.timer')) {
+            if (status === 'active') {
+                return '<span class="badge bg-success">Active</span>';
+            } else if (status === 'inactive') {
+                return '<span class="badge bg-warning">Inactive</span>';
+            } else if (status === 'failed') {
+                return '<span class="badge bg-danger">Failed</span>';
+            } else if (status === 'unknown') {
+                return '<span class="badge bg-secondary">Unknown</span>';
+            }
         } else {
-            return '<span class="badge bg-info">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span>';
+            // Regular services
+            if (status === 'active' && running) {
+                return '<span class="badge bg-success">Active</span>';
+            } else if (status === 'active' && !running) {
+                return '<span class="badge bg-info">Active (Not Running)</span>';
+            } else if (status === 'inactive') {
+                return '<span class="badge bg-warning">Inactive</span>';
+            } else if (status === 'failed') {
+                return '<span class="badge bg-danger">Failed</span>';
+            } else if (status === 'unknown') {
+                return '<span class="badge bg-secondary">Unknown</span>';
+            }
         }
+        
+        return '<span class="badge bg-info">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span>';
     }
     
     // Render service card
@@ -381,9 +543,18 @@
         const isEnabled = statusData.enabled;
         const isCritical = service.critical;
         
+        // Debug logging
+        console.log(`Rendering card for ${service.name}:`, {
+            status: statusData.status,
+            active: statusData.active,
+            running: statusData.running,
+            enabled: statusData.enabled,
+            isActive: isActive
+        });
+        
         return `
             <div class="col-lg-6 col-xl-4">
-                <div class="modern-card ${isActive ? 'border-success' : 'border-warning'}">
+                <div class="modern-card ${isActive ? 'border-success' : (statusData.status === 'failed' ? 'border-danger' : 'border-warning')}">
                     <div class="modern-card-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="modern-card-title mb-0">
@@ -391,7 +562,7 @@
                                 ${service.displayName}
                                 ${isCritical ? '<i class="fas fa-exclamation-circle text-danger ms-1" title="Critical Service"></i>' : ''}
                             </h6>
-                            ${getStatusBadge(statusData.status, statusData.active, statusData.running)}
+                            ${getStatusBadge(statusData.status, statusData.active, statusData.running, service.name)}
                         </div>
                     </div>
                     <div class="modern-card-body">
@@ -399,7 +570,7 @@
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <small class="text-muted">Service:</small>
-                                <div class="fw-bold">${service.name}</div>
+                                <div class="fw-bold small">${service.name}</div>
                             </div>
                             <div class="col-6">
                                 <small class="text-muted">Enabled:</small>
@@ -411,6 +582,11 @@
                                 </div>
                             </div>
                         </div>
+                        ${statusData.error ? `
+                            <div class="alert alert-warning alert-sm mb-2">
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>${statusData.error}</small>
+                            </div>
+                        ` : ''}
                         <div class="d-flex flex-wrap gap-1">
                             <button class="btn btn-outline-success btn-sm" onclick="showServiceAction('start', '${service.name}');" ${isActive ? 'disabled' : ''}>
                                 <i class="fas fa-play"></i> Start
@@ -437,9 +613,12 @@
     }
     
     // Load all services
+    // Load all services using overview data
     async function loadAllServices() {
         const container = document.getElementById('services-container');
         const refreshBtn = document.getElementById('refresh-all-btn');
+        
+        console.log('Loading all services using overview...');
         
         if (refreshBtn) {
             refreshBtn.disabled = true;
@@ -449,36 +628,61 @@
         container.innerHTML = '<div class="col-12 text-center"><i class="fas fa-spinner fa-spin me-2"></i>Loading services...</div>';
         
         try {
-            const servicePromises = services.map(service => 
-                getServiceStatus(service.name).then(status => ({ service, status }))
-            );
+            // Get overview data first
+            const overviewData = await getServicesOverview();
+            console.log('Overview data received:', overviewData);
             
-            const results = await Promise.all(servicePromises);
-            
-            let activeCount = 0;
-            let inactiveCount = 0;
-            let failedCount = 0;
-            
-            container.innerHTML = '';
-            
-            results.forEach(({ service, status }) => {
-                if (status.status === 'active' && status.running) {
-                    activeCount++;
-                } else if (status.status === 'failed') {
-                    failedCount++;
-                } else {
-                    inactiveCount++;
-                }
+            if (overviewData.services_status) {
+                const servicesStatus = overviewData.services_status;
+                console.log('Services status from overview:', servicesStatus);
                 
-                container.innerHTML += renderServiceCard(service, status);
-            });
-            
-            // Update overview statistics
-            document.getElementById('active-count').textContent = activeCount;
-            document.getElementById('inactive-count').textContent = inactiveCount;
-            document.getElementById('failed-count').textContent = failedCount;
-            
-            updateLastUpdate();
+                let activeCount = 0;
+                let inactiveCount = 0;
+                let failedCount = 0;
+                let successCount = 0;
+                
+                container.innerHTML = '';
+                
+                // Process each service from the predefined services array
+                services.forEach(service => {
+                    const serviceName = service.name;
+                    const status = servicesStatus[serviceName];
+                    
+                    console.log(`Processing service: ${serviceName}, overview status: ${status}`);
+                    
+                    // Map overview status to service data format
+                    const serviceData = {
+                        status: status || 'unknown',
+                        enabled: status && status !== 'not-found' && status !== 'inactive',
+                        active: status === 'active',
+                        running: status === 'active'
+                    };
+                    
+                    successCount++;
+                    if (serviceData.status === 'active' && serviceData.running) {
+                        activeCount++;
+                    } else if (serviceData.status === 'failed') {
+                        failedCount++;
+                    } else {
+                        inactiveCount++;
+                    }
+                    
+                    container.innerHTML += renderServiceCard(service, serviceData);
+                });
+                
+                // Update overview statistics
+                document.getElementById('active-count').textContent = activeCount;
+                document.getElementById('inactive-count').textContent = inactiveCount;
+                document.getElementById('failed-count').textContent = failedCount;
+                
+                updateLastUpdate();
+                
+                console.log(`Services loaded: ${successCount}/${services.length} from overview`);
+                
+            } else {
+                console.warn('No services_status in overview data');
+                throw new Error('No services data found in overview response');
+            }
             
         } catch (error) {
             console.error('Failed to load services:', error);
@@ -487,6 +691,7 @@
                     <div class="alert alert-danger" role="alert">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         Failed to load services: ${error.message}
+                        <br><small>Check console for detailed error information.</small>
                     </div>
                 </div>
             `;
@@ -598,25 +803,34 @@
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
         
         try {
+            console.log(`Executing ${serviceActionData.action} on ${serviceActionData.serviceName}`);
+            
             const response = await fetch(`${API_BASE_URL}/systemd-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     service: serviceActionData.serviceName,
                     action: serviceActionData.action,
                     password: password,
                     user: currentUser
-                })
+                }),
+                credentials: 'same-origin'
             });
             
+            console.log('Service action response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Service action error:', response.status, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
             
             const result = await response.json();
+            console.log('Service action result:', result);
             
             // Close modal
             bootstrap.Modal.getInstance(document.getElementById('serviceActionModal')).hide();
@@ -707,27 +921,36 @@
         if (!serviceName || !logFile) return;
         
         try {
+            console.log(`Refreshing logs for ${serviceName} - ${logFile}`);
+            
             const response = await fetch(`${API_BASE_URL}/systemd-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     service: serviceName,
                     action: 'logs',
                     log_file: logFile
-                })
+                }),
+                credentials: 'same-origin'
             });
             
+            console.log('Log response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Log fetch error:', response.status, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
             
             const result = await response.json();
+            console.log('Log result:', result);
             
-            if (result.data && result.data.logs) {
-                content.innerHTML = `<pre style="color: #ffffff; margin: 0;">${result.data.logs}</pre>`;
+            if (result.success && result.data && result.data.logs) {
+                content.innerHTML = `<pre style="color: #ffffff; margin: 0; white-space: pre-wrap;">${result.data.logs}</pre>`;
                 // Auto-scroll to bottom
                 content.scrollTop = content.scrollHeight;
             } else {
@@ -824,18 +1047,29 @@
         const userToken = '{{ session.get("auth_token", "") }}';
         const userRole = '{{ user_role }}';
 
+        console.log('Systemd Service Management page initialized');
+        console.log('User token present:', userToken ? 'Yes' : 'No');
+        console.log('User role:', userRole);
+        console.log('Current user:', currentUser);
+        console.log('API Base URL:', API_BASE_URL);
+        console.log('Services to monitor:', services.length);
+
+        // Initial load
         loadAllServices();
         
         // Auto-refresh services every 30 seconds
         setInterval(() => {
+            console.log('Auto-refreshing services...');
             loadAllServices();
         }, 30000);
         
         // Handle auto-refresh logs
         document.getElementById('auto-refresh-logs').addEventListener('change', function() {
             if (this.checked) {
+                console.log('Starting auto-refresh for logs');
                 logRefreshInterval = setInterval(refreshServiceLogs, 5000);
             } else {
+                console.log('Stopping auto-refresh for logs');
                 if (logRefreshInterval) {
                     clearInterval(logRefreshInterval);
                     logRefreshInterval = null;
@@ -845,6 +1079,7 @@
         
         // Clean up intervals when modal is hidden
         document.getElementById('serviceLogModal').addEventListener('hidden.bs.modal', function() {
+            console.log('Log modal hidden, cleaning up intervals');
             if (logRefreshInterval) {
                 clearInterval(logRefreshInterval);
                 logRefreshInterval = null;
