@@ -135,6 +135,7 @@ def update_device_version(path, form):
     scc_type = data.get('scc-type')
     scc_source = data.get('scc-source')
     battery_type = data.get('battery-type')
+    usb_type = data.get('usb-type')
 
     # open json file
     with open(path, 'r') as f:
@@ -146,6 +147,7 @@ def update_device_version(path, form):
     json_data['device_version']['scc_type'] = scc_type
     json_data['device_version']['scc_source'] = scc_source
     json_data['device_version']['battery_type'] = battery_type
+    json_data['device_version']['usb_type'] = usb_type
 
     # write to json file
     with open(path, 'w') as f:
