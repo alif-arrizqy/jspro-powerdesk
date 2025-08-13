@@ -192,6 +192,8 @@
     const siteName = "{{ site_name }}";
     const sccType = "{{ scc_type }}";
     const numberOfScc = {{ number_of_scc }};
+    const API_BASE_URL = '/api/v1/loggers';
+    const userToken = '{{ session.get("auth_token", "") }}';
     
     // Helper function to update status indicators
     function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'critical']) {
@@ -280,78 +282,6 @@
     const itemsPerPage = 12;
     let filteredAlarmData = [];
     
-    // Function to generate dummy data for testing
-    function generateDummyAlarmData() {
-        const dummyData = [];
-        const currentTime = new Date();
-        
-        // Define alarm scenarios based on SCC type
-        let alarmScenarios = [];
-        
-        if (sccType === 'scc-srne') {
-            alarmScenarios = [
-                { type: 'battery', subtype: 'high-temp-1', status: 'active', probability: 0.10 },
-                { type: 'battery', subtype: 'high-temp-2', status: 'active', probability: 0.08 },
-                { type: 'battery', subtype: 'low-temp-1', status: 'active', probability: 0.05 },
-                { type: 'battery', subtype: 'low-temp-2', status: 'active', probability: 0.05 },
-                { type: 'battery', subtype: 'overdisc', status: 'active', probability: 0.12 },
-                { type: 'battery', subtype: 'overvolt', status: 'active', probability: 0.15 },
-                { type: 'battery', subtype: 'reversed', status: 'active', probability: 0.02 },
-                { type: 'battery', subtype: 'undervolt', status: 'active', probability: 0.10 },
-                { type: 'battery', subtype: 'oo-batt-detected-sld', status: 'active', probability: 0.10 },
-                { type: 'system', subtype: 'overdisc-protection', status: 'active', probability: 0.10 },
-                { type: 'system', subtype: 'power-supply-status', status: 'active', probability: 0.10 },
-                { type: 'controller', subtype: 'temp-high', status: 'active', probability: 0.18 },
-                { type: 'controller', subtype: 'induction-probe-damaged', status: 'active', probability: 0.12 },
-                { type: 'load', subtype: 'over-current', status: 'active', probability: 0.12 },
-                { type: 'load', subtype: 'open-circuit', status: 'active', probability: 0.12 },
-                { type: 'load', subtype: 'short', status: 'active', probability: 0.12 },
-                { type: 'pv', subtype: 'overpower', status: 'active', probability: 0.08 },
-                { type: 'pv', subtype: 'overvolt', status: 'active', probability: 0.10 },
-                { type: 'solar-panel', subtype: 'reversed', status: 'active', probability: 0.10 },
-                { type: 'solar-panel', subtype: 'working-point-overvolt', status: 'active', probability: 0.10 }
-            ];
-        } else if (sccType === 'scc-epveper') {
-            alarmScenarios = [
-                { type: 'battery', subtype: 'overvoltage', status: 'fault', probability: 0.15 },
-                { type: 'battery', subtype: 'undervoltage', status: 'fault', probability: 0.12 },
-                { type: 'battery', subtype: 'overdischarge', status: 'warning', probability: 0.08 },
-                { type: 'battery', subtype: 'low_voltage', status: 'warning', probability: 0.10 },
-                { type: 'controller', subtype: 'overtemp', status: 'fault', probability: 0.20 },
-                { type: 'controller', subtype: 'short_circuit', status: 'fault', probability: 0.05 },
-                { type: 'controller', subtype: 'abnormal', status: 'warning', probability: 0.08 },
-                { type: 'load', subtype: 'overload', status: 'fault', probability: 0.12 },
-                { type: 'load', subtype: 'short_circuit', status: 'fault', probability: 0.06 },
-                { type: 'pv', subtype: 'overvoltage', status: 'fault', probability: 0.07 },
-                { type: 'pv', subtype: 'short_circuit', status: 'fault', probability: 0.04 },
-                { type: 'system', subtype: 'standby', status: 'standby', probability: 0.05 },
-                { type: 'system', subtype: 'unrecognized', status: 'unrecognized', probability: 0.03 },
-                { type: 'system', subtype: 'unable', status: 'unable', probability: 0.02 },
-                { type: 'system', subtype: 'no_access', status: 'no_access', probability: 0.02 },
-                { type: 'system', subtype: 'wrong', status: 'wrong', probability: 0.03 }
-            ];
-        }
-        
-        // Generate 100 dummy alarm entries for more comprehensive testing
-        for (let i = 0; i < 100; i++) {
-            const entryTime = new Date(currentTime.getTime() - (i * 1800000)); // 30 min intervals
-            
-            const entry = {
-                time: entryTime.toISOString()
-            };
-            
-            // Generate data for each SCC dynamically
-            for (let sccIndex = 1; sccIndex <= numberOfScc; sccIndex++) {
-                entry[`scc${sccIndex}`] = generateScctData(i + (sccIndex * 25), alarmScenarios);
-            }
-            
-            dummyData.push(entry);
-        }
-        
-        console.log(`Generated ${sccType} dummy alarm data:`, dummyData.length, 'entries');
-        return dummyData;
-    }
-    
     // Helper function to generate SCC data
     function generateScctData(index, alarmScenarios) {
         const hasAlarm = Math.random() < 0.4; // 40% chance of having an alarm
@@ -406,34 +336,6 @@
         }
         
         return sccData;
-    }
-    
-    // Function to use dummy data instead of API call
-    function loadDummyData() {
-        arrLoggersData.length = 0; // Clear existing data
-        arrLoggersData.push(...generateDummyAlarmData());
-        
-        // Update UI with dummy data
-        const alarmLengthElement = document.getElementById('scc-alarm-length');
-        if (alarmLengthElement) {
-            alarmLengthElement.textContent = arrLoggersData.length.toLocaleString();
-            alarmLengthElement.classList.add('text-info');
-        }
-        
-        // Update last update time
-        updateLastUpdate();
-        
-        // Reset button states
-        resetButtonStates();
-        
-        // Update SCC status indicators
-        updateScctStatus();
-        
-        // Process and display alarm data
-        filteredAlarmData = extractAlarmData(arrLoggersData);
-        renderAlarmCards(filteredAlarmData);
-        
-        console.log('Loaded dummy data successfully');
     }
     
     // Function to get severity class based on alarm status
@@ -702,13 +604,61 @@
         currentPage = 1;
         renderAlarmCards(filteredAlarmData);
     }
-    const handleLoggers = async (cursorValue = "") => {
+    // Function to load SCC alarm overview statistics
+    function loadAlarmOverview() {
+        fetch(`${API_BASE_URL}/scc-alarm/overview`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const overviewData = data.data;
+                    
+                    // Update total alarms
+                    const alarmLengthElement = document.getElementById('scc-alarm-length');
+                    if (alarmLengthElement) {
+                        alarmLengthElement.textContent = overviewData.total_alarms.toLocaleString();
+                        alarmLengthElement.classList.add('text-info');
+                    }
+                    
+                    // Update last alarm time
+                    const lastUpdateElement = document.getElementById('last-update');
+                    if (lastUpdateElement && overviewData.last_alarm_time) {
+                        lastUpdateElement.textContent = overviewData.last_alarm_time;
+                    }
+                    
+                    // Update status indicators based on alarm levels
+                    if (overviewData.active_alarms > 0) {
+                        updateStatusIndicator('alarm-status', 
+                            overviewData.alarm_statistics.severity_breakdown.critical > 0 ? 'Critical' : 'Warning', 
+                            ['normal'], ['critical', 'error']);
+                    } else {
+                        updateStatusIndicator('alarm-status', 'Normal');
+                    }
+                } else {
+                    console.error('Failed to load alarm overview:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading alarm overview:', error);
+                updateStatusIndicator('alarm-status', 'Error');
+            });
+    }
+
+    const handleLoggers = async (page = 1, pageSize = 50) => {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         try {
-            const response = await fetch(`/api/loggers/scc-alarm?cursor=${cursorValue}&page_size=500`, {
+            const offset = (page - 1) * pageSize;
+            const response = await fetch(`${API_BASE_URL}/scc-alarm/history?limit=${pageSize}&offset=${offset}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                    'Authorization': `Bearer ${userToken}`
                 }
             });
             if (!response.ok) {
@@ -717,39 +667,37 @@
 
             const data = await response.json();
 
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
+            if (data.status_code == 500) {
+                console.log(`Error: ${data.message}`);
                 updateStatusIndicator('alarm-status', 'Error');
                 return;
             }
 
-            // Process the data here
-            arrLoggersData.push(...Object.values(data.data));
+            // Clear existing data for fresh load
+            if (page === 1) {
+                arrLoggersData.length = 0;
+            }
 
-            // Check if there is a next cursor
-            if (data.next_cursor) {
-                // If there is a next cursor, make another request with the new cursor value
-                handleLoggers(data.next_cursor);
-            } else {
-                // If next cursor is null, stop the requests
-                console.log('No more data to fetch.');
-                console.log(`Total data collected: ${arrLoggersData.length}`);
+            // Process the historical data
+            if (data.data && data.data.records) {
+                arrLoggersData.push(...data.data.records);
                 
                 const alarmLengthElement = document.getElementById('scc-alarm-length');
                 if (alarmLengthElement) {
-                    alarmLengthElement.textContent = arrLoggersData.length.toLocaleString();
+                    alarmLengthElement.textContent = data.data.total_records.toLocaleString();
                     
                     // Update status based on alarm count
-                    if (arrLoggersData.length > 500) {
+                    if (data.data.total_records > 500) {
                         alarmLengthElement.classList.add('text-danger');
                         updateStatusIndicator('alarm-status', 'Critical');
-                    } else if (arrLoggersData.length > 100) {
+                    } else if (data.data.total_records > 100) {
                         alarmLengthElement.classList.add('text-warning');
                         updateStatusIndicator('alarm-status', 'Warning');
-                    } else if (arrLoggersData.length > 0) {
+                    } else if (data.data.total_records > 0) {
                         alarmLengthElement.classList.add('text-info');
                         updateStatusIndicator('alarm-status', 'Active');
                     } else {
+                        alarmLengthElement.classList.add('text-success');
                         updateStatusIndicator('alarm-status', 'Normal');
                     }
                 }
@@ -768,22 +716,16 @@
                 renderAlarmCards(filteredAlarmData);
             }
         } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
+            console.error(`Failed to fetch SCC alarm data: ${error.message}`);
             
             // Update UI for error state
             updateStatusIndicator('alarm-status', 'Error');
             
             // if status is 404, return No Data
             if (error.message.includes('404')) {
-                const alarmLengthElement = document.getElementById('scc-alarm-length');
-                if (alarmLengthElement) {
-                    alarmLengthElement.textContent = 'No Data';
-                    alarmLengthElement.classList.add('text-muted');
-                }
-                
-                updateStatusIndicator('alarm-status', 'No Data');
                 disableButtonsNoData();
             } else {
+                // Reset button states for other errors
                 resetButtonStates();
             }
         }
@@ -854,7 +796,7 @@
         handleLoggers();
     }
 
-    const downloadSccLoggers = async (cursorValue = "") => {
+    const downloadSccLoggers = async () => {
         const downloadBtn = document.getElementById('scc-alarm-download');
         if (downloadBtn) {
             downloadBtn.disabled = true;
@@ -862,11 +804,11 @@
         }
         
         try {
-            const response = await fetch(`/api/loggers/scc-alarm?cursor=${cursorValue}&page_size=500`, {
+            const response = await fetch(`${API_BASE_URL}/scc-alarm?limit=5000`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                    'Authorization': `Bearer ${userToken}`
                 }
             });
             if (!response.ok) {
@@ -875,17 +817,17 @@
 
             const data = await response.json();
 
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
+            if (data.status_code == 500) {
+                console.log(`Error: ${data.message}`);
                 return;
             }
 
             // Process the data here
-            const chunkData = JSON.stringify(data.data, null, 2);
+            const downloadData = data.data.logs || [];
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filename = `${siteName}-scc-alarm-${timestamp}-${cursorValue || 'first'}.json`;
+            const filename = `${siteName}-scc-alarm-logs-${timestamp}.json`;
             
-            const blob = new Blob([chunkData], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(downloadData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -895,27 +837,18 @@
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-
-            // Check if there is a next cursor
-            if (data.next_cursor) {
-                 // If there is a next cursor, make another request with the new cursor value
-                downloadSccLoggers(data.next_cursor);
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification(`Successfully downloaded ${downloadData.length} SCC alarm logs!`, 'success');
             } else {
-                // If next cursor is null, stop the requests
-                console.log('Download complete.');
-                
-                // Show success message
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('SCC Alarm logs downloaded successfully!', 'success');
-                } else {
-                    alert('SCC Alarm logs downloaded successfully!');
-                }
-                
-                // Reset button
-                if (downloadBtn) {
-                    downloadBtn.disabled = false;
-                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Logs';
-                }
+                alert(`Successfully downloaded ${downloadData.length} SCC alarm logs!`);
+            }
+            
+            // Reset button
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Logs';
             }
         } catch (error) {
             console.error(`Failed to download data: ${error.message}`);
@@ -958,11 +891,11 @@
         }
 
         try {
-            const response = await fetch(`/api/loggers/scc-alarm`, {
+            const response = await fetch(`${API_BASE_URL}/scc-alarm?confirm=yes`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
+                    'Authorization': `Bearer ${userToken}`
                 }
             });
             if (!response.ok) {
@@ -971,28 +904,33 @@
 
             const data = await response.json();
 
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
+            if (data.status_code == 500) {
+                console.log(`Error: ${data.message}`);
                 return;
             }
 
-            console.log('Data cleared successfully.');
-            
             // Show success message
             if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('SCC Alarm logs cleared successfully!', 'success');
+                window.powerDeskApp.showNotification(`Successfully cleared ${data.data.deleted_count} SCC Alarm logs!`, 'success');
             } else {
-                alert('SCC Alarm logs cleared successfully!');
+                alert(`Successfully cleared ${data.data.deleted_count} SCC Alarm logs!`);
             }
             
-                // Update UI
-                const alarmLengthElement = document.getElementById('scc-alarm-length');
-                if (alarmLengthElement) {
-                    alarmLengthElement.textContent = 'No Data';
-                    alarmLengthElement.classList.add('text-muted');
-                }
-                
-                // Clear alarm display
+            // Update UI
+            const alarmLengthElement = document.getElementById('scc-alarm-length');
+            if (alarmLengthElement) {
+                alarmLengthElement.textContent = '0';
+                alarmLengthElement.classList.remove('text-danger', 'text-warning', 'text-info');
+                alarmLengthElement.classList.add('text-success');
+            }
+            
+            // Clear alarm display
+            arrLoggersData.length = 0;
+            filteredAlarmData.length = 0;
+            renderAlarmCards([]);
+            
+            // Update status
+            updateStatusIndicator('alarm-status', 'Normal');
                 document.getElementById('alarm-loading').style.display = 'none';
                 document.getElementById('alarm-no-data').style.display = 'block';
                 document.getElementById('alarm-list').style.display = 'none';
@@ -1019,20 +957,25 @@
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if we should load dummy data (for development/testing)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('demo') === 'true') {
-            loadDummyData();
-        } else {
-            handleLoggers();
-        }
+        loadAlarmOverview();
+        handleLoggers();
         
         // Add event listeners for filters
-        document.getElementById('alarm-filter').addEventListener('change', filterAlarms);
-        document.getElementById('scc-filter').addEventListener('change', filterAlarms);
+        const alarmFilter = document.getElementById('alarm-filter');
+        const sccFilter = document.getElementById('scc-filter');
+        
+        if (alarmFilter) {
+            alarmFilter.addEventListener('change', filterAlarms);
+        }
+        if (sccFilter) {
+            sccFilter.addEventListener('change', filterAlarms);
+        }
         
         // Update last update time every minute
         setInterval(updateLastUpdate, 60000);
+        
+        // Refresh overview every 30 seconds
+        setInterval(loadAlarmOverview, 30000);
     });
 </script>
 {% endblock scripts %}
