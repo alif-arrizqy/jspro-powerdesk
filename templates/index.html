@@ -548,8 +548,8 @@ function updateSystemResources(data) {
         const temp = parseFloat(resourceData.temperature.value);
         const tempUnit = resourceData.temperature.unit || '°C';
         tempElement.textContent = `${temp.toFixed(1)}${tempUnit}`;
-        tempElement.className = temp > 70 ? 'stats-card-value text-danger' : 
-                                temp > 60 ? 'stats-card-value text-warning' : 'stats-card-value';
+        tempElement.className = temp > 61 ? 'stats-card-value text-danger' : 
+                                temp > 50 ? 'stats-card-value text-warning' : 'stats-card-value';
     }
     
     // Disk Usage
