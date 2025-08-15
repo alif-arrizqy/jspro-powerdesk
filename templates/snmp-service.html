@@ -1,0 +1,541 @@
+{% extends 'modern-layout.html' %}
+
+{% block title %}SNMP Monitoring - JSPro PowerDesk{% endblock %}
+
+{% block breadcrumbs %}
+<i class="fas fa-network-wired"></i>
+SNMP Monitoring
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="snmp-monitor-container">
+        <!-- Page Header - konsisten dengan halaman lain -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h4 class="mb-2">
+                    <i class="fas fa-network-wired text-primary me-2"></i>
+                    SNMP Monitoring System
+                </h4>
+                <p class="text-muted mb-1">Real-time monitoring of SNMP device values with automated data collection</p>
+                <small class="connection-status text-muted">Initializing monitoring system...</small>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-primary btn-sm" id="exportData" title="Export SNMP Data">
+                    <i class="fas fa-download me-1"></i>
+                    <span class="d-none d-lg-inline">Export Data</span>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" id="refreshNow" title="Refresh Now">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    <span class="d-none d-lg-inline">Refresh</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Overview - menggunakan style yang konsisten -->
+        <div class="monitor-stats">
+            <div class="stat-item">
+                <div class="stat-value text-success" id="successCount">0</div>
+                <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value text-danger" id="errorCount">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value text-info" id="totalCount">15</div>
+                <div class="stat-label">Total OIDs</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value text-warning" id="lastUpdate">Never</div>
+                <div class="stat-label">Last Update</div>
+            </div>
+        </div>
+
+        <!-- Control Panel Card - menggunakan modern-card -->
+        <div class="modern-card mb-4">
+            <div class="modern-card-header">
+                <h6 class="modern-card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    SNMP Configuration
+                </h6>
+            </div>
+            <div class="modern-card-body">
+                <div class="monitor-controls">
+                    <div class="ip-config">
+                        <div class="d-flex align-items-center gap-2 mb-2 mb-md-0">
+                            <label for="targetIp" class="form-label">Target IP:</label>
+                            <input type="text" id="targetIp" class="form-control form-control-sm" 
+                                   value="{{ip_address}}" placeholder="Enter device IP" style="width: 160px;">
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="community" class="form-label">Community:</label>
+                            <input type="text" id="community" class="form-control form-control-sm" 
+                                   value="public" placeholder="SNMP Community" style="width: 130px;">
+                        </div>
+                    </div>
+                    
+                    <div class="refresh-controls">
+                        <div class="form-check mb-2 mb-md-0">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                            <label class="form-check-label text-muted" for="autoRefresh">
+                                Auto Refresh
+                            </label>
+                        </div>
+                        <select id="refreshInterval" class="form-select form-select-sm" style="width: 140px;">
+                            <option value="5">Every 5 sec</option>
+                            <option value="10" selected>Every 10 sec</option>
+                            <option value="30">Every 30 sec</option>
+                            <option value="60">Every 1 min</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SNMP Monitoring Grid -->
+        <div class="monitor-grid" id="snmpGrid">
+            <!-- SNMP items will be dynamically populated here -->
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="text-center py-5" id="loadingIndicator" style="display: none;">
+            <div class="snmp-loading-spinner mx-auto mb-3"></div>
+            <h6 class="text-muted mb-2">Fetching SNMP Data</h6>
+            <p class="text-muted small">Please wait while we retrieve data from the device...</p>
+        </div>
+    </div>
+</div>
+
+<!-- SNMP Data Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export SNMP Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="exportFormat" class="form-label">Export Format:</label>
+                    <select id="exportFormat" class="form-select">
+                        <option value="json">JSON</option>
+                        <option value="csv">CSV</option>
+                        <option value="txt">Text</option>
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="includeTimestamp" checked>
+                    <label class="form-check-label" for="includeTimestamp">
+                        Include Timestamp
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="downloadExport">Download</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class SNMPMonitor {
+    constructor() {
+        this.snmpOids = [
+            { oid: '.1.3.6.1.2.1.25.1.15', name: 'batt1_voltage', label: 'Batt 1 Voltage', unit: 'V' },
+            { oid: '.1.3.6.1.2.1.25.1.17', name: 'arus1', label: 'VSAT Current', unit: 'A' },
+            { oid: '.1.3.6.1.2.1.25.1.18', name: 'arus2', label: 'BTS Current', unit: 'A' },
+            { oid: '.1.3.6.1.2.1.25.1.13', name: 'pv1_current', label: 'Chg1 Current', unit: 'A' },
+            { oid: '.1.3.6.1.2.1.25.1.14', name: 'pv2_current', label: 'Chg2 Current', unit: 'A' },
+            { oid: '.1.3.6.1.2.1.25.1.11', name: 'pv1_voltage', label: 'PV1 Voltage', unit: 'V' },
+            { oid: '.1.3.6.1.2.1.25.1.12', name: 'pv2_voltage', label: 'PV2 Voltage', unit: 'V' },
+            { oid: '.1.3.6.1.2.1.25.1.19', name: 'lvd1', label: 'LVD VSAT', unit: '' },
+            { oid: '.1.3.6.1.2.1.25.1.20', name: 'lvd2', label: 'LVD BTS', unit: '' },
+            { oid: '.1.3.6.1.2.1.25.1.16', name: 'batt2_voltage', label: 'Batt 2 Voltage', unit: 'V' },
+            { oid: '.1.3.6.1.2.1.25.1.21', name: 'pv3_current', label: 'PV3 Current', unit: 'A' },
+            { oid: '.1.3.6.1.2.1.25.1.22', name: 'pv3_voltage', label: 'PV3 Voltage', unit: 'V' },
+            { oid: '.1.3.6.1.2.1.25.1.23', name: 'batt3_voltage', label: 'Battery 3 Voltage', unit: 'V' },
+            { oid: '.1.3.6.1.2.1.25.1.24', name: 'arus3', label: 'Current 3', unit: 'A' },
+            { oid: '.1.3.6.1.2.1.25.1.25', name: 'lvd3', label: 'LVD 3', unit: '' }
+        ];
+        
+        this.refreshInterval = null;
+        this.lastUpdateTime = null;
+        this.snmpData = {};
+        
+        this.init();
+    }
+    
+    init() {
+        this.createGrid();
+        this.bindEvents();
+        this.startAutoRefresh();
+        this.refreshData();
+    }
+    
+    createGrid() {
+        const grid = document.getElementById('snmpGrid');
+        grid.innerHTML = '';
+        
+        this.snmpOids.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'snmp-item loading';
+            card.id = `snmp-${item.name}`;
+            
+            card.innerHTML = `
+                <div class="snmp-label">${item.label}</div>
+                <div class="snmp-oid">${item.oid}</div>
+                <div class="snmp-value" id="value-${item.name}">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="snmp-loading-spinner me-2"></div>
+                        <span>Loading...</span>
+                    </div>
+                </div>
+                <div class="snmp-status" id="status-${item.name}">
+                    <span class="snmp-status-indicator loading"></span>
+                    <span class="ms-2">Checking connection...</span>
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+    }
+    
+    bindEvents() {
+        // Refresh button
+        document.getElementById('refreshNow').addEventListener('click', () => {
+            this.refreshData();
+        });
+        
+        // Auto refresh toggle
+        document.getElementById('autoRefresh').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.startAutoRefresh();
+            } else {
+                this.stopAutoRefresh();
+            }
+        });
+        
+        // Refresh interval change
+        document.getElementById('refreshInterval').addEventListener('change', () => {
+            if (document.getElementById('autoRefresh').checked) {
+                this.startAutoRefresh();
+            }
+        });
+        
+        // IP address change
+        document.getElementById('targetIp').addEventListener('change', () => {
+            this.refreshData();
+        });
+        
+        // Community change
+        document.getElementById('community').addEventListener('change', () => {
+            this.refreshData();
+        });
+        
+        // Export functionality
+        document.getElementById('exportData').addEventListener('click', () => {
+            const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+            modal.show();
+        });
+        
+        document.getElementById('downloadExport').addEventListener('click', () => {
+            this.exportData();
+        });
+    }
+    
+    startAutoRefresh() {
+        this.stopAutoRefresh();
+        const interval = parseInt(document.getElementById('refreshInterval').value) * 1000;
+        
+        this.refreshInterval = setInterval(() => {
+            this.refreshData();
+        }, interval);
+        
+        // Update auto refresh indicator
+        this.updateAutoRefreshIndicator();
+    }
+    
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+    }
+    
+    updateAutoRefreshIndicator() {
+        const indicator = document.querySelector('.auto-refresh-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+        
+        if (this.refreshInterval) {
+            const interval = parseInt(document.getElementById('refreshInterval').value);
+            const controlsContainer = document.querySelector('.refresh-controls');
+            const newIndicator = document.createElement('div');
+            newIndicator.className = 'auto-refresh-indicator';
+            newIndicator.innerHTML = `
+                <i class="fas fa-sync-alt"></i>
+                <span>Auto: ${interval}s</span>
+            `;
+            controlsContainer.appendChild(newIndicator);
+        }
+    }
+    
+    async refreshData() {
+        const targetIp = document.getElementById('targetIp').value;
+        const community = document.getElementById('community').value;
+        const userToken = '{{ session.get("auth_token", "") }}';
+        
+        if (!targetIp || !community) {
+            this.showError('Please enter valid IP address and community string');
+            return;
+        }
+        
+        // Show loading indicator
+        document.getElementById('loadingIndicator').style.display = 'block';
+        
+        let successCount = 0;
+        let errorCount = 0;
+        
+        // Process each OID
+        for (const item of this.snmpOids) {
+            try {
+                const response = await fetch('/api/v1/snmp/get', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        ip: targetIp,
+                        community: community,
+                        oid: item.oid
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.value !== null) {
+                    this.updateCard(item, (result.data.value / 100).toFixed(2), true);
+                    this.snmpData[item.name] = {
+                        value: (result.data.value / 100).toFixed(2),
+                        unit: item.unit,
+                        timestamp: new Date().toISOString(),
+                        status: 'success'
+                    };
+                    successCount++;
+                } else {
+                    this.updateCard(item, null, false, result.error || 'No data');
+                    this.snmpData[item.name] = {
+                        value: null,
+                        unit: item.unit,
+                        timestamp: new Date().toISOString(),
+                        status: 'error',
+                        error: result.error || 'No data'
+                    };
+                    errorCount++;
+                }
+            } catch (error) {
+                console.error(`Error fetching ${item.name}:`, error);
+                this.updateCard(item, null, false, error.message);
+                this.snmpData[item.name] = {
+                    value: null,
+                    unit: item.unit,
+                    timestamp: new Date().toISOString(),
+                    status: 'error',
+                    error: error.message
+                };
+                errorCount++;
+            }
+            
+            // Small delay between requests to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // Update statistics
+        this.updateStatistics(successCount, errorCount);
+        
+        // Hide loading indicator
+        document.getElementById('loadingIndicator').style.display = 'none';
+        
+        this.lastUpdateTime = new Date();
+    }
+    
+    updateCard(item, value, success, error = null) {
+        const card = document.getElementById(`snmp-${item.name}`);
+        const valueElement = document.getElementById(`value-${item.name}`);
+        const statusElement = document.getElementById(`status-${item.name}`);
+        
+        // Remove loading class
+        card.classList.remove('loading');
+        
+        if (success && value !== null) {
+            card.classList.remove('error');
+            card.classList.add('success');
+            
+            // Format value based on unit
+            let displayValue = value;
+            if (item.unit && value !== '') {
+                displayValue = `${value} ${item.unit}`;
+            }
+            
+            valueElement.innerHTML = `<strong>${displayValue}</strong>`;
+            statusElement.innerHTML = `
+                <span class="snmp-status-indicator success"></span>
+                <span class="ms-2 text-success fw-medium">Online</span>
+            `;
+        } else {
+            card.classList.remove('success');
+            card.classList.add('error');
+            
+            valueElement.innerHTML = '<span class="text-muted fw-medium">No Data Available</span>';
+            const errorMsg = error ? (error.length > 25 ? error.substring(0, 25) + '...' : error) : 'Connection failed';
+            statusElement.innerHTML = `
+                <span class="snmp-status-indicator error"></span>
+                <span class="ms-2 text-danger fw-medium" title="${error || 'Connection failed'}">${errorMsg}</span>
+            `;
+        }
+    }
+    
+    updateStatistics(successCount, errorCount) {
+        document.getElementById('successCount').textContent = successCount;
+        document.getElementById('errorCount').textContent = errorCount;
+        document.getElementById('totalCount').textContent = this.snmpOids.length;
+        
+        if (this.lastUpdateTime) {
+            const timeString = this.lastUpdateTime.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        
+        // Update connection status indicator with more detailed info
+        const successRate = ((successCount / this.snmpOids.length) * 100).toFixed(1);
+        const statusIndicator = document.querySelector('.connection-status');
+        if (statusIndicator) {
+            let statusText = '';
+            let statusClass = '';
+            
+            if (successRate >= 90) {
+                statusText = `Excellent connection - ${successRate}% success rate`;
+                statusClass = 'connection-status text-success fw-medium';
+            } else if (successRate >= 70) {
+                statusText = `Good connection - ${successRate}% success rate`;
+                statusClass = 'connection-status text-info fw-medium';
+            } else if (successRate >= 50) {
+                statusText = `Fair connection - ${successRate}% success rate`;
+                statusClass = 'connection-status text-warning fw-medium';
+            } else {
+                statusText = `Poor connection - ${successRate}% success rate`;
+                statusClass = 'connection-status text-danger fw-medium';
+            }
+            
+            statusIndicator.textContent = statusText;
+            statusIndicator.className = statusClass;
+        }
+    }
+    
+    exportData() {
+        const format = document.getElementById('exportFormat').value;
+        const includeTimestamp = document.getElementById('includeTimestamp').checked;
+        
+        let exportData = { ...this.snmpData };
+        
+        if (!includeTimestamp) {
+            Object.keys(exportData).forEach(key => {
+                delete exportData[key].timestamp;
+            });
+        }
+        
+        let content, filename, mimeType;
+        
+        switch (format) {
+            case 'json':
+                content = JSON.stringify(exportData, null, 2);
+                filename = `snmp_data_${new Date().toISOString().split('T')[0]}.json`;
+                mimeType = 'application/json';
+                break;
+                
+            case 'csv':
+                const headers = ['OID', 'Name', 'Value', 'Unit', 'Status'];
+                if (includeTimestamp) headers.push('Timestamp');
+                
+                let csvContent = headers.join(',') + '\n';
+                
+                this.snmpOids.forEach(item => {
+                    const data = exportData[item.name] || {};
+                    const row = [
+                        item.oid,
+                        item.name,
+                        data.value || 'N/A',
+                        data.unit || '',
+                        data.status || 'unknown'
+                    ];
+                    if (includeTimestamp) row.push(data.timestamp || '');
+                    csvContent += row.join(',') + '\n';
+                });
+                
+                content = csvContent;
+                filename = `snmp_data_${new Date().toISOString().split('T')[0]}.csv`;
+                mimeType = 'text/csv';
+                break;
+                
+            case 'txt':
+                content = 'SNMP Monitoring Report\n';
+                content += '======================\n\n';
+                if (includeTimestamp) {
+                    content += `Generated: ${new Date().toISOString()}\n\n`;
+                }
+                
+                this.snmpOids.forEach(item => {
+                    const data = exportData[item.name] || {};
+                    content += `${item.label} (${item.oid}):\n`;
+                    content += `  Value: ${data.value || 'N/A'} ${data.unit || ''}\n`;
+                    content += `  Status: ${data.status || 'unknown'}\n`;
+                    if (includeTimestamp && data.timestamp) {
+                        content += `  Timestamp: ${data.timestamp}\n`;
+                    }
+                    content += '\n';
+                });
+                
+                filename = `snmp_data_${new Date().toISOString().split('T')[0]}.txt`;
+                mimeType = 'text/plain';
+                break;
+        }
+        
+        // Download file
+        const blob = new Blob([content], { type: mimeType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+        modal.hide();
+    }
+    
+    showError(message) {
+        // You can implement a toast notification here
+        console.error(message);
+        alert(message);
+    }
+}
+
+// Initialize SNMP Monitor when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    new SNMPMonitor();
+});
+</script>
+{% endblock %}

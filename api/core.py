@@ -11,6 +11,7 @@ def register_blueprints(app):
     from .monitoring import monitoring_bp
     from .logger import logger_bp
     from .power import power_bp
+    from .snmp import api_snmp_bp
     
     # Register error handlers first
     register_error_handlers(app)
@@ -23,6 +24,7 @@ def register_blueprints(app):
     app.register_blueprint(monitoring_bp, url_prefix='/api/v1/monitoring')
     app.register_blueprint(logger_bp, url_prefix='/api/v1/loggers')
     app.register_blueprint(power_bp, url_prefix='/api/v1/power')
+    app.register_blueprint(api_snmp_bp, url_prefix='/api/v1/snmp')
     
     print("✅ All API blueprints registered successfully")
 

@@ -61,8 +61,9 @@ ROLE_PERMISSIONS = {
         'pages': [
             'dashboard',
             'scc_monitoring',
-            'battery_monitoring', 
+            'battery_monitoring',
             'systemd_service',
+            'snmp_service',
             'site_information',
             'device_settings',
             'scc_settings',
@@ -91,6 +92,7 @@ ROLE_PERMISSIONS = {
         'pages': [
             'dashboard',
             'scc_monitoring',
+            'snmp_service',
             'site_information',
             'device_settings'
         ],
@@ -113,6 +115,7 @@ ROLE_PERMISSIONS = {
             'battery_monitoring',
             'mqtt_service',
             'systemd_service',
+            'snmp_service',
             'datalog',
             'scc_alarm_log',
             'site_information',
@@ -155,7 +158,8 @@ MENU_ACCESS = {
         },
         'services': {
             'mqtt': False,
-            'systemd': True
+            'systemd': True,
+            'snmp': True
         },
         'historical': {
             'datalog': False,
@@ -177,7 +181,8 @@ MENU_ACCESS = {
         },
         'services': {
             'mqtt': False,
-            'systemd': False
+            'systemd': False,
+            'snmp': True
         },
         'historical': {
             'datalog': False,
@@ -199,7 +204,8 @@ MENU_ACCESS = {
         },
         'services': {
             'mqtt': True,
-            'systemd': True
+            'systemd': True,
+            'snmp': True
         },
         'historical': {
             'datalog': True,

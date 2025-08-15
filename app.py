@@ -382,6 +382,49 @@ def systemd_service():
         }
     return render_template('systemd-service.html', **context)
 
+@app.route('/snmp-service', methods=['GET'])
+@login_required
+def snmp_service():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'snmp_service'):
+        audit_access(username, 'snmp_service', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
+    try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
+        site_name = red.hget('device_config', 'site_name')
+        context = {
+            'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
+            'site_name': site_name,
+            'scc_type': scc_type,
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1'
+        }
+        
+        # Audit page access
+        audit_access(username, 'snmp_service', 'view')
+        
+    except Exception as e:
+        print(f"snmp_service() error: {e}")
+        context = {
+            'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
+            'site_name': 'Site Name',
+            'scc_type': scc_type,
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1'
+        }
+    return render_template('snmp-service.html', **context)
+
 @app.route('/power-operation', methods=['GET'])
 @login_required
 def power_operation():
