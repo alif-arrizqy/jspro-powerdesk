@@ -10,6 +10,7 @@ def register_blueprints(app):
     from .device import device_bp
     from .monitoring import monitoring_bp
     from .logger import logger_bp
+    from .power import power_bp
     
     # Register error handlers first
     register_error_handlers(app)
@@ -21,6 +22,7 @@ def register_blueprints(app):
     app.register_blueprint(device_bp, url_prefix='/api/v1/device')
     app.register_blueprint(monitoring_bp, url_prefix='/api/v1/monitoring')
     app.register_blueprint(logger_bp, url_prefix='/api/v1/loggers')
+    app.register_blueprint(power_bp, url_prefix='/api/v1/power')
     
     print("✅ All API blueprints registered successfully")
 
@@ -172,6 +174,21 @@ def api_v1_info():
                         "/data/sqlite", 
                         "/data/overview",
                         "/scc-alarm"
+                    ]
+                },
+                "power": {
+                    "url_prefix": "/api/v1/power",
+                    "description": "Power management and control",
+                    "endpoints": [
+                        "/overview",
+                        "/disk-alert",
+                        "/auto-reboot-log",
+                        "/auto-reboot-stats",
+                        "/auto-reboot-history",
+                        "/auto-reboot-history/export",
+                        "/settings",
+                        "/reboot",
+                        "/shutdown"
                     ]
                 }
             },
