@@ -838,6 +838,393 @@ All API responses follow a consistent structure:
 }
 ```
 
+### 13. SNMP Monitoring
+
+#### 13.1. SNMP Get Single OID
+**Endpoint:** `POST /api/v1/snmp/get`
+
+**Request Body:**
+```json
+{
+    "ip": "192.168.1.100",
+    "community": "public",
+    "oid": ".1.3.6.1.2.1.25.1.11",
+    "version": "1",
+    "timeout": 5
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "ip": "192.168.1.100",
+        "community": "public",
+        "oid": ".1.3.6.1.2.1.25.1.11",
+        "value": "12.5",
+        "raw_output": "SNMPv2-SMI::enterprises.1.3.6.1.2.1.25.1.11 = STRING: 12.5",
+        "timestamp": "2025-08-15T10:30:00"
+    }
+}
+```
+
+#### 13.2. SNMP Bulk Get Multiple OIDs
+**Endpoint:** `POST /api/v1/snmp/bulk-get`
+
+**Request Body:**
+```json
+{
+    "ip": "192.168.1.100",
+    "community": "public",
+    "oids": [
+        ".1.3.6.1.2.1.25.1.11",
+        ".1.3.6.1.2.1.25.1.12",
+        ".1.3.6.1.2.1.25.1.13"
+    ],
+    "version": "1",
+    "timeout": 5
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "ip": "192.168.1.100",
+        "community": "public",
+        "total_oids": 3,
+        "successful_oids": 3,
+        "failed_oids": 0,
+        "results": {
+            ".1.3.6.1.2.1.25.1.11": {
+                "success": true,
+                "value": "12.5",
+                "raw_output": "...",
+                "timestamp": "2025-08-15T10:30:00"
+            },
+            ".1.3.6.1.2.1.25.1.12": {
+                "success": true,
+                "value": "24.8",
+                "raw_output": "...",
+                "timestamp": "2025-08-15T10:30:00"
+            }
+        },
+        "timestamp": "2025-08-15T10:30:00"
+    }
+}
+```
+
+#### 13.3. SNMP Connection Test
+**Endpoint:** `POST /api/v1/snmp/test-connection`
+
+**Request Body:**
+```json
+{
+    "ip": "192.168.1.100",
+    "community": "public",
+    "version": "1",
+    "timeout": 5
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "SNMP connection successful",
+    "data": {
+        "ip": "192.168.1.100",
+        "community": "public",
+        "test_oid": ".1.3.6.1.2.1.1.3.0",
+        "uptime": "123456789",
+        "timestamp": "2025-08-15T10:30:00"
+    }
+}
+```
+
+#### 13.4. SNMP OID Information
+**Endpoint:** `GET /api/v1/snmp/info`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "total_oids": 15,
+        "oids": [
+            {
+                "oid": ".1.3.6.1.2.1.25.1.11",
+                "name": "pv1_voltage",
+                "label": "PV1 Voltage",
+                "unit": "V",
+                "description": "Photovoltaic 1 voltage measurement"
+            },
+            {
+                "oid": ".1.3.6.1.2.1.25.1.12",
+                "name": "pv2_voltage",
+                "label": "PV2 Voltage",
+                "unit": "V",
+                "description": "Photovoltaic 2 voltage measurement"
+            }
+        ],
+        "supported_versions": ["1", "2c"],
+        "default_community": "public",
+        "default_timeout": 5
+    }
+}
+```
+
+### 14. Power Management
+
+#### 14.1. Power System Overview
+**Endpoint:** `GET /api/v1/power/overview`
+
+**Response:**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "data": {
+        "disk_usage": {
+            "free": 11.4,
+            "used": 1.8,
+            "total": 13.2,
+            "unit": "GB"
+        },
+        "uptime": "1 day, 20 minutes",
+        "auto_reboot": 1,
+        "last_operation": "reboot",
+        "last_update": "2025-08-15 10:30:00"
+    }
+}
+```
+
+#### 14.2. Log Disk Alert
+**Endpoint:** `POST /api/v1/power/disk-alert`
+
+**Request Body:**
+```json
+{
+    "timestamp": "2025-08-15T10:30:00",
+    "type": "warning",
+    "disk_usage": 85,
+    "message": "Disk usage exceeded 80% threshold"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Disk alert logged successfully"
+}
+```
+
+#### 14.3. Log Auto Reboot Event
+**Endpoint:** `POST /api/v1/power/auto-reboot-log`
+
+**Request Body:**
+```json
+{
+    "timestamp": "2025-08-15T10:30:00",
+    "disk_usage": 90,
+    "action": "auto_reboot",
+    "status": "initiated",
+    "message": "Auto reboot triggered due to high disk usage"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Auto reboot logged successfully"
+}
+```
+
+#### 14.4. Get Auto Reboot Statistics
+**Endpoint:** `GET /api/v1/power/auto-reboot-stats`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "monthly_count": 3,
+        "total_count": 15,
+        "last_reboot": {
+            "timestamp": "2025-08-15T08:30:00",
+            "disk_usage": 92
+        }
+    }
+}
+```
+
+#### 14.5. Get Auto Reboot History
+**Endpoint:** `GET /api/v1/power/auto-reboot-history`
+
+**Query Parameters:**
+- `from` (optional): Start date (YYYY-MM-DD format)
+- `to` (optional): End date (YYYY-MM-DD format)
+- `limit` (optional): Maximum number of records
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "timestamp": "2025-08-15T08:30:00",
+            "disk_usage": 92,
+            "action": "auto_reboot",
+            "status": "completed",
+            "message": "Auto reboot completed successfully"
+        },
+        {
+            "timestamp": "2025-08-14T15:45:00",
+            "disk_usage": 89,
+            "action": "auto_reboot",
+            "status": "initiated",
+            "message": "Auto reboot triggered due to high disk usage"
+        }
+    ]
+}
+```
+
+#### 14.6. Export Auto Reboot History
+**Endpoint:** `GET /api/v1/power/auto-reboot-history/export`
+
+**Query Parameters:**
+- `from` (optional): Start date (YYYY-MM-DD format)
+- `to` (optional): End date (YYYY-MM-DD format)
+
+**Response:**
+CSV file download with columns: Timestamp, Disk Usage (%), Action, Status, Message
+
+#### 14.7. Get Auto Reboot Settings
+**Endpoint:** `GET /api/v1/power/settings`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "auto_reboot_enabled": true,
+        "disk_threshold": 85,
+        "check_interval": 300,
+        "reboot_delay": 60,
+        "last_modified": "2025-08-15T10:30:00",
+        "modified_by": "admin"
+    }
+}
+```
+
+#### 14.8. Update Auto Reboot Settings
+**Endpoint:** `POST /api/v1/power/settings`
+
+**Request Body:**
+```json
+{
+    "user": "admin",
+    "password": "admin",
+    "settings": {
+        "auto_reboot_enabled": true,
+        "disk_threshold": 90,
+        "check_interval": 600,
+        "reboot_delay": 120
+    }
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Auto reboot settings updated successfully",
+    "data": {
+        "auto_reboot_enabled": true,
+        "disk_threshold": 90,
+        "check_interval": 600,
+        "reboot_delay": 120,
+        "last_modified": "2025-08-15T10:30:00",
+        "modified_by": "admin"
+    }
+}
+```
+
+#### 14.9. System Reboot
+**Endpoint:** `POST /api/v1/power/reboot`
+
+**Request Body:**
+```json
+{
+    "user": "admin",
+    "password": "admin"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "System reboot initiated",
+    "data": {
+        "action": "reboot",
+        "initiated_by": "admin",
+        "timestamp": "2025-08-15T10:30:00"
+    }
+}
+```
+
+#### 14.10. System Shutdown
+**Endpoint:** `POST /api/v1/power/shutdown`
+
+**Request Body:**
+```json
+{
+    "user": "admin",
+    "password": "admin"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "System shutdown initiated",
+    "data": {
+        "action": "shutdown",
+        "initiated_by": "admin",
+        "timestamp": "2025-08-15T10:30:00"
+    }
+}
+```
+
+### 15. Power Operation
+
+**Endpoint** `GET /api/v1/power/overview`
+
+**Response**
+```json
+{
+    "status_code": 200,
+    "status": "success",
+    "data": {
+        "disk_usage": {
+            "free": 11.4,
+            "total": 13.8,
+            "unit": "GB",
+            "used": 1.8
+        },
+        "uptime": "1 day, 20 minutes",
+        "auto_reboot": 1,
+        "last_operation": 
+    }
+}
+```
+
 
 ## Error Responses
 
@@ -902,6 +1289,96 @@ curl -X GET "http://your-domain/api/v1/monitoring/scc" \
   -H "Content-Type: application/json"
 ```
 
+### SNMP Get Single OID
+```bash
+curl -X POST "http://your-domain/api/v1/snmp/get" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "ip": "192.168.1.100",
+    "community": "public",
+    "oid": ".1.3.6.1.2.1.25.1.11",
+    "version": "1",
+    "timeout": 5
+  }'
+```
+
+### SNMP Bulk Get Multiple OIDs
+```bash
+curl -X POST "http://your-domain/api/v1/snmp/bulk-get" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "ip": "192.168.1.100",
+    "community": "public",
+    "oids": [".1.3.6.1.2.1.25.1.11", ".1.3.6.1.2.1.25.1.12"],
+    "version": "1",
+    "timeout": 5
+  }'
+```
+
+### Test SNMP Connection
+```bash
+curl -X POST "http://your-domain/api/v1/snmp/test-connection" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "ip": "192.168.1.100",
+    "community": "public",
+    "version": "1",
+    "timeout": 5
+  }'
+```
+
+### Get Power System Overview
+```bash
+curl -X GET "http://your-domain/api/v1/power/overview" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token"
+```
+
+### Get Auto Reboot Statistics
+```bash
+curl -X GET "http://your-domain/api/v1/power/auto-reboot-stats" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token"
+```
+
+### Update Auto Reboot Settings
+```bash
+curl -X POST "http://your-domain/api/v1/power/settings" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "user": "admin",
+    "password": "admin",
+    "settings": {
+      "auto_reboot_enabled": true,
+      "disk_threshold": 90,
+      "check_interval": 600,
+      "reboot_delay": 120
+    }
+  }'
+```
+
+### System Reboot
+```bash
+curl -X POST "http://your-domain/api/v1/power/reboot" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "user": "admin",
+    "password": "admin"
+  }'
+```
+
+### Export Auto Reboot History
+```bash
+curl -X GET "http://your-domain/api/v1/power/auto-reboot-history/export?from=2025-08-01&to=2025-08-15" \
+  -H "Authorization: Bearer your-token" \
+  -o "auto_reboot_history.csv"
+```
+
 ## Notes
 
 - All JSON responses are formatted with proper indentation for readability
@@ -909,3 +1386,27 @@ curl -X GET "http://your-domain/api/v1/monitoring/scc" \
 - Status values use consistent naming conventions (e.g., "normal", "running", "active")
 - Complex nested structures are used for alarm statuses to provide detailed information
 - Error handling follows HTTP status code conventions
+
+### SNMP API Notes
+- All SNMP endpoints require authentication via Bearer token
+- IP address validation is performed on all requests
+- OID format validation ensures proper SNMP syntax
+- Timeout values are limited to 1-30 seconds range
+- Bulk GET operations are limited to 50 OIDs maximum
+- Supported SNMP versions: 1, 2c
+- Default community string: "public"
+
+### Power Management API Notes
+- All Power Management endpoints require authentication via Bearer token
+- Password validation is required for sensitive operations (reboot, shutdown, settings update)
+- Valid user roles: apt, teknisi, admin
+- Auto reboot settings include disk threshold monitoring
+- Disk usage alerts are logged to SQLite database
+- CSV export functionality available for historical data
+- System uptime tracking included in overview
+- Power operations are logged with user attribution
+
+### Authentication Users
+- **apt**: Password from APT_PASSWORD environment variable (default: 'powerapt')
+- **teknisi**: Password from TEKNISI_PASSWORD environment variable (default: 'Joulestore2020')
+- **admin**: Password from ADMIN_PASSWORD environment variable (default: 'admin')
