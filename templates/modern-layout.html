@@ -94,8 +94,8 @@
                     {% endif %}
                     
                     <!-- Services Menu - Based on role permissions -->
-                    {% if menu_access.services and (menu_access.services.mqtt or menu_access.services.systemd) %}
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['mqtt_service', 'systemd_service'] }}">
+                    {% if menu_access.services and (menu_access.services.mqtt or menu_access.services.systemd or menu_access.services.snmp) %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['mqtt_service', 'systemd_service', 'snmp_service'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-cogs"></i>
                             <span>Services</span>
@@ -116,6 +116,15 @@
                                 <a href="/systemd-service" class="nav-link {{ 'active' if request.endpoint == 'systemd_service' }}">
                                     <i class="fas fa-adjust"></i>
                                     <span>Systemd</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if menu_access.services.snmp %}
+                            <li>
+                                <a href="/snmp-service" class="nav-link {{ 'active' if request.endpoint == 'snmp_service' }}">
+                                    <i class="fas fa-network-wired"></i>
+                                    <span>SNMP</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
