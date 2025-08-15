@@ -35,7 +35,6 @@ create_directories() {
     log "Creating directories..."
     
     sudo mkdir -p "$INSTALL_DIR"
-    sudo mkdir -p /var/log
     sudo mkdir -p /etc/logrotate.d
     
     # Set proper ownership
