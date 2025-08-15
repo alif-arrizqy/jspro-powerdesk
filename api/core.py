@@ -196,115 +196,6 @@ def api_v1_info():
         }
     }), 200
 
-
-@api.route('/v1/device', methods=['GET'])
-def device_module_info():
-    """Device module information endpoint"""
-    return jsonify({
-        "status_code": 200,
-        "status": "success",
-        "data": {
-            "module": "device",
-            "description": "Device management and system information",
-            "base_url": "/api/v1/device",
-            "endpoints": [
-                {
-                    "path": "/api/v1/device/system-resources",
-                    "method": "GET",
-                    "description": "Get system resource usage (CPU, memory, disk, temperature)",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/device/information", 
-                    "method": "GET",
-                    "description": "Get device information, site details, and hardware configuration",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/device/systemd-status",
-                    "method": "GET", 
-                    "description": "Get systemd services status and system uptime",
-                    "authentication": "required"
-                }
-            ]
-        }
-    }), 200
-
-
-@api.route('/v1/monitoring', methods=['GET'])
-def monitoring_module_info():
-    """Monitoring module information endpoint"""
-    return jsonify({
-        "status_code": 200,
-        "status": "success", 
-        "data": {
-            "module": "monitoring",
-            "description": "SCC and Battery monitoring data",
-            "base_url": "/api/v1/monitoring",
-            "endpoints": [
-                {
-                    "path": "/api/v1/monitoring/scc",
-                    "method": "GET",
-                    "description": "Get Solar Charge Controller monitoring data",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/monitoring/battery",
-                    "method": "GET",
-                    "description": "Get battery monitoring data for all BMS units",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/monitoring/battery/active",
-                    "method": "GET",
-                    "description": "Get active battery status information",
-                    "authentication": "required"
-                }
-            ]
-        }
-    }), 200
-
-
-@api.route('/v1/loggers', methods=['GET'])
-def loggers_module_info():
-    """Loggers module information endpoint"""
-    return jsonify({
-        "status_code": 200,
-        "status": "success",
-        "data": {
-            "module": "loggers",
-            "description": "Historical data logs from Redis and SQLite storage",
-            "base_url": "/api/v1/loggers",
-            "endpoints": [
-                {
-                    "path": "/api/v1/loggers/data/redis",
-                    "methods": ["GET", "POST"],
-                    "description": "Get or store historical data in Redis",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/loggers/data/sqlite",
-                    "methods": ["GET", "POST"], 
-                    "description": "Get or store historical data in SQLite",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/loggers/data/overview",
-                    "methods": ["GET"],
-                    "description": "Get storage overview and statistics",
-                    "authentication": "required"
-                },
-                {
-                    "path": "/api/v1/loggers/scc-alarm",
-                    "methods": ["GET", "DELETE"],
-                    "description": "Get or clear SCC alarm logs",
-                    "authentication": "required"
-                }
-            ]
-        }
-    }), 200
-
-
 # ============== Wildcard Route for Unknown API Endpoints ===========================
 @api.route('/<path:unknown_path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def api_not_found(unknown_path):
@@ -340,27 +231,11 @@ def api_not_found(unknown_path):
                 "loggers_module": {
                     "path": "/api/v1/loggers/",
                     "description": "Historical data logs endpoints"
+                },
+                "power_module": {
+                    "path": "/api/v1/power/",
+                    "description": "Power management endpoints"
                 }
             }
         }
     }), 404
-
-
-# ============== Device Routes (v1) ===========================
-# These routes are now handled by the device blueprint in api/device/api_device.py
-# The device blueprint is registered with URL prefix '/api/v1/device'
-
-# Available device endpoints:
-# GET /api/v1/device/system-resources
-# GET /api/v1/device/information  
-# GET /api/v1/device/systemd-status
-
-
-# ============== Monitoring Routes (v1) ===========================
-# These routes are now handled by the monitoring blueprint in api/monitoring/api_monitoring.py
-# The monitoring blueprint is registered with URL prefix '/api/v1/monitoring'
-
-# Available monitoring endpoints:
-# GET /api/v1/monitoring/scc
-# GET /api/v1/monitoring/battery
-# GET /api/v1/monitoring/battery/active
