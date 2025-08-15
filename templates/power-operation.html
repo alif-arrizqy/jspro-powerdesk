@@ -505,11 +505,13 @@
     
     // Update system overview
     function updateSystemOverview() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         fetch('/api/v1/power/overview', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             }
         })
         .then(response => response.json())
@@ -589,11 +591,13 @@
     
     // Update recent auto reboots
     function updateRecentAutoReboots() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         fetch('/api/v1/power/auto-reboot-history?limit=5', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             }
         })
         .then(response => response.json())
@@ -630,11 +634,13 @@
     
     // Load and display current settings
     function loadSettings() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
         fetch('/api/v1/power/settings', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             }
         })
         .then(response => response.json())
@@ -757,11 +763,12 @@
         
         operationInProgress = true;
         
+        const userToken = '{{ session.get("auth_token", "") }}';
         fetch('/api/v1/power/settings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             },
             body: JSON.stringify({
                 user: currentUser,
@@ -794,7 +801,7 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             }
         })
         .then(response => response.json())
@@ -857,6 +864,8 @@
     
     // Load auto reboot history
     function loadAutoRebootHistory() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        
         const fromDate = document.getElementById('historyDateFrom').value;
         const toDate = document.getElementById('historyDateTo').value;
         const container = document.getElementById('auto-reboot-history-table');
@@ -874,7 +883,7 @@
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             }
         })
         .then(response => response.json())
@@ -967,33 +976,6 @@
         document.body.removeChild(link);
     }
     
-    // Update system uptime
-    function updateSystemUptime() {
-        fetch('/api/system/uptime', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const uptimeElement = document.getElementById('system-uptime');
-            if (uptimeElement && data.uptime) {
-                uptimeElement.textContent = data.uptime;
-            } else {
-                uptimeElement.textContent = 'Unknown';
-            }
-        })
-        .catch(error => {
-            console.error('Failed to get system uptime:', error);
-            const uptimeElement = document.getElementById('system-uptime');
-            if (uptimeElement) {
-                uptimeElement.textContent = 'Error';
-            }
-        });
-    }
-    
     // Show reboot modal
     function showRebootModal() {
         if (operationInProgress) {
@@ -1081,7 +1063,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             },
             body: JSON.stringify({
                 password: password,
@@ -1148,7 +1130,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+                'Authorization': `Bearer ${userToken}`
             },
             body: JSON.stringify({
                 password: password,
