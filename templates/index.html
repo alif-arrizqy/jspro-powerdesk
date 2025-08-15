@@ -456,11 +456,11 @@ async function initializeDashboardData() {
     try {
         // Fetch all dashboard data concurrently
         const [systemResources, deviceInfo, systemdStatus, sccData, batteryData] = await Promise.all([
-            fetchAPIData('http://10.10.10.60/api/v1/device/system-resources'),
-            fetchAPIData('http://10.10.10.60/api/v1/device/information'),
-            fetchAPIData('http://10.10.10.60/api/v1/device/systemd-status'),
-            fetchAPIData('http://10.10.10.60/api/v1/monitoring/scc'),
-            fetchAPIData('http://10.10.10.60/api/v1/monitoring/battery/active')
+            fetchAPIData('/api/v1/device/system-resources'),
+            fetchAPIData('/api/v1/device/information'),
+            fetchAPIData('/api/v1/device/systemd-status'),
+            fetchAPIData('/api/v1/monitoring/scc'),
+            fetchAPIData('/api/v1/monitoring/battery/active')
         ]);
 
         // Update UI with fetched data
