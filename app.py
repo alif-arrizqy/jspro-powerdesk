@@ -68,8 +68,8 @@ def index():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc,
             'number_of_battery': number_of_batt,
         }
@@ -85,8 +85,8 @@ def index():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc,
             'number_of_battery': number_of_batt,
         }
@@ -116,8 +116,8 @@ def scc():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'scc_type': scc_type,
             'number_of_scc': number_of_scc
         }
@@ -133,8 +133,8 @@ def scc():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'scc_type': scc_type,
             'number_of_scc': number_of_scc
         }
@@ -164,8 +164,8 @@ def battery():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }
@@ -181,8 +181,8 @@ def battery():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }
@@ -212,8 +212,8 @@ def datalog():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.4.44'
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.4.44'
         }
         
         # Audit page access
@@ -227,8 +227,8 @@ def datalog():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.4.3'
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.4.3'
         }
     return render_template('datalog.html', **context)
 
@@ -257,8 +257,8 @@ def scc_alarm_log():
             'site_name': site_name,
             'scc_type': scc_type,
             'number_of_scc': number_of_scc,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.3.4'
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.3.4'
         }
         
         # Audit page access
@@ -273,8 +273,8 @@ def scc_alarm_log():
             'site_name': 'Site Name',
             'scc_type': scc_type,
             'number_of_scc': number_of_scc,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.3.4'
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.3.4'
         }
     return render_template('scc-alarm-log.html', **context)
 
@@ -305,8 +305,8 @@ def mqtt_service():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'mqtt_config': data.get('mqtt_config', {})
         }
         
@@ -321,8 +321,8 @@ def mqtt_service():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             'mqtt_config': data.get('mqtt_config', {})
         }
     return render_template('mqtt-service.html', **context)
@@ -350,8 +350,8 @@ def systemd_service():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             # User passwords for service authentication
             'user_passwords': {
                 'apt': os.getenv('APT_PASSWORD', 'powerapt'),
@@ -371,8 +371,8 @@ def systemd_service():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
             # User passwords for service authentication
             'user_passwords': {
                 'apt': os.getenv('APT_PASSWORD', 'powerapt'),
@@ -448,8 +448,8 @@ def power_operation():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1'
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1'
         }
         
         # Audit page access
@@ -463,8 +463,8 @@ def power_operation():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1'
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1'
         }
     return render_template('power-operation.html', **context)
 
@@ -501,14 +501,14 @@ def site_information():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
-            # 'ip_address': get_ip_address('eth0'),
-            # 'ip_address_primary': get_ip_address('eth0'),
-            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
-            # 'gateway': get_gateway('eth0'),
-            'ip_address': '192.168.1.1',
-            'ip_address_primary': '192.168.1.1',
-            'subnet_mask': '/29',
-            'gateway': '192.168.1.1'
+            'ip_address': get_ip_address('eth0'),
+            'ip_address_primary': get_ip_address('eth0'),
+            'subnet_mask': f"/{get_subnet_mask('eth0')}",
+            'gateway': get_gateway('eth0'),
+            # 'ip_address': '192.168.1.1',
+            # 'ip_address_primary': '192.168.1.1',
+            # 'subnet_mask': '/29',
+            # 'gateway': '192.168.1.1'
         }
         
         # Audit page access
@@ -529,14 +529,14 @@ def site_information():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
-            # 'ip_address': get_ip_address('eth0'),
-            # 'ip_address_primary': get_ip_address('eth0'),
-            # 'subnet_mask': f'/{get_subnet_mask('eth0')}',
-            # 'gateway': get_gateway('eth0'),
-            'ip_address': '192.168.1.1',
-            'ip_address_primary': '192.168.1.1',
-            'subnet_mask': '/29',
-            'gateway': '192.168.1.1'
+            'ip_address': get_ip_address('eth0'),
+            'ip_address_primary': get_ip_address('eth0'),
+            'subnet_mask': f"/{get_subnet_mask('eth0')}",
+            'gateway': get_gateway('eth0'),
+            # 'ip_address': '192.168.1.1',
+            # 'ip_address_primary': '192.168.1.1',
+            # 'subnet_mask': '/29',
+            # 'gateway': '192.168.1.1'
         }
     return render_template('site-information.html', **context)
 
@@ -613,8 +613,8 @@ def setting_device():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
         }
         
         # Audit page access
@@ -635,8 +635,8 @@ def setting_device():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.1.1',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
         }
     return render_template('setting-device.html', **context)
 
@@ -849,8 +849,8 @@ def setting_scc():
             'user_role': get_user_role(username),
             'menu_access': get_menu_access(username),
             'site_name': site_name,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.3.4',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.3.4',
             'scc_ids': {1: scc_id_1, 2: scc_id_2},
             'number_of_scc': number_of_scc,
             'scc_type': data.get('device_version').get('scc_type'),
@@ -875,8 +875,8 @@ def setting_scc():
             'user_role': get_user_role(username),
             'menu_access': get_menu_access(username),
             'site_name': site_name,
-            # 'ip_address': get_ip_address('eth0'),
-            'ip_address': '192.168.3.4',
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.3.4',
             'scc_ids': {1: scc_id_1, 2: scc_id_2, 3: scc_id_3},
             'number_of_scc': number_of_scc,
             'scc_type': data.get('device_version').get('scc_type'),
