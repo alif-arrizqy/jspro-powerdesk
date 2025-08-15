@@ -35,7 +35,7 @@
             </div>
             <div class="modern-card-body">
                 <div class="row g-4">
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-2 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">System Status</h6>
@@ -49,7 +49,7 @@
                             <p class="stats-card-subtitle">Current State</p>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-2 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Uptime</h6>
@@ -61,7 +61,7 @@
                             <p class="stats-card-subtitle">System Running</p>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-2 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Current User</h6>
@@ -73,16 +73,144 @@
                             <p class="stats-card-subtitle">Logged In</p>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-2 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Disk Usage</h6>
+                                <div class="stats-card-icon bg-info" id="disk-usage-icon">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="disk-usage-value">Loading...</h3>
+                            <p class="stats-card-subtitle">Used Space</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Auto Reboots</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-redo-alt"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="auto-reboot-count">Loading...</h3>
+                            <p class="stats-card-subtitle">This Month</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Last Operation</h6>
-                                <div class="stats-card-icon bg-warning">
+                                <div class="stats-card-icon bg-secondary">
                                     <i class="fas fa-history"></i>
                                 </div>
                             </div>
                             <h3 class="stats-card-value" id="last-operation">None</h3>
                             <p class="stats-card-subtitle">Power Action</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disk Monitoring Alert -->
+<div class="row mb-4" id="disk-alert-row" style="display: none;">
+    <div class="col-12">
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" id="disk-alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Disk Usage Warning:</strong> 
+            <span id="disk-alert-message">High disk usage detected</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Auto Reboot Management -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-robot text-primary me-2"></i>
+                    Automatic Disk Reboot System
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="modern-card border-primary">
+                            <div class="modern-card-body">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-cog me-2"></i>
+                                    Auto Reboot Settings
+                                </h6>
+                                <div class="mb-3">
+                                    <label for="diskThreshold" class="form-label">Disk Usage Threshold (%)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="diskThreshold" value="60" min="50" max="95">
+                                        <button class="btn btn-outline-primary" type="button" onclick="updateSettings();">
+                                            <i class="fas fa-save me-1"></i>Update
+                                        </button>
+                                    </div>
+                                    <small class="form-text text-muted">System will auto-reboot when disk usage exceeds this threshold (50-95%)</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Monitoring Settings</label>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="monitoringEnabled" checked>
+                                            <label class="form-check-label" for="monitoringEnabled">
+                                                Enable Monitoring
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label for="monitoringInterval" class="form-label visually-hidden">Interval</label>
+                                            <div class="input-group input-group-sm" style="width: 120px;">
+                                                <input type="number" class="form-control" id="monitoringInterval" value="5" min="1" max="60">
+                                                <span class="input-group-text">min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Monitoring Status</label>
+                                    <div>
+                                        <span class="badge bg-success" id="monitoring-status">
+                                            <i class="fas fa-check-circle me-1"></i>Active (Every 5 minutes)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Last Check</label>
+                                    <div>
+                                        <span id="last-disk-check">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="modern-card border-info">
+                            <div class="modern-card-body">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Recent Auto Reboots
+                                </h6>
+                                <div id="recent-auto-reboots">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        Loading auto reboot history...
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-info btn-sm" onclick="showAutoRebootHistory();">
+                                        <i class="fas fa-history me-1"></i>
+                                        View Full History
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,6 +365,54 @@
     </div>
 </div>
 
+<!-- Auto Reboot History Modal -->
+<div class="modal fade" id="autoRebootHistoryModal" tabindex="-1" aria-labelledby="autoRebootHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="autoRebootHistoryModalLabel">
+                    <i class="fas fa-history me-2"></i>
+                    Auto Reboot History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="historyDateFrom" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="historyDateFrom">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="historyDateTo" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="historyDateTo">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-primary btn-sm" onclick="loadAutoRebootHistory();">
+                        <i class="fas fa-search me-1"></i>
+                        Filter
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="exportAutoRebootHistory();">
+                        <i class="fas fa-download me-1"></i>
+                        Export
+                    </button>
+                </div>
+                <div id="auto-reboot-history-table">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Loading history...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Operation Progress Modal -->
 <div class="modal fade" id="operationModal" tabindex="-1" aria-labelledby="operationModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
@@ -263,12 +439,533 @@
         </div>
     </div>
 </div>
+
+<!-- Settings Update Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="settingsModalLabel">
+                    <i class="fas fa-cog me-2"></i>
+                    Confirm Settings Update
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Settings Update:</strong> This will update the auto reboot configuration and may require administrator privileges.
+                </div>
+                <div class="mb-3">
+                    <h6>Current Settings:</h6>
+                    <ul class="list-unstyled mb-3">
+                        <li><strong>Disk Threshold:</strong> <span id="currentThreshold">60%</span></li>
+                        <li><strong>Monitoring:</strong> <span id="currentMonitoring">Enabled</span></li>
+                        <li><strong>Check Interval:</strong> <span id="currentInterval">5 minutes</span></li>
+                    </ul>
+                </div>
+                <div class="mb-3">
+                    <h6>New Settings:</h6>
+                    <ul class="list-unstyled mb-3" id="newSettingsList">
+                        <!-- Will be populated by JavaScript -->
+                    </ul>
+                </div>
+                <div class="mb-3">
+                    <label for="settingsPassword" class="form-label">
+                        <i class="fas fa-key me-2"></i>
+                        Enter your password for confirmation:
+                    </label>
+                    <input type="password" class="form-control" id="settingsPassword" placeholder="Enter password" required>
+                    <div class="invalid-feedback" id="settingsPasswordError"></div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="settingsConfirm" required>
+                    <label class="form-check-label" for="settingsConfirm">
+                        I understand that this will update the auto reboot system configuration
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSettingsUpdate" onclick="executeSettingsUpdate();">
+                    <i class="fas fa-save me-2"></i>
+                    Update Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block scripts %}
 <script>
     const currentUser = "{{ username }}";
     let operationInProgress = false;
+    let diskMonitorInterval;
+    
+    // Update system overview
+    function updateSystemOverview() {
+        fetch('/api/v1/power/overview', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.data) {
+                // Update uptime
+                const uptimeElement = document.getElementById('system-uptime');
+                if (uptimeElement) {
+                    uptimeElement.textContent = data.data.uptime || 'unknown';
+                }
+                
+                // Update auto reboot count
+                const countElement = document.getElementById('auto-reboot-count');
+                if (countElement) {
+                    countElement.textContent = data.data.auto_reboot || '0';
+                }
+                
+                // Update last operation
+                const lastOpElement = document.getElementById('last-operation');
+                if (lastOpElement) {
+                    if (data.data.last_operation) {
+                        lastOpElement.textContent = data.data.last_operation.operation || 'None';
+                    } else {
+                        lastOpElement.textContent = 'None';
+                    }
+                }
+                
+                // Update disk usage alert
+                if (data.data.disk_usage) {
+                    const usage = data.data.disk_usage.usage_percent;
+                    const usageElement = document.getElementById('disk-usage-value');
+                    const iconElement = document.getElementById('disk-usage-icon');
+                    const alertRow = document.getElementById('disk-alert-row');
+                    const alertMessage = document.getElementById('disk-alert-message');
+                    
+                    // Update disk usage value
+                    if (usageElement) {
+                        usageElement.textContent = usage + '%';
+                    }
+                    
+                    // Update icon color based on usage
+                    if (iconElement) {
+                        iconElement.className = 'stats-card-icon';
+                        if (usage >= 80) {
+                            iconElement.classList.add('bg-danger');
+                            // Show critical alert
+                            alertRow.style.display = 'block';
+                            alertMessage.textContent = `Critical disk usage: ${usage}%. Auto-reboot may occur soon.`;
+                            document.getElementById('disk-alert').className = 'alert alert-danger alert-dismissible fade show';
+                        } else if (usage >= 60) {
+                            iconElement.classList.add('bg-warning');
+                            // Show warning alert
+                            alertRow.style.display = 'block';
+                            alertMessage.textContent = `High disk usage: ${usage}%. Monitoring for auto-reboot.`;
+                            document.getElementById('disk-alert').className = 'alert alert-warning alert-dismissible fade show';
+                        } else if (usage >= 40) {
+                            iconElement.classList.add('bg-info');
+                            alertRow.style.display = 'none';
+                        } else {
+                            iconElement.classList.add('bg-success');
+                            alertRow.style.display = 'none';
+                        }
+                    }
+                }
+                
+                // Update last check time
+                const lastCheckElement = document.getElementById('last-disk-check');
+                if (lastCheckElement) {
+                    lastCheckElement.textContent = new Date().toLocaleString();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Failed to get system overview:', error);
+        });
+    }
+    
+    // Update recent auto reboots
+    function updateRecentAutoReboots() {
+        fetch('/api/v1/power/auto-reboot-history?limit=5', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const recentElement = document.getElementById('recent-auto-reboots');
+            if (data.success && data.data && data.data.length > 0) {
+                let html = '<div class="list-group list-group-flush">';
+                data.data.forEach(reboot => {
+                    const date = new Date(reboot.timestamp);
+                    html += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">${date.toLocaleString()}</small>
+                                <div class="fw-medium">Disk: ${reboot.disk_usage}%</div>
+                            </div>
+                            <span class="badge bg-${reboot.status === 'completed' ? 'success' : 'warning'}">${reboot.status}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                recentElement.innerHTML = html;
+            } else {
+                recentElement.innerHTML = '<div class="text-center text-muted"><i class="fas fa-info-circle me-2"></i>No recent auto reboots</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Failed to get recent auto reboots:', error);
+            const recentElement = document.getElementById('recent-auto-reboots');
+            if (recentElement) {
+                recentElement.innerHTML = '<div class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error loading data</div>';
+            }
+        });
+    }
+    
+    // Load and display current settings
+    function loadSettings() {
+        fetch('/api/v1/power/settings', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                // Update threshold input
+                const thresholdInput = document.getElementById('diskThreshold');
+                if (data.data.disk_threshold) {
+                    thresholdInput.value = data.data.disk_threshold.value;
+                    document.getElementById('currentThreshold').textContent = data.data.disk_threshold.value + '%';
+                }
+                
+                // Update monitoring enabled checkbox
+                const monitoringInput = document.getElementById('monitoringEnabled');
+                if (data.data.monitoring_enabled) {
+                    monitoringInput.checked = data.data.monitoring_enabled.value === 'true';
+                    document.getElementById('currentMonitoring').textContent = 
+                        data.data.monitoring_enabled.value === 'true' ? 'Enabled' : 'Disabled';
+                }
+                
+                // Update monitoring interval
+                const intervalInput = document.getElementById('monitoringInterval');
+                if (data.data.monitoring_interval) {
+                    intervalInput.value = data.data.monitoring_interval.value;
+                    document.getElementById('currentInterval').textContent = data.data.monitoring_interval.value + ' minutes';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load settings:', error);
+        });
+    }
+    
+    // Update settings
+    function updateSettings() {
+        if (operationInProgress) {
+            alert('Another operation is in progress. Please wait.');
+            return;
+        }
+        
+        // Get current values
+        const threshold = document.getElementById('diskThreshold').value;
+        const enabled = document.getElementById('monitoringEnabled').checked;
+        const interval = document.getElementById('monitoringInterval').value;
+        
+        // Validate inputs
+        if (threshold < 50 || threshold > 95) {
+            alert('Disk threshold must be between 50-95%');
+            return;
+        }
+        
+        if (interval < 1 || interval > 60) {
+            alert('Monitoring interval must be between 1-60 minutes');
+            return;
+        }
+        
+        // Show confirmation modal
+        showSettingsModal(threshold, enabled, interval);
+    }
+    
+    // Show settings confirmation modal
+    function showSettingsModal(threshold, enabled, interval) {
+        // Update new settings display
+        const newSettingsList = document.getElementById('newSettingsList');
+        newSettingsList.innerHTML = `
+            <li><strong>Disk Threshold:</strong> ${threshold}%</li>
+            <li><strong>Monitoring:</strong> ${enabled ? 'Enabled' : 'Disabled'}</li>
+            <li><strong>Check Interval:</strong> ${interval} minutes</li>
+        `;
+        
+        // Reset form
+        document.getElementById('settingsPassword').value = '';
+        document.getElementById('settingsConfirm').checked = false;
+        document.getElementById('settingsPassword').classList.remove('is-invalid');
+        document.getElementById('settingsPasswordError').textContent = '';
+        
+        // Store values for later use
+        window.pendingSettings = {
+            disk_threshold: threshold,
+            monitoring_enabled: enabled ? 'true' : 'false',
+            monitoring_interval: interval
+        };
+        
+        const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+        modal.show();
+    }
+    
+    // Execute settings update
+    function executeSettingsUpdate() {
+        const password = document.getElementById('settingsPassword').value;
+        const confirmed = document.getElementById('settingsConfirm').checked;
+        const passwordInput = document.getElementById('settingsPassword');
+        const errorElement = document.getElementById('settingsPasswordError');
+        
+        // Reset validation
+        passwordInput.classList.remove('is-invalid');
+        errorElement.textContent = '';
+        
+        // Validate inputs
+        if (!password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Password is required';
+            return;
+        }
+        
+        if (!confirmed) {
+            alert('Please confirm that you understand the consequences of this action.');
+            return;
+        }
+        
+        // Validate password
+        if (!validatePassword(password, 'settings')) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Invalid password';
+            return;
+        }
+        
+        // Close modal and execute update
+        bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+        
+        operationInProgress = true;
+        
+        fetch('/api/v1/power/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            },
+            body: JSON.stringify({
+                user: currentUser,
+                password: password,
+                settings: window.pendingSettings
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            operationInProgress = false;
+            
+            if (data.success) {
+                alert('Settings updated successfully!');
+                loadSettings(); // Reload settings
+                updateLastOperation('Settings Update');
+            } else {
+                alert('Settings update failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            operationInProgress = false;
+            console.error('Settings update failed:', error);
+            alert('Settings update failed: ' + error.message);
+        });
+    }
+    
+    // Load recent auto reboots
+    function loadRecentAutoReboots() {
+        fetch('/api/system/auto-reboot-history?limit=5', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('recent-auto-reboots');
+            
+            if (data.success && data.data && data.data.length > 0) {
+                let html = '';
+                data.data.forEach(reboot => {
+                    const date = new Date(reboot.timestamp).toLocaleString();
+                    html += `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <small class="text-muted">${date}</small><br>
+                                <span class="badge bg-warning">Disk: ${reboot.disk_usage}%</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-redo-alt text-warning"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No auto reboots recorded
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load recent auto reboots:', error);
+            const container = document.getElementById('recent-auto-reboots');
+            container.innerHTML = `
+                <div class="text-center text-danger py-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading data
+                </div>
+            `;
+        });
+    }
+    
+    // Show auto reboot history modal
+    function showAutoRebootHistory() {
+        const modal = new bootstrap.Modal(document.getElementById('autoRebootHistoryModal'));
+        
+        // Set default date range (last 30 days)
+        const today = new Date();
+        const lastMonth = new Date();
+        lastMonth.setDate(today.getDate() - 30);
+        
+        document.getElementById('historyDateTo').value = today.toISOString().split('T')[0];
+        document.getElementById('historyDateFrom').value = lastMonth.toISOString().split('T')[0];
+        
+        modal.show();
+        loadAutoRebootHistory();
+    }
+    
+    // Load auto reboot history
+    function loadAutoRebootHistory() {
+        const fromDate = document.getElementById('historyDateFrom').value;
+        const toDate = document.getElementById('historyDateTo').value;
+        const container = document.getElementById('auto-reboot-history-table');
+        
+        container.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                Loading history...
+            </div>
+        `;
+        
+        const url = `/api/v1/power/auto-reboot-history?from=${fromDate}&to=${toDate}`;
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                if (data.data.length > 0) {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Disk Usage</th>
+                                        <th>Action</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    data.data.forEach(reboot => {
+                        const date = new Date(reboot.timestamp).toLocaleString();
+                        html += `
+                            <tr>
+                                <td>${date}</td>
+                                <td>
+                                    <span class="badge bg-${reboot.disk_usage >= 80 ? 'danger' : 'warning'}">
+                                        ${reboot.disk_usage}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <i class="fas fa-redo-alt text-warning me-1"></i>
+                                    Auto Reboot
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Completed</span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No auto reboots found in the selected date range
+                        </div>
+                    `;
+                }
+            } else {
+                container.innerHTML = `
+                    <div class="text-center text-danger py-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading history data
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load auto reboot history:', error);
+            container.innerHTML = `
+                <div class="text-center text-danger py-4">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error: ${error.message}
+                </div>
+            `;
+        });
+    }
+    
+    // Export auto reboot history
+    function exportAutoRebootHistory() {
+        const fromDate = document.getElementById('historyDateFrom').value;
+        const toDate = document.getElementById('historyDateTo').value;
+        
+        const url = `/api/v1/power/auto-reboot-history/export?from=${fromDate}&to=${toDate}`;
+        
+        // Create a temporary link to download the file
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `auto_reboot_history_${fromDate}_to_${toDate}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
     
     // Update system uptime
     function updateSystemUptime() {
@@ -380,7 +1077,7 @@
         
         // Execute reboot
         operationInProgress = true;
-        fetch('/api/system/reboot', {
+        fetch('/api/v1/power/reboot', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -447,7 +1144,7 @@
         
         // Execute shutdown
         operationInProgress = true;
-        fetch('/api/system/shutdown', {
+        fetch('/api/v1/power/shutdown', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -590,10 +1287,15 @@
     
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        updateSystemUptime();
+        updateSystemOverview();
+        updateRecentAutoReboots();
+        loadSettings(); // Load current settings
         
-        // Update uptime every minute
-        setInterval(updateSystemUptime, 60000);
+        // Update system overview every minute
+        setInterval(updateSystemOverview, 60000);
+        
+        // Update recent auto reboots every 5 minutes
+        setInterval(updateRecentAutoReboots, 300000);
         
         // Prevent form submission on Enter key in password fields
         document.addEventListener('keypress', function(e) {
@@ -604,6 +1306,9 @@
                 } else if (e.target.id === 'shutdownPassword') {
                     e.preventDefault();
                     executeShutdown();
+                } else if (e.target.id === 'settingsPassword') {
+                    e.preventDefault();
+                    executeSettingsUpdate();
                 }
             }
         });
