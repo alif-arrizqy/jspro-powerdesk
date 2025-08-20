@@ -10,7 +10,7 @@ from functions import bash_command, get_disk_detail
 class PowerManagementAPI:
     def __init__(self):
         self.db_path = "auto_reboot.db"
-        self.log_file = "disk_auto_reboot.log"
+        self.log_file = "/var/lib/sundaya/jspro-powerdesk/logs/disk_auto_reboot.log"
         self.init_database()
     
     def init_database(self):

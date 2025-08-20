@@ -270,7 +270,7 @@ main() {
         echo "• Configuration: $INSTALL_DIR/config.conf"
         echo "• Status check: $INSTALL_DIR/status.sh"
         echo "• Uninstall: $INSTALL_DIR/uninstall.sh"
-        echo "• Log file: /var/log/disk_auto_reboot.log"
+        echo "• Log file: /var/lib/sundaya/jspro-powerdesk/logs/disk_auto_reboot.log"
         echo "• Crontab: Runs every 5 minutes"
         echo
         echo "To check status: $INSTALL_DIR/status.sh"

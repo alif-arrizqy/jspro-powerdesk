@@ -6,7 +6,7 @@
 
 # Configuration
 THRESHOLD=60
-LOGFILE="logs/disk_auto_reboot.log"
+LOGFILE="/var/lib/sundaya/jspro-powerdesk/logs/disk_auto_reboot.log"
 LOCKFILE="/tmp/disk_reboot.lock"
 WEBAPP_URL="http://localhost:5000"
 AUTH_TOKEN="d1587d98aa2348b600edc7e7569e3997"
