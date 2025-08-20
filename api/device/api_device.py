@@ -26,6 +26,9 @@ LOG_PATHS = {
         'scc_errors.log': '/var/lib/sundaya/ehub-talis/logs/scc_errors.log',
         'scc_warnings.log': '/var/lib/sundaya/ehub-talis/logs/scc_warnings.log',
         'scc_all.log': '/var/lib/sundaya/ehub-talis/logs/scc_all.log'
+    },
+    'i2c-heartbeat.service': {
+        'i2c_communication.log': '/var/lib/sundaya/jspro-powerdesk/logs/i2c_communication.log'
     }
 }
 
@@ -38,7 +41,8 @@ ALLOWED_SERVICES = [
     'scc.service',
     'store_data_5min.timer',
     'accumulate_energy.service',
-    'webapp.service'
+    'webapp.service',
+    'i2c-heartbeat.service'
 ]
 
 # Allowed actions

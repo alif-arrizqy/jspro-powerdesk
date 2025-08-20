@@ -386,6 +386,15 @@
             category: 'web',
             critical: true,
             hasLogs: false
+        },
+        {
+            name: 'i2c-heartbeat.service',
+            displayName: 'I2C Heartbeat',
+            description: 'I2C heartbeat monitoring service',
+            category: 'hardware',
+            critical: false,
+            hasLogs: true,
+            logFiles: ['i2c_communication.log']
         }
     ];
     
