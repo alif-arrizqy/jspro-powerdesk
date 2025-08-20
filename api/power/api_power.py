@@ -219,3 +219,136 @@ def system_shutdown():
             'success': False,
             'error': f'Internal server error: {str(e)}'
         }), 500
+
+
+@power_bp.route('/i2c/settings', methods=['GET'])
+@auth.login_required
+def get_i2c_settings():
+    """Get I2C monitoring settings"""
+    try:
+        from functions import get_i2c_settings
+        settings = get_i2c_settings()
+        return jsonify({
+            'success': True,
+            'data': settings
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to get I2C settings: {str(e)}'
+        }), 500
+
+
+@power_bp.route('/i2c/settings', methods=['POST'])
+@auth.login_required
+def update_i2c_settings():
+    """Update I2C monitoring settings"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        user = data.get('user')
+        password = data.get('password')
+        settings = data.get('settings')
+        
+        if not user or not password or not settings:
+            return jsonify({
+                'success': False,
+                'error': 'User, password, and settings are required'
+            }), 400
+        
+        # Password validation
+        valid_passwords = {
+            'apt': os.getenv('APT_PASSWORD', 'powerapt'),
+            'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
+            'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+        }
+        
+        if user not in valid_passwords or valid_passwords[user] != password:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid credentials'
+            }), 401
+        
+        # Validate settings
+        interval = settings.get('interval_minutes', 2)
+        if interval < 1 or interval > 60:
+            return jsonify({
+                'success': False,
+                'error': 'Interval must be between 1 and 60 minutes'
+            }), 400
+        
+        # Add modified_by to settings
+        settings['modified_by'] = user
+        
+        # Save settings
+        from functions import save_i2c_settings
+        if save_i2c_settings(settings):
+            return jsonify({
+                'success': True,
+                'message': 'I2C settings updated successfully',
+                'data': settings
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save I2C settings'
+            }), 500
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@power_bp.route('/i2c/test', methods=['POST'])
+@auth.login_required
+def test_i2c_communication():
+    """Test I2C communication manually"""
+    try:
+        from functions import send_i2c_heartbeat
+        
+        data = request.get_json() or {}
+        address = int(data.get('address', '0x28'), 16)
+        message = data.get('message', 'H')
+        
+        result = send_i2c_heartbeat(address, ord(message))
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'I2C test failed: {str(e)}'
+        }), 500
+
+
+@power_bp.route('/i2c/logs', methods=['GET'])
+@auth.login_required
+def get_i2c_logs():
+    """Get I2C communication logs"""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        
+        from functions import get_i2c_logs
+        logs = get_i2c_logs(limit)
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'logs': logs,
+                'total_logs': len(logs)
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to get I2C logs: {str(e)}'
+        }), 500
