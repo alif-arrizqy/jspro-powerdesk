@@ -1,0 +1,8 @@
+{
+    "enabled": true,
+    "interval_minutes": 2,
+    "i2c_address": "0x28",
+    "message": "H",
+    "last_modified": null,
+    "modified_by": null
+}
