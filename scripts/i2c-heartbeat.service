@@ -1,0 +1,32 @@
+[Unit]
+Description=I2C Heartbeat Background Service
+Documentation=https://sundaya.com
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/var/lib/sundaya/jspro-powerdesk/scripts
+ExecStart=/usr/bin/python3 /var/lib/sundaya/jspro-powerdesk/scripts/i2c_heartbeat_service.py start
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=i2c-heartbeat
+
+# Environment variables
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONIOENCODING=utf-8"
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/sundaya/jspro-powerdesk/logs
+ReadWritePaths=/tmp
+
+[Install]
+WantedBy=multi-user.target
