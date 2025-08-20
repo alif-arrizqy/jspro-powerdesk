@@ -90,7 +90,8 @@ main() {
     # Get disk usage (more efficient for Raspberry Pi)
     DISK_USAGE=$(df / | awk 'NR==2 {print int($5)}')
     
-    if [ -z "$DISK_USAGE" ] || ! [[ "$DISK_USAGE" =~ ^[0-9]+$ ]]; then
+    # Check if DISK_USAGE is empty or not a number (POSIX compliant)
+    if [ -z "$DISK_USAGE" ] || ! echo "$DISK_USAGE" | grep -q '^[0-9][0-9]*$'; then
         log_message "ERROR: Could not determine disk usage"
         exit 1
     fi
