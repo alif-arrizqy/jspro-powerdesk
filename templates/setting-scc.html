@@ -6,18 +6,52 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
-            <div class="modern-card-header">
-                <h3 class="modern-card-title">
+            <div class="modern-card-header d-flex justify-content-between align-items-center">
+                <h3 class="modern-card-title mb-0">
                     <i class="fas fa-solar-panel text-primary me-2"></i>
                     Solar Charge Controller Configuration
                 </h3>
+                <button class="btn btn-outline-info btn-sm" id="toggleRules" style="display: none;">
+                    <i class="fas fa-book me-2"></i>
+                    Configuration Rules
+                </button>
             </div>
             <div class="modern-card-body">
-                <div class="alert alert-warning">
+                <div class="alert alert-warning mb-3">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Warning:</strong> When you click <b>Save</b>, SCC Service and Webapp will restart. If you experience '502 Bad Gateway' error, please reload the webapp.
                 </div>
-                <p class="text-muted mb-0">Configure Solar Charge Controller including device type, connection parameters, and relay handling.</p>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="text-muted mb-0">Configure Solar Charge Controller including device type, connection parameters, and relay handling.</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="badge bg-info fs-6" id="configStatus">
+                            <i class="fas fa-cog me-1"></i>
+                            Status: <span id="statusText">Not Configured</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Rules Panel (Hidden by default) -->
+<div class="row mb-4" id="rulesPanel" style="display: none;">
+    <div class="col-12">
+        <div class="modern-card border-info">
+            <div class="modern-card-header bg-info text-white">
+                <h5 class="modern-card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="rulesTitle">Configuration Rules</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" id="closeRules"></button>
+            </div>
+            <div class="modern-card-body">
+                <div id="rulesContent" class="markdown-content">
+                    <p class="text-muted">Select SCC Type to view configuration rules.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -25,83 +59,117 @@
 
 <!-- Configuration Forms -->
 <div class="row">
-    <!-- SCC Type and Source Configuration -->
-    <div class="col-lg-6 mb-4">
-        <div class="modern-card">
+    <!-- Main Configuration Column -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-cogs text-primary me-2"></i>
-                    SCC Type and Source
+                    Device Configuration
                 </h5>
             </div>
             <div class="modern-card-body">
-                <form method="POST">
+                <form method="POST" id="sccTypeForm">
                     <input type="hidden" name="scc-type-form" value="scc-type-form">
                     
                     <div class="mb-3">
-                        <label for="scc-type" class="form-label">
+                        <label for="scc-type" class="form-label fw-bold">
                             <i class="fas fa-microchip me-2"></i>
                             SCC Type
                         </label>
                         {% if scc_type == 'scc-srne' or scc_type == 'scc-epveper' %}
-                        <select class="form-control" name="scc-type" id="scc-type" required>
+                        <select class="form-control form-control-lg" name="scc-type" id="scc-type" required>
                             <option value="" disabled {% if not scc_type %}selected{% endif %}>Choose SCC Type</option>
-                            <option value="scc-srne" {% if scc_type == 'scc-srne' %}selected{% endif %}>SCC Srne</option>
-                            <option value="scc-epveper" {% if scc_type == 'scc-epveper' %}selected{% endif %}>SCC Epveper</option>
+                            <option value="scc-srne" {% if scc_type == 'scc-srne' %}selected{% endif %}>
+                                <i class="fas fa-bolt"></i> SCC SRNE
+                            </option>
+                            <option value="scc-epveper" {% if scc_type == 'scc-epveper' %}selected{% endif %}>
+                                <i class="fas fa-solar-panel"></i> SCC Epveper
+                            </option>
                         </select>
                         {% else %}
-                        <select class="form-control" name="scc-type" id="scc-type" required>
+                        <select class="form-control form-control-lg" name="scc-type" id="scc-type" required>
                             <option value="" disabled {% if not scc_type %}selected{% endif %}>Choose SCC Type</option>
-                            <option value="scc-tristar" {% if scc_type == 'scc-tristar' %}selected{% endif %}>SCC Tristar</option>
+                            <option value="scc-tristar" {% if scc_type == 'scc-tristar' %}selected{% endif %}>
+                                <i class="fas fa-star"></i> SCC Tristar
+                            </option>
                         </select>
                         {% endif %}
+                        <div class="form-text">
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            <span class="text-muted">Select your Solar Charge Controller type</span>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="scc-source" class="form-label">
+                        <label for="scc-source" class="form-label fw-bold">
                             <i class="fas fa-plug me-2"></i>
-                            SCC Source
+                            Connection Method
                         </label>
                         <select class="form-control" name="scc-source" id="scc-source" required>
-                            <option value="" disabled {% if not scc_source %}selected{% endif %}>Choose SCC Source</option>
-                            <option value="serial" {% if scc_source == 'serial' %}selected{% endif %}>SERIAL</option>
-                            <option value="usb" {% if scc_source == 'usb' %}selected{% endif %}>USB</option>
-                            <option value="tcp" {% if scc_source == 'tcp' %}selected{% endif %}>TCP</option>
+                            <option value="" disabled {% if not scc_source %}selected{% endif %}>Choose Connection</option>
+                            <option value="serial" {% if scc_source == 'serial' %}selected{% endif %}>
+                                <i class="fas fa-cable"></i> SERIAL
+                            </option>
+                            <option value="usb" {% if scc_source == 'usb' %}selected{% endif %}>
+                                <i class="fas fa-usb"></i> USB
+                            </option>
+                            <option value="tcp" {% if scc_source == 'tcp' %}selected{% endif %}>
+                                <i class="fas fa-network-wired"></i> TCP/IP
+                            </option>
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="scc-scan" class="form-label">
+                        <label for="scc-scan" class="form-label fw-bold">
                             <i class="fas fa-search me-2"></i>
-                            SCC Scan ID
+                            Auto ID Scan
                         </label>
                         <select class="form-control" name="scc-scan" id="scc-scan" required>
-                            <option value="" disabled {% if not scc_scan %}selected{% endif %}>Choose SCC Scan</option>
-                            <option value="true" {% if scc_scan == 'true' %}selected{% endif %}>True</option>
-                            <option value="false" {% if scc_scan == 'false' %}selected{% endif %}>False</option>
+                            <option value="" disabled {% if not scc_scan %}selected{% endif %}>Choose Option</option>
+                            <option value="true" {% if scc_scan == 'true' %}selected{% endif %}>
+                                <i class="fas fa-check text-success"></i> Enabled
+                            </option>
+                            <option value="false" {% if scc_scan == 'false' %}selected{% endif %}>
+                                <i class="fas fa-times text-danger"></i> Disabled
+                            </option>
                         </select>
+                        <div class="form-text">
+                            <i class="fas fa-lightbulb text-warning me-1"></i>
+                            <span class="text-muted">Enable to automatically detect device IDs</span>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="scc-port" class="form-label">
-                            <i class="fas fa-usb me-2"></i>
+                    <div class="mb-3" id="portField">
+                        <label for="scc-port" class="form-label fw-bold">
+                            <i class="fas fa-terminal me-2"></i>
                             Port
                         </label>
-                        <input type="text" class="form-control" name="scc-port" id="scc-port" placeholder="example: /dev/ttyS0 or /dev/ttyUSB0" value="{{port}}">
+                        <input type="text" class="form-control" name="scc-port" id="scc-port" 
+                               placeholder="e.g., /dev/ttyS0 or /dev/ttyUSB0" value="{{port}}">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            <span class="text-muted">Serial/USB port path</span>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="scc-host" class="form-label">
+                    <div class="mb-3" id="hostField">
+                        <label for="scc-host" class="form-label fw-bold">
                             <i class="fas fa-server me-2"></i>
-                            Host / IP
+                            Host / IP Address
                         </label>
-                        <input type="text" class="form-control" name="scc-host" id="scc-host" placeholder="Host / IP" value="{{host}}">
+                        <input type="text" class="form-control" name="scc-host" id="scc-host" 
+                               placeholder="192.168.1.100" value="{{host}}">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            <span class="text-muted">IP address for TCP connection</span>
+                        </div>
                     </div>
                     
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-modern btn-primary">
+                        <button type="submit" class="btn btn-modern btn-primary btn-lg">
                             <i class="fas fa-save me-2"></i>
-                            Save Configuration
+                            Save Device Config
                         </button>
                     </div>
                 </form>
@@ -110,99 +178,138 @@
     </div>
 
     <!-- SCC ID Configuration -->
-    <div class="col-lg-6 mb-4">
-        <div class="modern-card">
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-hashtag text-info me-2"></i>
-                    SCC Setting ID
+                    Device IDs
                 </h5>
             </div>
             <div class="modern-card-body">
-                <form method="POST">
+                <form method="POST" id="sccIdForm">
                     <input type="hidden" name="scc-setting-id-form" value="scc-setting-id-form">
                     
                     {% for key, val in scc_ids.items() %}
                     <div class="mb-3">
-                        <label for="scc-id-{{key}}" class="form-label">
+                        <label for="scc-id-{{key}}" class="form-label fw-bold">
                             <i class="fas fa-id-badge me-2"></i>
                             SCC {{key}}
                         </label>
-                        <input type="number" class="form-control" name="scc-id-{{key}}" id="scc-id-{{key}}" placeholder="SCC {{key}}" value="{{val}}" min="1" max="255" required>
+                        <div class="input-group">
+                            <span class="input-group-text">ID</span>
+                            <input type="number" class="form-control" name="scc-id-{{key}}" id="scc-id-{{key}}" 
+                                   placeholder="SCC {{key}}" value="{{val}}" min="1" max="255" required>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            <span class="text-muted">Device ID for SCC {{key}} (1-255)</span>
+                        </div>
                     </div>
                     {% endfor %}
                     
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-modern btn-info">
+                        <button type="submit" class="btn btn-modern btn-info btn-lg">
                             <i class="fas fa-save me-2"></i>
-                            Save IDs
+                            Save Device IDs
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <!-- Cut off / Reconnect Configuration -->
-    <div class="col-lg-6 mb-4">
-        <div class="modern-card">
+    <!-- Relay Configuration -->
+    <div class="col-xl-4 col-lg-12 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-plug text-warning me-2"></i>
-                    Cut off / Reconnect Values
+                    Relay Protection
                 </h5>
             </div>
             <div class="modern-card-body">
-                <form method="POST">
+                <form method="POST" id="relayForm">
                     <input type="hidden" name="config-relay-form" value="config-relay-form">
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary mb-3">
+                    <!-- BTS Configuration -->
+                    <div class="card border-primary mb-3">
+                        <div class="card-header bg-primary text-white py-2">
+                            <h6 class="mb-0">
                                 <i class="fas fa-broadcast-tower me-2"></i>
                                 BTS Configuration
                             </h6>
+                        </div>
+                        <div class="card-body py-3">
                             <div class="mb-3">
-                                <label for="voltage_reconnect_bts" class="form-label">
-                                    <i class="fas fa-arrow-up me-2"></i>
-                                    BTS Reconnect (mV)
+                                <label for="voltage_reconnect_bts" class="form-label fw-bold">
+                                    <i class="fas fa-arrow-up text-success me-2"></i>
+                                    Reconnect Voltage (mV)
                                 </label>
-                                <input type="number" class="form-control" name="voltage_reconnect_bts" id="voltage_reconnect_bts" placeholder="e.g., 4800" value="{{config_relay.voltage_reconnect_bts}}" min="0" max="60000" required>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="voltage_reconnect_bts" 
+                                           id="voltage_reconnect_bts" placeholder="4800" 
+                                           value="{{config_relay.voltage_reconnect_bts}}" 
+                                           min="0" max="60000" required>
+                                    <span class="input-group-text">mV</span>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="voltage_cutoff_bts" class="form-label">
-                                    <i class="fas fa-arrow-down me-2"></i>
-                                    BTS Cut Off (mV)
+                            <div class="mb-0">
+                                <label for="voltage_cutoff_bts" class="form-label fw-bold">
+                                    <i class="fas fa-arrow-down text-danger me-2"></i>
+                                    Cut Off Voltage (mV)
                                 </label>
-                                <input type="number" class="form-control" name="voltage_cutoff_bts" id="voltage_cutoff_bts" placeholder="e.g., 4700" value="{{config_relay.voltage_cutoff_bts}}" min="0" max="60000" required>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="voltage_cutoff_bts" 
+                                           id="voltage_cutoff_bts" placeholder="4700" 
+                                           value="{{config_relay.voltage_cutoff_bts}}" 
+                                           min="0" max="60000" required>
+                                    <span class="input-group-text">mV</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-success mb-3">
+                    </div>
+                    
+                    <!-- VSAT Configuration -->
+                    <div class="card border-success mb-3">
+                        <div class="card-header bg-success text-white py-2">
+                            <h6 class="mb-0">
                                 <i class="fas fa-satellite me-2"></i>
                                 VSAT Configuration
                             </h6>
+                        </div>
+                        <div class="card-body py-3">
                             <div class="mb-3">
-                                <label for="voltage_reconnect_vsat" class="form-label">
-                                    <i class="fas fa-arrow-up me-2"></i>
-                                    VSAT Reconnect (mV)
+                                <label for="voltage_reconnect_vsat" class="form-label fw-bold">
+                                    <i class="fas fa-arrow-up text-success me-2"></i>
+                                    Reconnect Voltage (mV)
                                 </label>
-                                <input type="number" class="form-control" name="voltage_reconnect_vsat" id="voltage_reconnect_vsat" placeholder="e.g., 4700" value="{{config_relay.voltage_reconnect_vsat}}" min="0" max="60000" required>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="voltage_reconnect_vsat" 
+                                           id="voltage_reconnect_vsat" placeholder="4700" 
+                                           value="{{config_relay.voltage_reconnect_vsat}}" 
+                                           min="0" max="60000" required>
+                                    <span class="input-group-text">mV</span>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="voltage_cutoff_vsat" class="form-label">
-                                    <i class="fas fa-arrow-down me-2"></i>
-                                    VSAT Cut Off (mV)
+                            <div class="mb-0">
+                                <label for="voltage_cutoff_vsat" class="form-label fw-bold">
+                                    <i class="fas fa-arrow-down text-danger me-2"></i>
+                                    Cut Off Voltage (mV)
                                 </label>
-                                <input type="number" class="form-control" name="voltage_cutoff_vsat" id="voltage_cutoff_vsat" placeholder="e.g., 4600" value="{{config_relay.voltage_cutoff_vsat}}" min="0" max="60000" required>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="voltage_cutoff_vsat" 
+                                           id="voltage_cutoff_vsat" placeholder="4600" 
+                                           value="{{config_relay.voltage_cutoff_vsat}}" 
+                                           min="0" max="60000" required>
+                                    <span class="input-group-text">mV</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-modern btn-warning">
+                        <button type="submit" class="btn btn-modern btn-warning btn-lg">
                             <i class="fas fa-save me-2"></i>
                             Save Relay Config
                         </button>
@@ -211,39 +318,53 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- SCC Parameters Configuration -->
-    <div class="col-lg-6">
+<!-- SCC Parameters Configuration -->
+<div class="row">
+    <div class="col-12">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-battery-full text-success me-2"></i>
-                    SCC Parameters
+                    SCC Voltage Parameters
                 </h5>
+                <small class="text-muted">Configure voltage thresholds and charging parameters</small>
             </div>
             <div class="modern-card-body">
-                <form method="POST">
+                <form method="POST" id="sccParamsForm">
                     <input type="hidden" name="config-scc-form" value="config-scc-form">
                     
-                    <div class="row">
+                    <div class="row g-3">
                         {% for key, value in config_scc.items() %}
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{key}}" class="form-label">
-                                    <i class="fas fa-cog me-2"></i>
-                                    {{ key.replace('_', ' ').title() }}
-                                </label>
-                                <input type="text" class="form-control" name="{{key}}" id="{{key}}" placeholder="{{key}}" value="{{value}}" required>
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="card h-100 border-light">
+                                <div class="card-body p-3">
+                                    <label for="{{key}}" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-cog text-primary me-2"></i>
+                                        {{ key.replace('_', ' ').title() }}
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="{{key}}" id="{{key}}" 
+                                               placeholder="{{key}}" value="{{value}}" required>
+                                        <span class="input-group-text">V</span>
+                                    </div>
+                                    <div class="form-text">
+                                        <small class="text-muted">{{ key.replace('_', ' ').title() }} setting</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-modern btn-success">
-                            <i class="fas fa-save me-2"></i>
-                            Save Parameters
-                        </button>
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-modern btn-success btn-lg px-5">
+                                <i class="fas fa-save me-2"></i>
+                                Save All Parameters
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -255,6 +376,99 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Configuration status update
+    function updateConfigStatus() {
+        const sccType = document.querySelector('select[name="scc-type"]').value;
+        const sccSource = document.querySelector('select[name="scc-source"]').value;
+        const statusText = document.getElementById('statusText');
+        const statusBadge = document.getElementById('configStatus');
+        const toggleRulesBtn = document.getElementById('toggleRules');
+        
+        if (sccType && sccSource) {
+            statusText.textContent = 'Configured';
+            statusBadge.className = 'badge bg-success fs-6';
+        } else {
+            statusText.textContent = 'Incomplete';
+            statusBadge.className = 'badge bg-warning fs-6';
+        }
+        
+        // Show/hide rules button based on SCC type
+        if (sccType === 'scc-srne' || sccType === 'scc-epveper') {
+            toggleRulesBtn.style.display = 'inline-block';
+        } else {
+            toggleRulesBtn.style.display = 'none';
+            document.getElementById('rulesPanel').style.display = 'none';
+        }
+    }
+    
+    // Rules panel functionality
+    const toggleRulesBtn = document.getElementById('toggleRules');
+    const rulesPanel = document.getElementById('rulesPanel');
+    const closeRulesBtn = document.getElementById('closeRules');
+    const rulesTitle = document.getElementById('rulesTitle');
+    const rulesContent = document.getElementById('rulesContent');
+    
+    // Function to load rules from API
+    async function loadConfigRules(sccType) {
+        try {
+            rulesContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Loading configuration rules...</div>';
+            
+            const response = await fetch(`/api/scc-rules/${sccType}`);
+            if (!response.ok) {
+                throw new Error('Failed to load rules');
+            }
+            
+            const data = await response.json();
+            rulesTitle.textContent = data.title;
+            
+            // Display content as rendered markdown HTML
+            if (data.format === 'markdown' && data.content) {
+                rulesContent.innerHTML = `
+                    <div class="markdown-content">
+                        ${data.content}
+                    </div>
+                `;
+            } else {
+                // Fallback to plain text display
+                rulesContent.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <pre class="mb-0" style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.4;">${escapeHtml(data.raw_content || data.content)}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+            
+        } catch (error) {
+            console.error('Error loading rules:', error);
+            rulesContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to load configuration rules. Please try again.
+                </div>
+            `;
+        }
+    }
+    
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    
+    toggleRulesBtn.addEventListener('click', function() {
+        const sccType = document.querySelector('select[name="scc-type"]').value;
+        if (sccType === 'scc-srne' || sccType === 'scc-epveper') {
+            loadConfigRules(sccType);
+            rulesPanel.style.display = 'block';
+            rulesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });    closeRulesBtn.addEventListener('click', function() {
+        rulesPanel.style.display = 'none';
+    });
+    
     // Handle all form submissions
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
@@ -274,18 +488,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Auto-save indicator
+    // Enhanced input validation
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('change', function() {
             this.style.borderColor = '#ffc107';
+            this.style.boxShadow = '0 0 0 0.2rem rgba(255, 193, 7, 0.25)';
             setTimeout(() => {
                 this.style.borderColor = '';
+                this.style.boxShadow = '';
             }, 2000);
         });
     });
     
-    // Form validation
+    // Advanced form validation
     const numberInputs = document.querySelectorAll('input[type="number"]');
     numberInputs.forEach(input => {
         input.addEventListener('input', function() {
@@ -295,30 +511,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (value < min || value > max) {
                 this.style.borderColor = '#dc3545';
+                this.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
                 this.setCustomValidity('Value must be between ' + min + ' and ' + max);
             } else {
                 this.style.borderColor = '#28a745';
+                this.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
                 this.setCustomValidity('');
             }
         });
     });
-    
-    // Dynamic status update
-    function updateConfigStatus() {
-        const sccType = document.querySelector('select[name="scc-type"]').value;
-        const sccSource = document.querySelector('select[name="scc-source"]').value;
-        const statusElement = document.querySelector('.stats-card:last-child .status-indicator');
-        
-        if (sccType && sccSource) {
-            statusElement.textContent = 'Configured';
-            statusElement.classList.remove('inactive');
-            statusElement.classList.add('active');
-        } else {
-            statusElement.textContent = 'Incomplete';
-            statusElement.classList.remove('active');
-            statusElement.classList.add('inactive');
-        }
-    }
     
     // Listen for changes in main configuration
     const mainConfigInputs = document.querySelectorAll('select[name="scc-type"], select[name="scc-source"]');
@@ -326,27 +527,10 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', updateConfigStatus);
     });
     
-    // Initialize tooltips
-    const tooltips = {
-        'scc-type': 'Select the type of Solar Charge Controller',
-        'scc-source': 'Choose the connection method for SCC communication',
-        'scc-scan': 'Enable/disable automatic ID scanning',
-        'scc-port': 'Specify the communication port (for serial/USB connections)',
-        'scc-host': 'Enter the IP address or hostname (for TCP connections)'
-    };
-    
-    Object.keys(tooltips).forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.setAttribute('title', tooltips[id]);
-            element.setAttribute('data-bs-toggle', 'tooltip');
-        }
-    });
-    
     // Show/hide fields based on source selection
     const sourceSelect = document.querySelector('select[name="scc-source"]');
-    const portField = document.getElementById('scc-port').closest('.mb-3');
-    const hostField = document.getElementById('scc-host').closest('.mb-3');
+    const portField = document.getElementById('portField');
+    const hostField = document.getElementById('hostField');
     
     function toggleFields() {
         const source = sourceSelect.value;
@@ -375,6 +559,204 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }, 5000);
     });
+    
+    // Parameter validation for SCC parameters
+    const sccParamInputs = document.querySelectorAll('#sccParamsForm input');
+    sccParamInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (value && value > 0) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            }
+        });
+    });
+    
+    // Real-time configuration status
+    updateConfigStatus();
+    
+    // Auto-save draft functionality
+    const autoSaveInputs = document.querySelectorAll('input, select');
+    autoSaveInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const formId = this.closest('form').id;
+            const fieldName = this.name;
+            const fieldValue = this.value;
+            
+            // Save to localStorage
+            localStorage.setItem(`scc_draft_${formId}_${fieldName}`, fieldValue);
+            
+            // Show indicator
+            showFieldSavedIndicator(this);
+        });
+    });
+    
+    // Load draft values
+    autoSaveInputs.forEach(input => {
+        const formId = input.closest('form').id;
+        const fieldName = input.name;
+        const savedValue = localStorage.getItem(`scc_draft_${formId}_${fieldName}`);
+        
+        if (savedValue && !input.value) {
+            input.value = savedValue;
+            input.style.borderColor = '#17a2b8';
+        }
+    });
+    
+    // Configuration progress tracking
+    initializeConfigurationProgress();
+    
+    // Enhanced validation
+    initializeEnhancedValidation();
+    
+    // Keyboard shortcuts
+    initializeKeyboardShortcuts();
 });
+
+// Helper functions
+function showFieldSavedIndicator(inputElement) {
+    const indicator = document.createElement('small');
+    indicator.className = 'text-muted ms-2 fade-indicator';
+    indicator.innerHTML = '<i class="fas fa-check text-success"></i> Saved';
+    
+    const existingIndicator = inputElement.parentNode.querySelector('.fade-indicator');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+    
+    inputElement.parentNode.appendChild(indicator);
+    
+    setTimeout(() => {
+        indicator.style.opacity = '0';
+        setTimeout(() => {
+            indicator.remove();
+        }, 300);
+    }, 2000);
+}
+
+function initializeConfigurationProgress() {
+    const progressContainer = document.querySelector('.modern-card-body');
+    if (!progressContainer) return;
+    
+    const steps = [
+        { id: 'device-config', name: 'Device Configuration', selector: '#sccTypeForm' },
+        { id: 'device-ids', name: 'Device IDs', selector: '#sccIdForm' },
+        { id: 'relay-config', name: 'Relay Protection', selector: '#relayForm' },
+        { id: 'scc-params', name: 'SCC Parameters', selector: '#sccParamsForm' }
+    ];
+    
+    function updateProgress() {
+        steps.forEach(step => {
+            const form = document.querySelector(step.selector);
+            if (!form) return;
+            
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            const filledInputs = Array.from(inputs).filter(input => input.value.trim() !== '');
+            const isCompleted = filledInputs.length === inputs.length;
+            
+            // Update step status
+            const stepElement = document.querySelector(`[data-step="${step.id}"]`);
+            if (stepElement) {
+                stepElement.className = `progress-step ${isCompleted ? 'completed' : 'pending'}`;
+            }
+        });
+    }
+    
+    // Listen for form changes
+    document.addEventListener('input', updateProgress);
+    document.addEventListener('change', updateProgress);
+    
+    // Initial update
+    updateProgress();
+}
+
+function initializeEnhancedValidation() {
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    
+    numberInputs.forEach(input => {
+        const feedback = document.createElement('div');
+        feedback.className = 'form-validation-feedback';
+        input.parentNode.appendChild(feedback);
+        
+        input.addEventListener('input', function() {
+            validateNumberInput(this, feedback);
+        });
+        
+        input.addEventListener('blur', function() {
+            validateNumberInput(this, feedback);
+        });
+    });
+}
+
+function validateNumberInput(input, feedbackElement) {
+    const value = parseFloat(input.value);
+    const min = parseFloat(input.getAttribute('min'));
+    const max = parseFloat(input.getAttribute('max'));
+    
+    feedbackElement.classList.remove('show', 'valid', 'invalid');
+    
+    if (isNaN(value) || input.value.trim() === '') {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        return;
+    }
+    
+    if (value < min || value > max) {
+        input.style.borderColor = '#dc3545';
+        input.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+        input.setCustomValidity(`Value must be between ${min} and ${max}`);
+        
+        feedbackElement.textContent = `Value must be between ${min} and ${max}`;
+        feedbackElement.classList.add('show', 'invalid');
+    } else {
+        input.style.borderColor = '#28a745';
+        input.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+        input.setCustomValidity('');
+        
+        feedbackElement.textContent = 'Valid value';
+        feedbackElement.classList.add('show', 'valid');
+        
+        setTimeout(() => {
+            feedbackElement.classList.remove('show');
+        }, 2000);
+    }
+}
+
+function initializeKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + S to save current form
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            const activeElement = document.activeElement;
+            const form = activeElement.closest('form');
+            if (form) {
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.click();
+                }
+            }
+        }
+        
+        // Escape to close rules panel
+        if (e.key === 'Escape') {
+            const rulesPanel = document.getElementById('rulesPanel');
+            if (rulesPanel && rulesPanel.style.display !== 'none') {
+                rulesPanel.style.display = 'none';
+            }
+        }
+        
+        // F1 to show rules (if SCC type is selected)
+        if (e.key === 'F1') {
+            e.preventDefault();
+            const toggleRulesBtn = document.getElementById('toggleRules');
+            if (toggleRulesBtn && toggleRulesBtn.style.display !== 'none') {
+                toggleRulesBtn.click();
+            }
+        }
+    });
+}
 </script>
 {% endblock %}
