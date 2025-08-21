@@ -7,7 +7,8 @@ from flask import jsonify, request
 from . import device_bp
 from ..redisconnection import connection as red
 from auths import token_auth as auth
-from functions import bash_command, get_disk_detail, get_cpu_usage, get_memory_usage, get_temperature
+from utils import bash_command
+from helpers.system_resources_helper import get_cpu_usage, get_memory_usage, get_temperature
 from redis.exceptions import RedisError
 
 # Log file paths configuration

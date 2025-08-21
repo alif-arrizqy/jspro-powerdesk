@@ -13,7 +13,7 @@ import shutil
 from functools import wraps
 from ..redisconnection import connection as red
 from .helper import *
-from functions import get_disk_detail
+from helpers.system_resources_helper import get_disk_detail
 from config import PATH
 
 # Add parent directory to path for imports

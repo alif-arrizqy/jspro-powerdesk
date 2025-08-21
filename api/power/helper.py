@@ -4,7 +4,8 @@ import sqlite3
 import csv
 import io
 from datetime import datetime, timedelta
-from functions import bash_command, get_disk_detail
+from helpers.system_resources_helper import get_disk_detail
+from utils import bash_command
 
 
 class PowerManagementAPI:
