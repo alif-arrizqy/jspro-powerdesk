@@ -1,11 +1,39 @@
-# from smbus2 import SMBus
+from smbus2 import SMBus
 import json
+import os
+from pathlib import Path
 
-# i2c 
-def send_i2c_message(address, message):
-    # bus = SMBus(1)
+def get_settings_path():
+    """Get the appropriate path for settings files"""
+    # Try production path first
+    prod_path = Path('/var/lib/sundaya/jspro-powerdesk')
+    
+    # Check if we can write to production path
     try:
-        # bus.write_byte(address, message)
+        prod_path.mkdir(parents=True, exist_ok=True)
+        if os.access(prod_path, os.W_OK):
+            return prod_path
+    except (PermissionError, OSError):
+        pass
+    
+    # Fallback to user's home directory
+    home_path = Path.home() / '.jspro-powerdesk'
+    try:
+        home_path.mkdir(exist_ok=True)
+        return home_path
+    except (PermissionError, OSError):
+        pass
+    
+    # Last resort: temp directory
+    import tempfile
+    temp_path = Path(tempfile.gettempdir()) / 'jspro-powerdesk'
+    temp_path.mkdir(exist_ok=True)
+    return temp_path
+
+def send_i2c_message(address, message):
+    bus = SMBus(1)
+    try:
+        bus.write_byte(address, message)
         return True
     except OSError:
         return False
@@ -16,11 +44,11 @@ def send_i2c_heartbeat(address=0x28, message=ord('H')):
     import json
     from datetime import datetime
     
-    # bus = SMBus(1)
+    bus = SMBus(1)
     timestamp = datetime.now().isoformat()
     
     try:
-        # bus.write_byte(address, message)
+        bus.write_byte(address, message)
         result = {
             'success': True,
             'timestamp': timestamp,
@@ -103,7 +131,10 @@ def get_i2c_settings():
     """Get I2C monitoring settings"""
     import json
     
-    settings_file = 'i2c_settings.json'
+    # Get appropriate settings directory
+    settings_dir = get_settings_path()
+    settings_file = settings_dir / 'i2c_settings.json'
+    
     default_settings = {
         'enabled': True,
         'interval_minutes': 2,
@@ -128,13 +159,104 @@ def save_i2c_settings(settings):
     import json
     from datetime import datetime
     
-    settings_file = 'i2c_settings.json'
+    # Get appropriate settings directory
+    settings_dir = get_settings_path()
+    settings_file = settings_dir / 'i2c_settings.json'
+    
     settings['last_modified'] = datetime.now().isoformat()
     
     try:
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=2)
+        
+        # Set appropriate permissions if possible
+        try:
+            os.chmod(settings_file, 0o644)
+        except (PermissionError, OSError):
+            pass  # Ignore permission errors
+            
+        print(f"I2C settings saved to: {settings_file}")
         return True
+        
     except Exception as e:
         print(f"Error saving I2C settings: {e}")
+        print(f"Attempted to save to: {settings_file}")
         return False
+
+
+def validate_i2c_settings(settings):
+    """Validate I2C settings structure and values"""
+    required_fields = ['enabled', 'interval_minutes', 'i2c_address', 'message']
+    
+    # Check required fields
+    for field in required_fields:
+        if field not in settings:
+            return False, f"Missing required field: {field}"
+    
+    # Validate data types and ranges
+    try:
+        # enabled should be boolean
+        if not isinstance(settings['enabled'], bool):
+            return False, "enabled must be boolean"
+        
+        # interval_minutes should be integer between 1-60
+        interval = int(settings['interval_minutes'])
+        if interval < 1 or interval > 60:
+            return False, "interval_minutes must be between 1-60"
+        
+        # i2c_address should be valid hex address
+        address = settings['i2c_address']
+        if isinstance(address, str):
+            if address.startswith('0x'):
+                int(address, 16)
+            else:
+                int(address)
+        
+        # message should be single character
+        message = settings['message']
+        if not isinstance(message, str) or len(message) != 1:
+            return False, "message must be a single character"
+        
+        return True, "Settings are valid"
+        
+    except ValueError as e:
+        return False, f"Invalid value: {e}"
+
+
+def get_i2c_settings_info():
+    """Get information about I2C settings location and status"""
+    settings_dir = get_settings_path()
+    settings_file = settings_dir / 'i2c_settings.json'
+    
+    info = {
+        'settings_directory': str(settings_dir),
+        'settings_file': str(settings_file),
+        'file_exists': settings_file.exists(),
+        'directory_writable': os.access(settings_dir, os.W_OK),
+        'file_readable': settings_file.exists() and os.access(settings_file, os.R_OK),
+        'file_writable': settings_file.exists() and os.access(settings_file, os.W_OK)
+    }
+    
+    if settings_file.exists():
+        try:
+            stat = settings_file.stat()
+            info['file_size'] = stat.st_size
+            info['last_modified'] = stat.st_mtime
+        except OSError:
+            pass
+    
+    return info
+
+
+def reset_i2c_settings():
+    """Reset I2C settings to default values"""
+    default_settings = {
+        'enabled': True,
+        'interval_minutes': 2,
+        'i2c_address': '0x28',
+        'message': 'H',
+        'last_modified': None,
+        'modified_by': 'system_reset'
+    }
+    
+    return save_i2c_settings(default_settings)
