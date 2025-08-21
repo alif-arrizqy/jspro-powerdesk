@@ -226,7 +226,7 @@ def system_shutdown():
 def get_i2c_settings():
     """Get I2C monitoring settings"""
     try:
-        from functions import get_i2c_settings
+        from helpers.i2c_helper import get_i2c_settings
         settings = get_i2c_settings()
         return jsonify({
             'success': True,
@@ -284,7 +284,7 @@ def update_i2c_settings():
         settings['modified_by'] = user
         
         # Save settings
-        from functions import save_i2c_settings
+        from helpers.i2c_helper import save_i2c_settings
         if save_i2c_settings(settings):
             return jsonify({
                 'success': True,
@@ -309,7 +309,7 @@ def update_i2c_settings():
 def test_i2c_communication():
     """Test I2C communication manually"""
     try:
-        from functions import send_i2c_heartbeat
+        from helpers.i2c_helper import send_i2c_heartbeat
         
         data = request.get_json() or {}
         address = int(data.get('address', '0x28'), 16)
@@ -336,7 +336,7 @@ def get_i2c_logs():
     try:
         limit = request.args.get('limit', 50, type=int)
         
-        from functions import get_i2c_logs
+        from helpers.i2c_helper import get_i2c_logs
         logs = get_i2c_logs(limit)
         
         return jsonify({
