@@ -1,34 +1,6 @@
 from smbus2 import SMBus
 import json
 import os
-from pathlib import Path
-
-def get_settings_path():
-    """Get the appropriate path for settings files"""
-    # Try production path first
-    prod_path = Path('/var/lib/sundaya/jspro-powerdesk')
-    
-    # Check if we can write to production path
-    try:
-        prod_path.mkdir(parents=True, exist_ok=True)
-        if os.access(prod_path, os.W_OK):
-            return prod_path
-    except (PermissionError, OSError):
-        pass
-    
-    # Fallback to user's home directory
-    home_path = Path.home() / '.jspro-powerdesk'
-    try:
-        home_path.mkdir(exist_ok=True)
-        return home_path
-    except (PermissionError, OSError):
-        pass
-    
-    # Last resort: temp directory
-    import tempfile
-    temp_path = Path(tempfile.gettempdir()) / 'jspro-powerdesk'
-    temp_path.mkdir(exist_ok=True)
-    return temp_path
 
 def send_i2c_message(address, message):
     bus = SMBus(1)
@@ -131,9 +103,7 @@ def get_i2c_settings():
     """Get I2C monitoring settings"""
     import json
     
-    # Get appropriate settings directory
-    settings_dir = get_settings_path()
-    settings_file = settings_dir / 'i2c_settings.json'
+    settings_file = '/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json'
     
     default_settings = {
         'enabled': True,
@@ -159,10 +129,7 @@ def save_i2c_settings(settings):
     import json
     from datetime import datetime
     
-    # Get appropriate settings directory
-    settings_dir = get_settings_path()
-    settings_file = settings_dir / 'i2c_settings.json'
-    
+    settings_file = '/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json'
     settings['last_modified'] = datetime.now().isoformat()
     
     try:
@@ -225,14 +192,13 @@ def validate_i2c_settings(settings):
 
 def get_i2c_settings_info():
     """Get information about I2C settings location and status"""
-    settings_dir = get_settings_path()
-    settings_file = settings_dir / 'i2c_settings.json'
+    settings_file = '/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json'
     
     info = {
-        'settings_directory': str(settings_dir),
+        'settings_directory': '/var/lib/sundaya/jspro-powerdesk/dist',
         'settings_file': str(settings_file),
         'file_exists': settings_file.exists(),
-        'directory_writable': os.access(settings_dir, os.W_OK),
+        'directory_writable': os.access('/var/lib/sundaya/jspro-powerdesk/dist', os.W_OK),
         'file_readable': settings_file.exists() and os.access(settings_file, os.R_OK),
         'file_writable': settings_file.exists() and os.access(settings_file, os.W_OK)
     }
