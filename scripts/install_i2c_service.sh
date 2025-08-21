@@ -78,7 +78,7 @@ install_service_files() {
     print_status "Installing service files..."
     
     # Copy Python scripts
-    sudo cp "$SCRIPT_DIR/../functions.py" "$INSTALL_DIR/"
+    sudo cp "$SCRIPT_DIR/../helpers/i2c_helper.py" "$INSTALL_DIR/"
     sudo cp "$SCRIPT_DIR/../config.py" "$INSTALL_DIR/" 2>/dev/null || print_warning "config.py not found, skipping"
     sudo cp "$SCRIPT_DIR/i2c_heartbeat_service.py" "$INSTALL_DIR/scripts/"
     

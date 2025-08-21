@@ -14,7 +14,7 @@ from pathlib import Path
 
 # Add parent directory to path to import functions
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from functions import send_i2c_heartbeat, get_i2c_settings
+from helpers.i2c_helper import send_i2c_heartbeat, get_i2c_settings
 
 class I2CHeartbeatService:
     def __init__(self):
