@@ -1,4 +1,6 @@
 import redis
 
 host = "localhost"
-connection = redis.Redis(host=host, password='', decode_responses=True)
+password = ""
+
+connection = redis.Redis(host=host, password=password, decode_responses=True)
