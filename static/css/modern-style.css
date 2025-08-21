@@ -2042,6 +2042,443 @@ body,
     box-shadow: 0 6px 16px rgba(96, 165, 250, 0.4);
 }
 
+/* Setting SCC */
+.parameter-hierarchy {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.param-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin: 2px 0;
+    text-align: center;
+}
+
+.param-item.highlight {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+    font-weight: bold;
+}
+
+.param-arrow {
+    text-align: center;
+    color: #6c757d;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.markdown-content pre {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 1rem;
+    font-size: 0.8rem;
+}
+
+/* Enhanced Markdown Content Styling - Light Theme */
+.markdown-content {
+    line-height: 1.6;
+    color: var(--gray-700);
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    color: var(--gray-800);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.markdown-content h1 {
+    font-size: 2rem;
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 0.3rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.25rem;
+}
+
+.markdown-content h4 {
+    font-size: 1.1rem;
+}
+
+.markdown-content h5,
+.markdown-content h6 {
+    font-size: 1rem;
+}
+
+.markdown-content p {
+    margin-bottom: 1rem;
+    color: var(--gray-700);
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+    color: var(--gray-700);
+}
+
+.markdown-content li {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content ul ul,
+.markdown-content ol ol,
+.markdown-content ul ol,
+.markdown-content ol ul {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid var(--primary-color);
+    background: var(--gray-50);
+    margin: 1rem 0;
+    padding: 1rem 1.5rem;
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+.markdown-content blockquote p {
+    margin-bottom: 0;
+    color: var(--gray-600);
+    font-style: italic;
+}
+
+.markdown-content code {
+    background: var(--gray-100);
+    color: var(--danger-color);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--border-radius-sm);
+    font-family: 'Courier New', Consolas, Monaco, monospace;
+    font-size: 0.9em;
+}
+
+.markdown-content pre {
+    background: var(--gray-900) !important;
+    color: var(--gray-100) !important;
+    padding: 1rem !important;
+    border-radius: var(--border-radius) !important;
+    overflow-x: auto;
+    margin: 1rem 0 !important;
+    border: 1px solid var(--gray-200) !important;
+    font-size: 0.875rem !important;
+}
+
+.markdown-content pre code {
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit !important;
+}
+
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    background: var(--white);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.markdown-content th,
+.markdown-content td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.markdown-content th {
+    background: var(--gray-50);
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.markdown-content tr:hover {
+    background: var(--gray-50);
+}
+
+.markdown-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all var(--transition-fast);
+}
+
+.markdown-content a:hover {
+    border-bottom-color: var(--primary-color);
+}
+
+.markdown-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.markdown-content hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    margin: 2rem 0;
+}
+
+.markdown-content strong,
+.markdown-content b {
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.markdown-content em,
+.markdown-content i {
+    font-style: italic;
+    color: var(--gray-600);
+}
+
+.modern-card {
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-modern {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-modern:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.alert-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .col-xl-3, .col-lg-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .parameter-hierarchy {
+        font-size: 0.75rem;
+    }
+    
+    .modern-card .row .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-lg {
+        font-size: 0.95rem;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .card .card-body {
+        padding: 1rem;
+    }
+    
+    .input-group .form-control {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .modern-card-header {
+        padding: 1rem;
+    }
+    
+    .modern-card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+    }
+    
+    .btn-modern {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.85rem;
+    }
+    
+    .parameter-hierarchy .param-item {
+        padding: 3px 6px;
+        font-size: 0.7rem;
+    }
+    
+    #rulesPanel .row .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading states */
+.loading-state {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading-state .btn {
+    position: relative;
+}
+
+.loading-state .btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin: -0.5rem;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Configuration status */
+.config-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.config-status-indicator.configured {
+    background-color: #d1f2eb;
+    color: #0d7544;
+    border: 1px solid #7dd3c0;
+}
+
+.config-status-indicator.incomplete {
+    background-color: #fef9e7;
+    color: #856404;
+    border: 1px solid #ffe69c;
+}
+
+.config-status-indicator.not-configured {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Enhanced form styling */
+.enhanced-input-group {
+    position: relative;
+}
+
+.enhanced-input-group .form-control:focus + .input-group-text {
+    border-color: #80bdff;
+    color: #495057;
+}
+
+.form-validation-feedback {
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.form-validation-feedback.show {
+    display: block;
+}
+
+.form-validation-feedback.valid {
+    color: #28a745;
+}
+
+.form-validation-feedback.invalid {
+    color: #dc3545;
+}
+
+/* Progress indicator */
+.configuration-progress {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.progress-step:last-child {
+    margin-bottom: 0;
+}
+
+.progress-step .step-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    font-size: 0.75rem;
+}
+
+.progress-step.completed .step-icon {
+    background-color: #28a745;
+    color: white;
+}
+
+.progress-step.current .step-icon {
+    background-color: #007bff;
+    color: white;
+}
+
+.progress-step.pending .step-icon {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Tooltip enhancements */
+.tooltip-icon {
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.tooltip-icon:hover {
+    opacity: 1;
+}
+
 /* Responsive Design for Disk Usage */
 @media (max-width: 768px) {
     .disk-usage-container {
@@ -2514,6 +2951,94 @@ body,
 
 .dark-theme .connection-status {
     color: var(--gray-300);
+}
+
+/* Dark Theme Markdown Content */
+.dark-theme .markdown-content {
+    color: var(--gray-300);
+}
+
+.dark-theme .markdown-content h1,
+.dark-theme .markdown-content h2,
+.dark-theme .markdown-content h3,
+.dark-theme .markdown-content h4,
+.dark-theme .markdown-content h5,
+.dark-theme .markdown-content h6 {
+    color: var(--gray-100);
+}
+
+.dark-theme .markdown-content h1 {
+    border-bottom-color: var(--gray-600);
+}
+
+.dark-theme .markdown-content h2 {
+    border-bottom-color: var(--gray-600);
+}
+
+.dark-theme .markdown-content p {
+    color: var(--gray-300);
+}
+
+.dark-theme .markdown-content ul,
+.dark-theme .markdown-content ol {
+    color: var(--gray-300);
+}
+
+.dark-theme .markdown-content blockquote {
+    background: var(--gray-800);
+    border-left-color: var(--primary-color);
+}
+
+.dark-theme .markdown-content blockquote p {
+    color: var(--gray-400);
+}
+
+.dark-theme .markdown-content code {
+    background: var(--gray-800);
+    color: var(--warning-color);
+}
+
+.dark-theme .markdown-content pre {
+    background: var(--gray-800) !important;
+    color: var(--gray-100) !important;
+    border-color: var(--gray-600) !important;
+}
+
+.dark-theme .markdown-content table {
+    background: var(--gray-800);
+}
+
+.dark-theme .markdown-content th {
+    background: var(--gray-700);
+    color: var(--gray-100);
+}
+
+.dark-theme .markdown-content th,
+.dark-theme .markdown-content td {
+    border-bottom-color: var(--gray-600);
+    color: var(--gray-300);
+}
+
+.dark-theme .markdown-content tr:hover {
+    background: var(--gray-700);
+}
+
+.dark-theme .markdown-content a {
+    color: var(--info-color);
+}
+
+.dark-theme .markdown-content a:hover {
+    border-bottom-color: var(--info-color);
+}
+
+.dark-theme .markdown-content strong,
+.dark-theme .markdown-content b {
+    color: var(--gray-100);
+}
+
+.dark-theme .markdown-content em,
+.dark-theme .markdown-content i {
+    color: var(--gray-400);
 }
 
 /* Responsive Design for SNMP Monitoring */
