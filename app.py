@@ -1,10 +1,11 @@
 import os
 import json
+import markdown
 from flask import Flask, request, render_template, jsonify, Blueprint, session, flash, redirect, url_for, make_response
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from config import *
-from functions import *
+from helpers.ip_address_helper import get_ip_address, get_subnet_mask
 from api.core import register_blueprints, register_error_handlers
 from api.redisconnection import connection as red
 from auths import USERS, verify_password, record_successful_login, record_failed_attempt, is_user_locked, get_user_role, audit_access, get_menu_access, can_access_page
@@ -888,6 +889,51 @@ def setting_scc():
             'config_relay': data.get('handle_relay'),
         }
     return render_template('setting-scc.html', **context)
+
+@app.route('/api/scc-rules/<scc_type>', methods=['GET'])
+@login_required
+def get_scc_rules(scc_type):
+    """API endpoint to get SCC configuration rules as markdown HTML"""
+    try:
+        # Validate SCC type
+        if scc_type not in ['scc-srne', 'scc-epveper']:
+            return jsonify({'error': 'Invalid SCC type'}), 400
+        
+        # Build file path
+        rules_file = f'dist/rules-{scc_type}.md'
+        
+        # Check if file exists
+        if not os.path.exists(rules_file):
+            return jsonify({'error': 'Rules file not found'}), 404
+        
+        # Read the markdown file
+        with open(rules_file, 'r', encoding='utf-8') as file:
+            markdown_content = file.read()
+        
+        # Convert markdown to HTML with extensions
+        md = markdown.Markdown(extensions=[
+            'markdown.extensions.tables',
+            'markdown.extensions.fenced_code',
+            'markdown.extensions.codehilite',
+            'markdown.extensions.toc',
+            'markdown.extensions.nl2br'
+        ])
+        
+        html_content = md.convert(markdown_content)
+        
+        response_data = {
+            'scc_type': scc_type,
+            'title': f'Configuration Rules for {scc_type.replace("-", " ").title()}',
+            'content': html_content,
+            'raw_content': markdown_content,
+            'format': 'markdown'
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"get_scc_rules() error: {e}")
+        return jsonify({'error': 'Failed to load rules'}), 500
 
 
 @app.route('/login', methods=['GET', 'POST'])
