@@ -826,8 +826,13 @@
             
             // Update status
             if (lastLog.success) {
+                // remove class badge bg-secondary
+                statusElement.removeAttribute('class');
+                statusElement.classList.add('badge', 'bg-success');
                 statusElement.innerHTML = '<span class="badge bg-success"><i class="fas fa-check me-1"></i>Connected</span>';
             } else {
+                statusElement.removeAttribute('class');
+                statusElement.classList.add('badge', 'bg-danger');
                 statusElement.innerHTML = '<span class="badge bg-danger"><i class="fas fa-times me-1"></i>Error</span>';
             }
             
