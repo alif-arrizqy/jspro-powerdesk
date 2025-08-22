@@ -2,7 +2,7 @@ from jinja2 import Environment, FileSystemLoader
 import sys
 import os
 
-SRC_PATH = '/var/lib/sundaya/joulestore-web-app/templates/settingtemplates'
+SRC_PATH = '/var/lib/sundaya/jspro-powerdesk/templates/settingtemplates'
 DEST_PATH_DHCPCD = '/etc/dhcpcd.conf'
 DEST_PATH_SNMP = '/etc/snmp/snmpd.conf'
 

@@ -10,14 +10,14 @@ sudo apt-get install python3-setuptools
 sudo apt-get install nginx
 sudo apt-get install hostapd
 
-echo 'installing joulestore-web-app requirements'
-sudo pip3 install -r /var/lib/sundaya/joulestore-web-app/requirements.txt
+echo 'installing jspro-powerdesk requirements'
+sudo pip3 install -r /var/lib/sundaya/jspro-powerdesk/requirements.txt
 
 echo 'copy service'
-sudo cp /var/lib/sundaya/joulestore-web-app/dist/service/webapp.service /etc/systemd/system/
+sudo cp /var/lib/sundaya/jspro-powerdesk/dist/service/webapp.service /etc/systemd/system/
 
 echo 'copy nginx config'
-sudo cp /var/lib/sundaya/joulestore-web-app/dist/nginx/joulestore-webapp /etc/nginx/sites-available/
+sudo cp /var/lib/sundaya/jspro-powerdesk/dist/nginx/joulestore-webapp /etc/nginx/sites-available/
 
 echo 'create symlink'
 sudo ln -s /etc/nginx/sites-available/joulestore-webapp /etc/nginx/sites-enabled
@@ -34,10 +34,10 @@ sudo apt-get install -y dnsmasq
 sudo systemctl unmask hostapd
 # sudo systemctl enable hostapd
 sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
-sudo cp /var/lib/sundaya/joulestore-web-app/dist/dnsmasq.conf /etc/dnsmasq.conf
+sudo cp /var/lib/sundaya/jspro-powerdesk/dist/dnsmasq.conf /etc/dnsmasq.conf
 
 sudo rfkill unblock wlan
-sudo cp /var/lib/sundaya/joulestore-web-app/dist/hostapd.conf /etc/hostapd/hostapd.conf
+sudo cp /var/lib/sundaya/jspro-powerdesk/dist/hostapd.conf /etc/hostapd/hostapd.conf
 
 echo 'reboot....'
 sudo systemctl reboot
