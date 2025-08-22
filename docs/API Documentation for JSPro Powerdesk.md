@@ -1202,6 +1202,113 @@ CSV file download with columns: Timestamp, Disk Usage (%), Action, Status, Messa
 }
 ```
 
+### 16. I2C Communication Management
+
+#### 16.1. Get I2C Settings
+**Endpoint:** `GET /api/v1/power/i2c/settings`
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "interval_minutes": 2,
+        "address": "0x28",
+        "enabled": true,
+        "last_modified": "2025-08-22T10:30:00",
+        "modified_by": "admin"
+    }
+}
+```
+
+#### 16.2. Update I2C Settings
+**Endpoint:** `POST /api/v1/power/i2c/settings`
+
+**Request Body:**
+```json
+{
+    "user": "admin",
+    "password": "admin",
+    "settings": {
+        "interval_minutes": 5,
+        "address": "0x28",
+        "enabled": true
+    }
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "I2C settings updated successfully",
+    "data": {
+        "interval_minutes": 5,
+        "address": "0x28",
+        "enabled": true,
+        "last_modified": "2025-08-22T10:30:00",
+        "modified_by": "admin"
+    }
+}
+```
+
+#### 16.3. Test I2C Communication
+**Endpoint:** `POST /api/v1/power/i2c/test`
+
+**Request Body:**
+```json
+{
+    "address": "0x28",
+    "message": "H"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "address": "0x28",
+        "message_sent": "H",
+        "response": "OK",
+        "timestamp": "2025-08-22T10:30:00",
+        "status": "success"
+    }
+}
+```
+
+#### 16.4. Get I2C Communication Logs
+**Endpoint:** `GET /api/v1/power/i2c/logs`
+
+**Query Parameters:**
+- `limit` (optional): Maximum number of logs to return (default: 50)
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "logs": [
+            {
+                "timestamp": "2025-08-22T10:30:00",
+                "address": "0x28",
+                "message": "H",
+                "response": "OK",
+                "status": "success"
+            },
+            {
+                "timestamp": "2025-08-22T10:28:00",
+                "address": "0x28",
+                "message": "H",
+                "response": "TIMEOUT",
+                "status": "error"
+            }
+        ],
+        "total_logs": 2
+    }
+}
+```
+
 ### 15. Power Operation
 
 **Endpoint** `GET /api/v1/power/overview`
@@ -1379,6 +1486,47 @@ curl -X GET "http://your-domain/api/v1/power/auto-reboot-history/export?from=202
   -o "auto_reboot_history.csv"
 ```
 
+### Get I2C Settings
+```bash
+curl -X GET "http://your-domain/api/v1/power/i2c/settings" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token"
+```
+
+### Update I2C Settings
+```bash
+curl -X POST "http://your-domain/api/v1/power/i2c/settings" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "user": "admin",
+    "password": "admin",
+    "settings": {
+      "interval_minutes": 5,
+      "address": "0x28",
+      "enabled": true
+    }
+  }'
+```
+
+### Test I2C Communication
+```bash
+curl -X POST "http://your-domain/api/v1/power/i2c/test" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "address": "0x28",
+    "message": "H"
+  }'
+```
+
+### Get I2C Communication Logs
+```bash
+curl -X GET "http://your-domain/api/v1/power/i2c/logs?limit=50" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token"
+```
+
 ## Notes
 
 - All JSON responses are formatted with proper indentation for readability
@@ -1405,6 +1553,17 @@ curl -X GET "http://your-domain/api/v1/power/auto-reboot-history/export?from=202
 - CSV export functionality available for historical data
 - System uptime tracking included in overview
 - Power operations are logged with user attribution
+
+### I2C Communication API Notes
+- All I2C endpoints require authentication via Bearer token
+- Password validation is required for I2C settings updates
+- Valid user roles: apt, teknisi, admin
+- I2C address must be in hexadecimal format (e.g., "0x28")
+- Monitoring interval can be set between 1-60 minutes
+- I2C communication logs include timestamps and status
+- Test endpoint allows manual I2C communication testing
+- Settings are persistent across system reboots
+- Default I2C address: 0x28, default interval: 2 minutes
 
 ### Authentication Users
 - **apt**: Password from APT_PASSWORD environment variable (default: 'powerapt')
