@@ -319,11 +319,19 @@
             logFiles: ['scc_errors.log', 'scc_warnings.log', 'scc_all.log']
         },
         {
+            name: 'scc_logs.timer',
+            displayName: 'SCC Alarm Timer',
+            description: 'SCC Alarm logging timer',
+            category: 'hardware',
+            critical: true,
+            hasLogs: false
+        },
+        {
             name: 'store_data_5min.timer',
             displayName: 'Data Storage Timer',
             description: '5-minute data storage timer',
             category: 'data',
-            critical: false,
+            critical: true,
             hasLogs: false
         },
         {
@@ -338,6 +346,14 @@
             name: 'webapp.service',
             displayName: 'Web Application',
             description: 'JSPro PowerDesk web application service',
+            category: 'web',
+            critical: true,
+            hasLogs: false
+        },
+        {
+            name: 'nginx.service',
+            displayName: 'Nginx Web Server',
+            description: 'Nginx web server service',
             category: 'web',
             critical: true,
             hasLogs: false
