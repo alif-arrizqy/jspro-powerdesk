@@ -447,8 +447,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize dashboard with real API data
     initializeDashboardData();
     
-    // Set up periodic updates every 5 seconds
-    setInterval(initializeDashboardData, 5000);
+    // Set up periodic updates every 10 seconds for debugging
+    setInterval(initializeDashboardData, 10000);
+    
+    console.log('🚀 Dashboard initialized with debug logging enabled');
 });
 
 // Main dashboard data initialization
@@ -458,10 +460,19 @@ async function initializeDashboardData() {
         const [systemResources, deviceInfo, systemdStatus, sccData, batteryData] = await Promise.all([
             fetchAPIData('/api/v1/device/system-resources'),
             fetchAPIData('/api/v1/device/information'),
-            fetchAPIData('/api/v1/device/systemd-status'),
+            fetchAPIData('/api/v1/service/systemd/list'),
             fetchAPIData('/api/v1/monitoring/scc'),
             fetchAPIData('/api/v1/monitoring/battery/active')
         ]);
+
+        // Debug logging
+        console.log('API Responses:', {
+            systemResources: systemResources,
+            deviceInfo: deviceInfo,
+            systemdStatus: systemdStatus,
+            sccData: sccData,
+            batteryData: batteryData
+        });
 
         // Update UI with fetched data
         if (systemResources) updateSystemResources(systemResources);
@@ -516,7 +527,6 @@ async function fetchAPIData(endpoint) {
 function updateSystemResources(data) {
     if (!data || data.status_code !== 200) {
         console.warn('Invalid system resources data received');
-        console.warn('Data:', data);
         return;
     }
 
@@ -602,36 +612,28 @@ function updateStatusIndicator(elementId, status) {
 
 // Update service status data
 function updateServiceStatus(data) {
-    if (!data || data.status_code !== 200) {
-        console.warn('Invalid service status data received');
+    console.log('updateServiceStatus called with data:', data);
+    
+    if (!data || data.status !== 'success') {
+        console.warn('Invalid service status data received:', data);
         return;
     }
-
+    
     const services = data.data;
+    console.log('Service data:', services);
     
-    // Update each service status
-    const serviceMapping = {
-        'redis.service': 'redis-status',
-        'mqtt_publish.service': 'mqtt-status', 
-        'snmp_handler.service': 'snmp-status'
-    };
-    
-    Object.keys(serviceMapping).forEach(serviceName => {
-        const elementId = serviceMapping[serviceName];
-        const statusElement = document.getElementById(elementId);
-        
-        if (statusElement && services.services_status[serviceName]) {
-            const status = services.services_status[serviceName].toLowerCase();
-            updateStatusIndicator(elementId, status);
-        }
-    });
-
     // Update system uptime
     const uptimeElement = document.getElementById('system-uptime');
-    if (uptimeElement && services.system_uptime) {
+    console.log('Uptime element found:', !!uptimeElement);
+    console.log('System uptime from API:', services.system_uptime);
+    
+    if (uptimeElement) {
         const uptime = services.system_uptime || 'N/A';
         uptimeElement.textContent = uptime;
         uptimeElement.className = 'stats-card-value';
+        console.log('System uptime updated to:', uptime);
+    } else {
+        console.error('System uptime element not found in DOM');
     }
 }
 
