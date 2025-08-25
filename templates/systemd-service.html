@@ -265,57 +265,13 @@
 {% block scripts %}
 <script>
     const currentUser = "{{ username }}";
-    const API_BASE_URL = '/api/v1/device';
+    const API_BASE_URL = '/api/v1/service';
+    const SYSTEMD_API_URL = '/api/v1/service/systemd';
     
     let serviceActionData = {};
     let logRefreshInterval = null;
     
-    // Debug function
-    window.debugSystemdAPI = async function() {
-        const userToken = '{{ session.get("auth_token", "") }}';
-        console.log('=== DEBUG SYSTEMD API ===');
-        console.log('API URL:', API_BASE_URL);
-        console.log('User Token:', userToken);
-        console.log('Current User:', currentUser);
-        
-        try {
-            const testPayload = {
-                service: 'webapp.service',
-                action: 'status'
-            };
-            
-            console.log('Test Payload:', testPayload);
-            
-            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(testPayload),
-                credentials: 'same-origin'
-            });
-            
-            console.log('Response Status:', response.status);
-            console.log('Response Headers:', [...response.headers.entries()]);
-            
-            const responseText = await response.text();
-            console.log('Raw Response:', responseText);
-            
-            try {
-                const jsonResponse = JSON.parse(responseText);
-                console.log('Parsed JSON:', jsonResponse);
-            } catch (parseError) {
-                console.error('JSON Parse Error:', parseError);
-            }
-            
-        } catch (error) {
-            console.error('Request Error:', error);
-        }
-        
-        console.log('=== END DEBUG ===');
-    };
+
     
     // List of services to monitor
     const services = [
@@ -402,36 +358,27 @@
         const userToken = '{{ session.get("auth_token", "") }}';
 
         try {
-            console.log('Getting services overview...');
-            
-            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+            const response = await fetch(`${SYSTEMD_API_URL}/list`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${userToken}`,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
+                    'Content-Type': 'application/json'
+                }
             });
             
-            console.log('Overview response status:', response.status);
-            
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('HTTP error for overview:', response.status, errorText);
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
-            console.log('Overview result:', result);
             
-            if (result.status === 'success' && result.data) {
+            if (result.status === 'success') {
                 return result.data;
             } else {
-                console.warn('Invalid response for overview:', result);
-                throw new Error('Invalid response format');
+                throw new Error(result.message || 'Failed to get services overview');
             }
         } catch (error) {
-            console.error('Failed to get services overview:', error);
+            console.error('Error getting services overview:', error);
             throw error;
         }
     }
@@ -441,62 +388,32 @@
         const userToken = '{{ session.get("auth_token", "") }}';
 
         try {
-            console.log(`Getting status for service: ${serviceName}`);
-            
-            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+            const response = await fetch(`${SYSTEMD_API_URL}/action`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'Authorization': `Bearer ${userToken}`
                 },
                 body: JSON.stringify({
                     service: serviceName,
                     action: 'status'
-                }),
-                credentials: 'same-origin'
+                })
             });
             
-            console.log(`Response status for ${serviceName}:`, response.status);
-            
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`HTTP error for ${serviceName}:`, response.status, errorText);
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
-            console.log(`Result for ${serviceName}:`, result);
             
-            if (result.success && result.data) {
-                return {
-                    status: result.data.status || 'unknown',
-                    enabled: result.data.enabled || false,
-                    active: result.data.active || false,
-                    running: result.data.running || false,
-                    output: result.data.output || '',
-                    error: result.data.error || '',
-                    debug: result.data.debug || null
-                };
+            if (result.status === 'success') {
+                return result.data;
             } else {
-                console.warn(`Invalid response for ${serviceName}:`, result);
-                return { 
-                    status: 'unknown', 
-                    enabled: false, 
-                    active: false, 
-                    running: false,
-                    error: result.error || 'Invalid response format' 
-                };
+                throw new Error(result.message || 'Failed to get service status');
             }
         } catch (error) {
-            console.error(`Failed to get status for ${serviceName}:`, error);
-            return { 
-                status: 'unknown', 
-                enabled: false, 
-                active: false, 
-                running: false,
-                error: error.message 
-            };
+            console.error('Error getting service status:', error);
+            throw error;
         }
     }
     
@@ -550,15 +467,6 @@
         const isActive = statusData.status === 'active' && statusData.running;
         const isEnabled = statusData.enabled;
         const isCritical = service.critical;
-        
-        // Debug logging
-        console.log(`Rendering card for ${service.name}:`, {
-            status: statusData.status,
-            active: statusData.active,
-            running: statusData.running,
-            enabled: statusData.enabled,
-            isActive: isActive
-        });
         
         return `
             <div class="col-lg-6 col-xl-4">
@@ -626,8 +534,6 @@
         const container = document.getElementById('services-container');
         const refreshBtn = document.getElementById('refresh-all-btn');
         
-        console.log('Loading all services using overview...');
-        
         if (refreshBtn) {
             refreshBtn.disabled = true;
             refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
@@ -638,11 +544,9 @@
         try {
             // Get overview data first
             const overviewData = await getServicesOverview();
-            console.log('Overview data received:', overviewData);
             
             if (overviewData.services_status) {
                 const servicesStatus = overviewData.services_status;
-                console.log('Services status from overview:', servicesStatus);
                 
                 let activeCount = 0;
                 let inactiveCount = 0;
@@ -655,8 +559,6 @@
                 services.forEach(service => {
                     const serviceName = service.name;
                     const status = servicesStatus[serviceName];
-                    
-                    console.log(`Processing service: ${serviceName}, overview status: ${status}`);
                     
                     // Map overview status to service data format
                     const serviceData = {
@@ -685,15 +587,11 @@
                 
                 updateLastUpdate();
                 
-                console.log(`Services loaded: ${successCount}/${services.length} from overview`);
-                
             } else {
-                console.warn('No services_status in overview data');
                 throw new Error('No services data found in overview response');
             }
             
         } catch (error) {
-            console.error('Failed to load services:', error);
             container.innerHTML = `
                 <div class="col-12">
                     <div class="alert alert-danger" role="alert">
@@ -811,34 +709,41 @@
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
         
         try {
-            console.log(`Executing ${serviceActionData.action} on ${serviceActionData.serviceName}`);
-            
-            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
+            const response = await fetch(`${SYSTEMD_API_URL}/action`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'Authorization': `Bearer ${userToken}`
                 },
                 body: JSON.stringify({
                     service: serviceActionData.serviceName,
                     action: serviceActionData.action,
                     password: password,
                     user: currentUser
-                }),
-                credentials: 'same-origin'
+                })
             });
-            
-            console.log('Service action response status:', response.status);
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Show success message
+                alert(`Service ${serviceActionData.action} executed successfully!`);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('serviceActionModal'));
+                modal.hide();
+                
+                // Refresh services list
+                await loadAllServices();
+            } else {
+                throw new Error(result.message || 'Action failed');
+            }
             
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Service action error:', response.status, errorText);
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
             
-            const result = await response.json();
-            console.log('Service action result:', result);
             
             // Close modal
             bootstrap.Modal.getInstance(document.getElementById('serviceActionModal')).hide();
@@ -859,8 +764,6 @@
             }, 2000);
             
         } catch (error) {
-            console.error('Service action failed:', error);
-            
             if (window.powerDeskApp && window.powerDeskApp.showNotification) {
                 window.powerDeskApp.showNotification(
                     `Service ${serviceActionData.action} failed: ${error.message}`, 
@@ -929,36 +832,50 @@
         if (!serviceName || !logFile) return;
         
         try {
-            console.log(`Refreshing logs for ${serviceName} - ${logFile}`);
+            let response;
             
-            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    service: serviceName,
-                    action: 'logs',
-                    log_file: logFile
-                }),
-                credentials: 'same-origin'
-            });
-            
-            console.log('Log response status:', response.status);
+            // Check if this is an MQTT service log
+            if (serviceName === 'mqtt_publish.service') {
+                // Use MQTT service API for MQTT logs
+                const logType = logFile.includes('error') ? 'error' : 
+                             logFile.includes('warning') ? 'warning' : 'all';
+                
+                response = await fetch(`${API_BASE_URL}/mqtt/logs?log_type=${logType}&lines=100`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } else {
+                // Use systemd action API for other service logs
+                response = await fetch(`${SYSTEMD_API_URL}/action`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        service: serviceName,
+                        action: 'logs',
+                        log_file: logFile
+                    })
+                });
+            }
             
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Log fetch error:', response.status, errorText);
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
-            console.log('Log result:', result);
             
-            if (result.success && result.data && result.data.logs) {
-                content.innerHTML = `<pre style="color: #ffffff; margin: 0; white-space: pre-wrap;">${result.data.logs}</pre>`;
+            if (result.status === 'success' && result.data) {
+                const logs = result.data.logs || result.data.content || '';
+                if (Array.isArray(logs)) {
+                    content.innerHTML = `<pre style="color: #ffffff; margin: 0; white-space: pre-wrap;">${logs.join('\n')}</pre>`;
+                } else {
+                    content.innerHTML = `<pre style="color: #ffffff; margin: 0; white-space: pre-wrap;">${logs}</pre>`;
+                }
                 // Auto-scroll to bottom
                 content.scrollTop = content.scrollHeight;
             } else {
@@ -966,7 +883,6 @@
             }
             
         } catch (error) {
-            console.error('Failed to load logs:', error);
             content.innerHTML = `<div class="text-center text-danger">Failed to load logs: ${error.message}</div>`;
         }
     }
@@ -987,42 +903,74 @@
         if (!serviceName || !logFile) return;
         
         try {
-            const response = await fetch(`${API_BASE_URL}/systemd-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                },
-                body: JSON.stringify({
-                    service: serviceName,
-                    action: 'download_logs',
-                    log_file: logFile
-                })
-            });
+            let url;
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.data && result.data.logs) {
-                // Create downloadable file
-                const blob = new Blob([result.data.logs], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+            // Check if this is an MQTT service log
+            if (serviceName === 'mqtt_publish.service') {
+                // Use MQTT service API for MQTT logs
+                const logType = logFile.includes('error') ? 'error' : logFile.includes('warning') ? 'warning' : 'all';
+                url = `${API_BASE_URL}/mqtt/logs/download?log_type=${logType}`;
             } else {
-                throw new Error('No log data received');
+                // Use systemd action API for other service logs  
+                const response = await fetch(`${SYSTEMD_API_URL}/action`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({
+                        service: serviceName,
+                        action: 'download_logs',
+                        log_file: logFile
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data && result.data.logs) {
+                    // Create downloadable file
+                    const blob = new Blob([result.data.logs], { type: 'text/plain' });
+                    url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    throw new Error('No log data available');
+                }
+                return;
             }
+            
+            // For MQTT logs, direct download
+            const a = document.createElement('a');
+            a.href = `${url}`;
+            a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
+            a.style.display = 'none';
+            
+            // Add authorization header for download
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${userToken}`
+                }
+            }).then(response => response.blob())
+              .then(blob => {
+                  const downloadUrl = URL.createObjectURL(blob);
+                  a.href = downloadUrl;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(downloadUrl);
+                  document.body.removeChild(a);
+              });
+                document.body.removeChild(a);
             
         } catch (error) {
-            console.error('Failed to download logs:', error);
             alert('Failed to download logs: ' + error.message);
         }
     }
@@ -1055,29 +1003,19 @@
         const userToken = '{{ session.get("auth_token", "") }}';
         const userRole = '{{ user_role }}';
 
-        console.log('Systemd Service Management page initialized');
-        console.log('User token present:', userToken ? 'Yes' : 'No');
-        console.log('User role:', userRole);
-        console.log('Current user:', currentUser);
-        console.log('API Base URL:', API_BASE_URL);
-        console.log('Services to monitor:', services.length);
-
         // Initial load
         loadAllServices();
         
         // Auto-refresh services every 30 seconds
         setInterval(() => {
-            console.log('Auto-refreshing services...');
             loadAllServices();
         }, 30000);
         
         // Handle auto-refresh logs
         document.getElementById('auto-refresh-logs').addEventListener('change', function() {
             if (this.checked) {
-                console.log('Starting auto-refresh for logs');
                 logRefreshInterval = setInterval(refreshServiceLogs, 5000);
             } else {
-                console.log('Stopping auto-refresh for logs');
                 if (logRefreshInterval) {
                     clearInterval(logRefreshInterval);
                     logRefreshInterval = null;
@@ -1087,7 +1025,6 @@
         
         // Clean up intervals when modal is hidden
         document.getElementById('serviceLogModal').addEventListener('hidden.bs.modal', function() {
-            console.log('Log modal hidden, cleaning up intervals');
             if (logRefreshInterval) {
                 clearInterval(logRefreshInterval);
                 logRefreshInterval = null;
