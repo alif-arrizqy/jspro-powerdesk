@@ -72,7 +72,7 @@
                                 </div>
                             </div>
                             <h4 class="stats-card-value" id="last-activity">--:--</h4>
-                            <p class="stats-card-subtitle">Last Publish</p>
+                            <p class="stats-card-subtitle">Last Record</p>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -98,6 +98,41 @@
     </div>
 </div>
 
+<!-- MQTT Data Monitoring Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    MQTT Data Monitoring
+                    <span class="badge bg-info ms-2" id="data-status-badge">Loading...</span>
+                </h5>
+                <div class="header-actions">
+                    <button class="btn btn-modern btn-outline-primary btn-sm" onclick="refreshMqttData()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        Refresh Data
+                    </button>
+                    <div class="form-check form-switch ms-2">
+                        <input class="form-check-input" type="checkbox" id="auto-refresh-data" checked>
+                        <label class="form-check-label" for="auto-refresh-data">Auto Refresh</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modern-card-body">
+                <div id="mqtt-data-container" class="row g-3">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading MQTT data...</span>
+                        </div>
+                        <p class="text-muted mt-2">Loading MQTT monitoring data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Main Content Row -->
 <div class="row">
     <!-- MQTT Monitor Panel -->
@@ -107,6 +142,7 @@
                 <h5 class="modern-card-title">
                     <i class="fas fa-monitor text-primary me-2"></i>
                     MQTT Publish Monitor
+                    <span class="badge bg-secondary ms-2" id="log-type-badge">Service Logs</span>
                 </h5>
                 <div class="header-actions">
                     <button class="btn btn-modern btn-outline-primary btn-sm" id="clear-log" onclick="clearLog()">
@@ -123,41 +159,85 @@
                 <div class="mqtt-monitor">
                     <div class="monitor-header">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-1">
+                                <small class="text-muted">#</small>
+                            </div>
+                            <div class="col-md-2">
                                 <small class="text-muted">Timestamp</small>
                             </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Topic</small>
+                            <div class="col-md-1">
+                                <small class="text-muted">Level</small>
                             </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Status</small>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Message Size</small>
+                            <div class="col-md-8">
+                                <small class="text-muted">Log Message</small>
                             </div>
                         </div>
                     </div>
                     <div class="monitor-log" id="mqtt-log">
-                        <div class="log-entry">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <span class="timestamp">{{ current_time }}</span>
-                                </div>
-                                <div class="col-md-3">
-                                    <span class="topic">system/status</span>
-                                </div>
-                                <div class="col-md-3">
-                                    <span class="status status-success">
-                                        <i class="fas fa-check-circle me-1"></i>
-                                        Published
-                                    </span>
-                                </div>
-                                <div class="col-md-3">
-                                    <span class="message-size">245 bytes</span>
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-spinner fa-spin me-2"></i>
+                            Loading MQTT service logs...
+                        </div>
+                    </div>
+                    <div class="log-controls mt-3">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="log-type" class="form-label">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    Log Type
+                                </label>
+                                <select class="form-select form-select-sm" id="log-type" onchange="refreshMqttLogs()">
+                                    <option value="systemd">System Service Logs</option>
+                                    <option value="mqtt_all.log" selected>All MQTT Logs</option>
+                                    <option value="mqtt_errors.log">Error Logs Only</option>
+                                    <option value="mqtt_warnings.log">Warning Logs Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="log-lines" class="form-label">
+                                    <i class="fas fa-list-ol me-1"></i>
+                                    Show Lines
+                                </label>
+                                <select class="form-select form-select-sm" id="log-lines" onchange="refreshMqttLogs()">
+                                    <option value="5" selected>Latest 10 lines</option>
+                                    <option value="10">Latest 20 lines</option>
+                                    <option value="50">Latest 50 lines</option>
+                                    <option value="100">Latest 100 lines</option>
+                                    <option value="200">Latest 200 lines</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="refreshMqttLogs()">
+                                        <i class="fas fa-sync-alt me-1"></i>
+                                        Refresh
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm flex-fill" onclick="downloadLogs()">
+                                        <i class="fas fa-download me-1"></i>
+                                        Download
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <!-- More log entries will be added here dynamically -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="auto-refresh-logs" checked>
+                                    <label class="form-check-label" for="auto-refresh-logs">
+                                        Auto-refresh logs (every 5 seconds)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="reverse-order" checked>
+                                    <label class="form-check-label" for="reverse-order">
+                                        Show newest first
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -328,20 +408,41 @@
     </div>
 </div>
 
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1">
+<!-- Service Action Modal -->
+<div class="modal fade" id="serviceActionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cog me-2"></i>Restart MQTT Service
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p id="confirmMessage">Are you sure you want to restart the MQTT service?</p>
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This will restart the MQTT publish service. This action may briefly interrupt message publishing.
+                </div>
+                <div class="mb-3">
+                    <label for="action-password" class="form-label">
+                        <i class="fas fa-lock me-2"></i>
+                        Password
+                    </label>
+                    <input type="password" class="form-control" id="action-password" placeholder="Enter your password" required>
+                    <div class="invalid-feedback" id="action-password-error"></div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="action-confirm">
+                    <label class="form-check-label" for="action-confirm">
+                        I understand the consequences of this action
+                    </label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" id="confirmAction">Restart Service</button>
+                <button type="button" class="btn btn-warning" id="confirm-action-btn" onclick="executeServiceRestart();">
+                    <i class="fas fa-redo me-2"></i>Restart Service
+                </button>
             </div>
         </div>
     </div>
@@ -350,225 +451,928 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-scroll functionality
+    // Global variables for MQTT monitoring
+    const currentUser = "{{ username }}";
+    const API_BASE_URL = '/api/v1/service';
+    const SYSTEMD_API_URL = `${API_BASE_URL}/systemd`;
+    const MQTT_API_URL = `${API_BASE_URL}/mqtt`;
+    let autoRefreshInterval = null;
+    let autoRefreshDataInterval = null;
     let autoScroll = true;
-    let logContainer = document.getElementById('mqtt-log');
-    
-    // Set default dates
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    document.getElementById('start-date').value = yesterday.toISOString().split('T')[0];
-    document.getElementById('end-date').value = today.toISOString().split('T')[0];
-    
-    // Update current time display
-    updateCurrentTime();
-    setInterval(updateCurrentTime, 1000);
-    
-    // Simulate MQTT activity
-    startMqttMonitoring();
-    
-    // Initialize modal
-    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    
-    // Form validation
-    document.getElementById('upload-form').addEventListener('submit', function(e) {
-        const startDate = new Date(document.getElementById('start-date').value);
-        const endDate = new Date(document.getElementById('end-date').value);
+
+    document.addEventListener('DOMContentLoaded', function() {
         
-        if (startDate > endDate) {
-            e.preventDefault();
-            showAlert('Start date cannot be later than end date', 'danger');
-        }
-    });
-});
-
-function updateCurrentTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString();
-    document.getElementById('last-activity').textContent = timeString;
-}
-
-function startMqttMonitoring() {
-    // Simulate MQTT publish events
-    const topics = ['data/scc', 'data/battery', 'system/heartbeat', 'alarm/scc', 'status/device'];
-    let messageCount = 0;
-    
-    setInterval(() => {
-        if (Math.random() > 0.3) { // 70% chance of activity
-            const topic = topics[Math.floor(Math.random() * topics.length)];
-            const status = Math.random() > 0.1 ? 'success' : 'error';
-            const size = Math.floor(Math.random() * 1000) + 100;
+        // Set default dates
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        document.getElementById('start-date').value = yesterday.toISOString().split('T')[0];
+        document.getElementById('end-date').value = today.toISOString().split('T')[0];
+        
+        // Initialize MQTT monitoring
+        initializeMqttMonitoring();
+        
+        // Initialize MQTT data monitoring
+        initializeMqttDataMonitoring();
+        
+        // Form validation
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            const startDate = new Date(document.getElementById('start-date').value);
+            const endDate = new Date(document.getElementById('end-date').value);
             
-            addLogEntry(topic, status, size);
-            messageCount++;
-            document.getElementById('message-count').textContent = messageCount;
-        }
-    }, 2000);
-}
-
-function addLogEntry(topic, status, size) {
-    const logContainer = document.getElementById('mqtt-log');
-    const timestamp = new Date().toLocaleTimeString();
-    
-    const logEntry = document.createElement('div');
-    logEntry.className = 'log-entry';
-    
-    const statusClass = status === 'success' ? 'status-success' : 'status-error';
-    const statusIcon = status === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-    const statusText = status === 'success' ? 'Published' : 'Failed';
-    
-    logEntry.innerHTML = `
-        <div class="row">
-            <div class="col-md-3">
-                <span class="timestamp">${timestamp}</span>
-            </div>
-            <div class="col-md-3">
-                <span class="topic">${topic}</span>
-            </div>
-            <div class="col-md-3">
-                <span class="status ${statusClass}">
-                    <i class="fas ${statusIcon} me-1"></i>
-                    ${statusText}
-                </span>
-            </div>
-            <div class="col-md-3">
-                <span class="message-size">${size} bytes</span>
-            </div>
-        </div>
-    `;
-    
-    logContainer.appendChild(logEntry);
-    
-    // Auto-scroll to bottom
-    if (autoScroll) {
-        logContainer.scrollTop = logContainer.scrollHeight;
-    }
-    
-    // Keep only last 50 entries
-    const entries = logContainer.querySelectorAll('.log-entry');
-    if (entries.length > 50) {
-        entries[0].remove();
-    }
-}
-
-function clearLog() {
-    const logContainer = document.getElementById('mqtt-log');
-    logContainer.innerHTML = '';
-    showAlert('Log cleared successfully', 'success');
-}
-
-function toggleAutoScroll() {
-    autoScroll = !autoScroll;
-    const button = document.getElementById('auto-scroll');
-    
-    if (autoScroll) {
-        button.innerHTML = '<i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll';
-        button.classList.remove('btn-outline-secondary');
-        button.classList.add('btn-outline-primary');
-    } else {
-        button.innerHTML = '<i class="fas fa-pause me-1"></i> Scroll Off';
-        button.classList.remove('btn-outline-primary');
-        button.classList.add('btn-outline-secondary');
-    }
-}
-
-function restartMqttService() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
-    document.getElementById('confirmMessage').textContent = 'Are you sure you want to restart the MQTT service? This will briefly interrupt message publishing.';
-    
-    document.getElementById('confirmAction').onclick = function() {
-        const button = document.getElementById('restart-service');
-        const originalText = button.innerHTML;
+            if (startDate > endDate) {
+                e.preventDefault();
+                showAlert('Start date cannot be later than end date', 'danger');
+            }
+        });
         
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Restarting...';
+        // Auto-refresh logs toggle
+        document.getElementById('auto-refresh-logs').addEventListener('change', function() {
+            if (this.checked) {
+                autoRefreshInterval = setInterval(refreshMqttLogs, 5000);
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        });
+        
+        // Reverse order toggle
+        document.getElementById('reverse-order').addEventListener('change', function() {
+            refreshMqttLogs(); // Refresh to apply new order
+        });
+        
+        // Log type change
+        document.getElementById('log-type').addEventListener('change', function() {
+            updateLogInfo(0); // Update badge immediately
+            refreshMqttLogs(); // Refresh logs to show new type
+        });
+        
+        // Initialize badge with default log type
+        updateLogInfo(0);
+    });
+
+    async function initializeMqttMonitoring() {
+        // Get initial service status
+        await updateServiceStatus();
+        
+        // Load initial logs
+        await refreshMqttLogs();
+        
+        // Start auto-refresh if enabled
+        if (document.getElementById('auto-refresh-logs').checked) {
+            autoRefreshInterval = setInterval(refreshMqttLogs, 5000);
+        }
+    }
+
+    async function initializeMqttDataMonitoring() {
+        // Load initial MQTT data
+        await refreshMqttData();
+        
+        // Start auto-refresh if enabled
+        if (document.getElementById('auto-refresh-data').checked) {
+            autoRefreshDataInterval = setInterval(refreshMqttData, 10000); // Every 10 seconds
+        }
+    }
+
+    function startAutoRefreshData() {
+        if (autoRefreshDataInterval) {
+            clearInterval(autoRefreshDataInterval);
+        }
+        autoRefreshDataInterval = setInterval(refreshMqttData, 10000);
+    }
+
+    function stopAutoRefreshData() {
+        if (autoRefreshDataInterval) {
+            clearInterval(autoRefreshDataInterval);
+            autoRefreshDataInterval = null;
+        }
+    }
+
+    async function updateServiceStatus() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+
+        try {
+            const response = await fetch(`${SYSTEMD_API_URL}/list`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.data && result.data.services_status) {
+                const mqttStatus = result.data.services_status['mqtt_publish.service'];
+                updateServiceStatusDisplay(mqttStatus);
+            }
+        } catch (error) {
+            console.error('Failed to get service status:', error);
+            updateServiceStatusDisplay('unknown');
+        }
+    }
+
+    function updateServiceStatusDisplay(status) {
+        const statusElement = document.getElementById('service-status');
+        const statusClasses = ['active', 'inactive', 'failed'];
+        
+        // Remove all status classes
+        statusClasses.forEach(cls => statusElement.classList.remove(cls));
+        
+        if (status === 'active') {
+            statusElement.textContent = 'Running';
+            statusElement.classList.add('active');
+        } else if (status === 'inactive') {
+            statusElement.textContent = 'Stopped';
+            statusElement.classList.add('inactive');
+        } else if (status === 'failed') {
+            statusElement.textContent = 'Failed';
+            statusElement.classList.add('failed');
+        } else {
+            statusElement.textContent = 'Unknown';
+            statusElement.classList.add('inactive');
+        }
+    }
+
+    async function refreshMqttLogs() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        const logType = document.getElementById('log-type').value;
+        const logLines = parseInt(document.getElementById('log-lines').value);
+        const reverseOrder = document.getElementById('reverse-order').checked;
+
+        try {
+            let requestUrl, requestMethod = 'GET';
+            
+            // Determine request based on log type
+            if (logType === 'systemd') {
+                // Use systemd logs endpoint
+                requestUrl = `${SYSTEMD_API_URL}/action`;
+                requestMethod = 'POST';
+                var requestBody = {
+                    service: 'mqtt_publish.service',
+                    action: 'logs',
+                    lines: logLines
+                };
+            } else {
+                // Use MQTT file logs endpoint
+                requestUrl = `${MQTT_API_URL}/logs`;
+                const params = new URLSearchParams({
+                    log_type: logType,
+                    lines: logLines,
+                    reverse: reverseOrder
+                });
+                requestUrl += '?' + params.toString();
+            }
+
+            let fetchOptions = {
+                method: requestMethod,
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            };
+
+            if (requestMethod === 'POST') {
+                fetchOptions.headers['Content-Type'] = 'application/json';
+                fetchOptions.body = JSON.stringify(requestBody);
+            }
+
+            const response = await fetch(requestUrl, fetchOptions);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.data && result.data.logs) {
+                displayMqttLogs(result.data.logs);
+            } else {
+                console.warn('No logs received or unexpected format:', result);
+                const logContainer = document.getElementById('mqtt-log');
+                logContainer.innerHTML = `
+                    <div class="text-center text-muted p-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No logs available for ${logType === 'systemd' ? 'service' : logType}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Failed to refresh MQTT logs:', error);
+            const logContainer = document.getElementById('mqtt-log');
+            logContainer.innerHTML = `
+                <div class="text-center text-danger p-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to load logs: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function displayMqttLogs(logs) {
+        const logContainer = document.getElementById('mqtt-log');
+        const reverseOrder = document.getElementById('reverse-order').checked;
+        const logType = document.getElementById('log-type').value; // Get current log type
+        
+        // Handle different log data formats
+        let logLines = [];
+        
+        if (!logs) {
+            logContainer.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No logs available
+                </div>
+            `;
+            return;
+        }
+        
+        // Convert logs to array if it's a string
+        if (typeof logs === 'string') {
+            logLines = logs.split('\n').filter(line => line.trim() !== '');
+        } else if (Array.isArray(logs)) {
+            logLines = logs;
+        } else {
+            console.error('Unexpected logs format:', typeof logs, logs);
+            logContainer.innerHTML = `
+                <div class="text-center text-danger p-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Invalid logs format received
+                </div>
+            `;
+            return;
+        }
+        
+        if (logLines.length === 0) {
+            logContainer.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No logs available
+                </div>
+            `;
+            return;
+        }
+        
+        // Note: For MQTT logs, API already handles reverse order, so we don't reverse again
+        // Apply reverse order only for systemd logs (which don't use reverse parameter in API)
+        if (reverseOrder && logType === 'systemd') {
+            logLines = logLines.reverse();
+        }
+        
+        logContainer.innerHTML = '';
+        
+        logLines.forEach((logLine, index) => {
+            if (logLine.trim()) { // Skip empty lines
+                const logEntry = createLogEntry(logLine, index);
+                logContainer.appendChild(logEntry);
+            }
+        });
+        
+        // Auto-scroll to bottom (or top if reversed)
+        if (autoScroll) {
+            if (reverseOrder) {
+                logContainer.scrollTop = 0;
+            } else {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+        
+        // Update log info
+        updateLogInfo(logLines.length);
+    }
+
+    function createLogEntry(logLine, index) {
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        
+        // Parse log line to extract timestamp, level, and message
+        const parsed = parseLogLine(logLine);
+        
+        // Add line number if provided
+        const lineNumber = index !== undefined ? `#${index + 1}` : '';
+        
+        logEntry.innerHTML = `
+            <div class="row">
+                <div class="col-md-1">
+                    <span class="line-number">${lineNumber}</span>
+                </div>
+                <div class="col-md-2">
+                    <span class="timestamp">${parsed.timestamp}</span>
+                </div>
+                <div class="col-md-1">
+                    <span class="log-level ${getLogLevelClass(parsed.level)}">${parsed.level}</span>
+                </div>
+                <div class="col-md-8">
+                    <span class="log-message">${parsed.message}</span>
+                </div>
+            </div>
+        `;
+        
+        return logEntry;
+    }
+
+    function parseLogLine(logLine) {
+        // Try to parse different log formats
+        
+        // MQTT log format: "2025-08-22 23:25:26 | SUCCESS  | MQTT | Data published successfully..."
+        const mqttLogRegex = /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s*\|\s*([A-Z]+)\s*\|\s*MQTT\s*\|\s*(.+)/;
+        
+        // Standard systemd log format: "Jan 01 12:34:56 hostname service[pid]: message"
+        const systemdRegex = /^(\w+\s+\d+\s+\d+:\d+:\d+)/;
+        
+        // Application log format: "2024-01-01 12:34:56 [LEVEL] message"
+        const appLogRegex = /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s*\[([A-Z]+)\]\s*(.+)/;
+        
+        // Python logging format: "2024-01-01 12:34:56,123 - LEVEL - message"
+        const pythonLogRegex = /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}[,\d]*)\s*-\s*([A-Z]+)\s*-\s*(.+)/;
+        
+        // Generic level detection
+        const levelRegex = /\b(INFO|DEBUG|WARNING|ERROR|CRITICAL|WARN|ERR|SUCCESS)\b/i;
+        
+        let timestamp = 'N/A';
+        let level = 'INFO';
+        let message = logLine;
+        
+        // Try MQTT log format first (most specific)
+        const mqttMatch = logLine.match(mqttLogRegex);
+        if (mqttMatch) {
+            timestamp = mqttMatch[1];
+            level = mqttMatch[2].toUpperCase();
+            message = mqttMatch[3];
+            // Map SUCCESS to INFO for display
+            if (level === 'SUCCESS') level = 'INFO';
+            console.log('MQTT log parsed:', { timestamp, level, message }); // Debug
+            return { timestamp, level, message };
+        }
+        
+        // Try application log format
+        const appMatch = logLine.match(appLogRegex);
+        if (appMatch) {
+            timestamp = appMatch[1];
+            level = appMatch[2].toUpperCase();
+            message = appMatch[3];
+            return { timestamp, level, message };
+        }
+        
+        // Try Python log format
+        const pythonMatch = logLine.match(pythonLogRegex);
+        if (pythonMatch) {
+            timestamp = pythonMatch[1].split(',')[0]; // Remove milliseconds
+            level = pythonMatch[2].toUpperCase();
+            message = pythonMatch[3];
+            return { timestamp, level, message };
+        }
+        
+        // Try systemd format
+        const systemdMatch = logLine.match(systemdRegex);
+        if (systemdMatch) {
+            timestamp = systemdMatch[1];
+            message = logLine.replace(systemdMatch[0], '').trim();
+        }
+        
+        // Extract level from anywhere in the line
+        const levelMatch = logLine.match(levelRegex);
+        if (levelMatch) {
+            level = levelMatch[1].toUpperCase();
+            // Normalize level names
+            if (level === 'WARN') level = 'WARNING';
+            if (level === 'ERR') level = 'ERROR';
+            if (level === 'SUCCESS') level = 'INFO'; // Map SUCCESS to INFO for display
+        }
+        
+        // Clean up message
+        message = message.replace(/^\s*\w+\s*\[\d+\]:\s*/, ''); // Remove service[pid]: prefix
+        message = message.replace(/\[(INFO|DEBUG|WARNING|ERROR|CRITICAL|WARN|ERR)\]/gi, '').trim();
+        
+        return { timestamp, level, message };
+    }
+
+    function getLogLevelClass(level) {
+        const classes = {
+            'ERROR': 'level-error',
+            'CRITICAL': 'level-error', 
+            'WARNING': 'level-warning',
+            'INFO': 'level-info',
+            'DEBUG': 'level-debug'
+        };
+        return classes[level] || 'level-info';
+    }
+
+    function updateLogInfo(logCount) {
+        const logType = document.getElementById('log-type').value;
+        const logLines = document.getElementById('log-lines').value;
+        const badge = document.getElementById('log-type-badge');
+        
+        // Update badge text
+        const badgeTexts = {
+            'systemd': 'Service Logs',
+            'mqtt_all.log': 'All MQTT',
+            'mqtt_errors.log': 'Errors Only',
+            'mqtt_warnings.log': 'Warnings Only'
+        };
+        
+        badge.textContent = badgeTexts[logType] || logType;
+        badge.className = `badge ms-2 ${getBadgeClass(logType)}`;
+        
+        // Update message count if displaying all logs
+        if (logType === 'mqtt_all.log') {
+            document.getElementById('message-count').textContent = logCount;
+        }
+    }
+    
+    function getBadgeClass(logType) {
+        const classes = {
+            'systemd': 'bg-secondary',
+            'mqtt_all.log': 'bg-info',
+            'mqtt_errors.log': 'bg-danger',
+            'mqtt_warnings.log': 'bg-warning'
+        };
+        return classes[logType] || 'bg-secondary';
+    }
+
+    async function downloadLogs() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        const logType = document.getElementById('log-type').value;
+        const logLines = parseInt(document.getElementById('log-lines').value);
+
+        try {
+            let requestUrl;
+            
+            if (logType === 'systemd') {
+                // Use systemd logs endpoint
+                requestUrl = `${SYSTEMD_API_URL}/action`;
+                var requestBody = {
+                    service: 'mqtt_publish.service',
+                    action: 'logs',
+                    lines: logLines
+                };
+
+                const response = await fetch(requestUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(requestBody),
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data && result.data.logs) {
+                    // Create download file
+                    const logContent = Array.isArray(result.data.logs) ? 
+                        result.data.logs.join('\n') : result.data.logs;
+                    
+                    const blob = new Blob([logContent], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `mqtt_logs_${logType}_${new Date().toISOString().split('T')[0]}.log`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    showAlert('Logs downloaded successfully', 'success');
+                } else {
+                    showAlert('No logs available to download', 'warning');
+                }
+            } else {
+                // Use MQTT file logs download endpoint
+                requestUrl = `${MQTT_API_URL}/logs/download`;
+                const params = new URLSearchParams({
+                    log_type: logType,
+                    lines: Math.min(logLines * 2, 1000) // Download more lines for files
+                });
+                requestUrl += '?' + params.toString();
+
+                const response = await fetch(requestUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Handle file download response
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                // Extract filename from Content-Disposition header or use default
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = `mqtt_${logType}_${new Date().toISOString().split('T')[0]}.log`;
+                if (contentDisposition) {
+                    const matches = /filename="([^"]*)"/.exec(contentDisposition);
+                    if (matches && matches[1]) {
+                        filename = matches[1];
+                    }
+                }
+                
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showAlert('Logs downloaded successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Failed to download logs:', error);
+            showAlert(`Failed to download logs: ${error.message}`, 'danger');
+        }
+    }
+
+    function updateLastActivity(timestamp) {
+        const lastActivityElement = document.getElementById('last-activity');
+        if (timestamp) {
+            const date = new Date(timestamp);
+            const timeString = date.toLocaleTimeString();
+            lastActivityElement.textContent = timeString;
+        } else {
+            lastActivityElement.textContent = '--:--';
+        }
+    }
+
+    function clearLog() {
+        const logContainer = document.getElementById('mqtt-log');
+        logContainer.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Log view cleared
+            </div>
+        `;
+        showAlert('Log view cleared successfully', 'success');
+    }
+
+    function toggleAutoScroll() {
+        autoScroll = !autoScroll;
+        const button = document.getElementById('auto-scroll');
+        
+        if (autoScroll) {
+            button.innerHTML = '<i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll';
+            button.classList.remove('btn-outline-secondary');
+            button.classList.add('btn-outline-primary');
+        } else {
+            button.innerHTML = '<i class="fas fa-pause me-1"></i> Scroll Off';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-outline-secondary');
+        }
+    }
+
+    function restartMqttService() {
+        const modal = new bootstrap.Modal(document.getElementById('serviceActionModal'));
+        
+        // Reset form
+        document.getElementById('action-password').value = '';
+        document.getElementById('action-confirm').checked = false;
+        document.getElementById('action-password').classList.remove('is-invalid');
+        document.getElementById('action-password-error').textContent = '';
+        
+        modal.show();
+    }
+
+    async function executeServiceRestart() {
+        const password = document.getElementById('action-password').value;
+        const confirmed = document.getElementById('action-confirm').checked;
+        const passwordInput = document.getElementById('action-password');
+        const errorElement = document.getElementById('action-password-error');
+        const confirmBtn = document.getElementById('confirm-action-btn');
+        
+        // Reset validation
+        passwordInput.classList.remove('is-invalid');
+        errorElement.textContent = '';
+        
+        // Validate inputs
+        if (!password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Password is required';
+            return;
+        }
+        
+        if (!confirmed) {
+            showAlert('Please confirm that you understand the consequences of this action', 'warning');
+            return;
+        }
+        
+        // Validate password
+        const validPasswords = {{ user_passwords | default('{}') | tojson }};
+        
+        if (!validPasswords[currentUser] || validPasswords[currentUser] !== password) {
+            passwordInput.classList.add('is-invalid');
+            errorElement.textContent = 'Invalid password';
+            return;
+        }
+        
+        // Disable button and show loading
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Restarting...';
+        
+        try {
+            const userToken = '{{ session.get("auth_token", "") }}';
+
+            const response = await fetch(`${SYSTEMD_API_URL}/action`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    service: 'mqtt_publish.service',
+                    action: 'restart',
+                    user: currentUser,
+                    password: password
+                }),
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('serviceActionModal')).hide();
+            
+            if (result.status === 'success') {
+                showAlert('MQTT service restart initiated successfully', 'success');
+                
+                // Update service status display
+                updateServiceStatusDisplay('restarting');
+                
+                // Refresh service status after a delay
+                setTimeout(async () => {
+                    await updateServiceStatus();
+                    await refreshMqttLogs();
+                }, 5000);
+            } else {
+                showAlert(`Failed to restart service: ${result.message || 'Unknown error'}`, 'danger');
+            }
+            
+        } catch (error) {
+            console.error('Service restart failed:', error);
+            showAlert(`Failed to restart MQTT service: ${error.message}`, 'danger');
+        } finally {
+            // Reset button
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-redo me-2"></i>Restart Service';
+        }
+    }
+
+    function uploadMqttData(event) {
+        event.preventDefault();
+        
+        const button = document.getElementById('upload-btn');
+        const progressContainer = document.getElementById('upload-progress');
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        // Show progress
+        progressContainer.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Uploading...';
         button.disabled = true;
         
-        // Simulate service restart
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-            showAlert('MQTT service restarted successfully', 'success');
+        // Simulate upload progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress > 100) progress = 100;
             
-            // Update service status
-            const statusElement = document.getElementById('service-status');
-            statusElement.textContent = 'Restarted';
-            statusElement.classList.remove('active');
-            statusElement.classList.add('inactive');
+            progressBar.style.width = progress + '%';
+            progressText.textContent = `Uploading... ${Math.round(progress)}%`;
             
-            setTimeout(() => {
-                statusElement.textContent = 'Running';
-                statusElement.classList.remove('inactive');
-                statusElement.classList.add('active');
-            }, 3000);
-        }, 3000);
-        
-        modal.hide();
-    };
-    
-    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    confirmModal.show();
-}
-
-function uploadMqttData(event) {
-    event.preventDefault();
-    
-    const button = document.getElementById('upload-btn');
-    const progressContainer = document.getElementById('upload-progress');
-    const progressBar = progressContainer.querySelector('.progress-bar');
-    const progressText = document.getElementById('progress-text');
-    
-    // Show progress
-    progressContainer.style.display = 'block';
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Uploading...';
-    button.disabled = true;
-    
-    // Simulate upload progress
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += Math.random() * 20;
-        if (progress > 100) progress = 100;
-        
-        progressBar.style.width = progress + '%';
-        progressText.textContent = `Uploading... ${Math.round(progress)}%`;
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            
-            setTimeout(() => {
-                progressContainer.style.display = 'none';
-                button.innerHTML = '<i class="fas fa-upload me-2"></i> Upload Data';
-                button.disabled = false;
-                showAlert('Data uploaded successfully to MQTT broker', 'success');
+            if (progress >= 100) {
+                clearInterval(interval);
                 
-                // Reset progress
-                progressBar.style.width = '0%';
-                progressText.textContent = 'Preparing upload...';
-            }, 1000);
-        }
-    }, 200);
-}
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    button.innerHTML = '<i class="fas fa-upload me-2"></i> Upload Data';
+                    button.disabled = false;
+                    showAlert('Data uploaded successfully to MQTT broker', 'success');
+                    
+                    // Reset progress
+                    progressBar.style.width = '0%';
+                    progressText.textContent = 'Preparing upload...';
+                }, 1000);
+            }
+        }, 200);
+    }
 
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        <i class="fas fa-info-circle me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // Insert at the top of content
-    const contentArea = document.querySelector('.content-area');
-    contentArea.insertBefore(alertDiv, contentArea.firstChild);
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
-}
+    async function refreshMqttData() {
+        const userToken = '{{ session.get("auth_token", "") }}';
+        const container = document.getElementById('mqtt-data-container');
+        const statusBadge = document.getElementById('data-status-badge');
+
+        try {
+            // Update status badge
+            statusBadge.textContent = 'Loading...';
+            statusBadge.className = 'badge bg-secondary ms-2';
+
+            const response = await fetch(`${MQTT_API_URL}/data/latest`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'success' && result.data && result.data.latest_data) {
+                displayMqttDataCards(result.data.latest_data, result.data.record_timestamp);
+                updateLastActivity(result.data.record_timestamp);
+                statusBadge.textContent = 'Connected';
+                statusBadge.className = 'badge bg-success ms-2';
+            } else {
+                displayNoDataMessage();
+                updateLastActivity(null);
+                statusBadge.textContent = 'No Data';
+                statusBadge.className = 'badge bg-warning ms-2';
+            }
+        } catch (error) {
+            console.error('Failed to fetch MQTT data:', error);
+            displayErrorMessage(error.message);
+            updateLastActivity(null);
+            statusBadge.textContent = 'Error';
+            statusBadge.className = 'badge bg-danger ms-2';
+        }
+    }
+
+    function displayMqttDataCards(data, timestamp) {
+        const container = document.getElementById('mqtt-data-container');
+        
+        if (!data || Object.keys(data).length === 0) {
+            displayNoDataMessage();
+            return;
+        }
+
+        // Create cards for each data point
+        let cardsHtml = '';
+        
+        // Define key mappings for better display
+        const keyMappings = {
+            'pv.scc1_voltage': { name: 'SCC1 PV Voltage', unit: 'V', icon: 'fas fa-solar-panel', color: 'primary' },
+            'pv.scc1_current': { name: 'SCC1 PV Current', unit: 'A', icon: 'fas fa-solar-panel', color: 'info' },
+            'pv.scc1_power': { name: 'SCC1 PV Power', unit: 'W', icon: 'fas fa-bolt', color: 'warning' },
+            'pv.scc2_voltage': { name: 'SCC2 PV Voltage', unit: 'V', icon: 'fas fa-solar-panel', color: 'primary' },
+            'pv.scc2_current': { name: 'SCC2 PV Current', unit: 'A', icon: 'fas fa-solar-panel', color: 'info' },
+            'pv.scc2_power': { name: 'SCC2 PV Power', unit: 'W', icon: 'fas fa-bolt', color: 'warning' },
+            'pv.scc3_voltage': { name: 'SCC3 PV Voltage', unit: 'V', icon: 'fas fa-solar-panel', color: 'primary' },
+            'pv.scc3_current': { name: 'SCC3 PV Current', unit: 'A', icon: 'fas fa-solar-panel', color: 'info' },
+            'pv.scc3_power': { name: 'SCC3 PV Power', unit: 'W', icon: 'fas fa-bolt', color: 'warning' },
+            'batt.scc1_voltage': { name: 'Battery 1 Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
+            'batt.scc2_voltage': { name: 'Battery 2 Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
+            'batt.scc3_voltage': { name: 'Battery 3 Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
+            'power.vsat_voltage': { name: 'VSAT Voltage', unit: 'V', icon: 'fas fa-satellite-dish', color: 'secondary' },
+            'power.vsat_current': { name: 'VSAT Current', unit: 'A', icon: 'fas fa-satellite-dish', color: 'secondary' },
+            'power.bts_voltage': { name: 'BTS Voltage', unit: 'V', icon: 'fas fa-broadcast-tower', color: 'dark' },
+            'power.bts_current': { name: 'BTS Current', unit: 'A', icon: 'fas fa-broadcast-tower', color: 'dark' },
+            'power.lvd1_status': { name: 'LVD1 Status', unit: '', icon: 'fas fa-toggle-on', color: 'danger' },
+            'power.lvd2_status': { name: 'LVD2 Status', unit: '', icon: 'fas fa-toggle-on', color: 'danger' },
+            'power.lvd3_status': { name: 'LVD3 Status', unit: '', icon: 'fas fa-toggle-on', color: 'danger' }
+        };
+
+        Object.entries(data).forEach(([key, value]) => {
+            if (key === 'timestamp' || key === 'site') return; // Skip metadata
+            
+            const mapping = keyMappings[key] || { 
+                name: key.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), 
+                unit: '', 
+                icon: 'fas fa-info-circle', 
+                color: 'secondary' 
+            };
+            
+            const formattedValue = isNaN(value) ? value : parseFloat(value).toFixed(2);
+            
+            cardsHtml += `
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="stats-card">
+                        <div class="stats-card-header">
+                            <h6 class="stats-card-title">${mapping.name}</h6>
+                            <div class="stats-card-icon bg-${mapping.color}">
+                                <i class="${mapping.icon}"></i>
+                            </div>
+                        </div>
+                        <h4 class="stats-card-value">${formattedValue} ${mapping.unit}</h4>
+                        <p class="stats-card-subtitle">${key}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Add timestamp card
+        if (timestamp) {
+            const timeAgo = getTimeAgo(timestamp);
+            cardsHtml += `
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="stats-card">
+                        <div class="stats-card-header">
+                            <h6 class="stats-card-title">Last Update</h6>
+                            <div class="stats-card-icon bg-info">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <h4 class="stats-card-value">${timeAgo}</h4>
+                        <p class="stats-card-subtitle">${timestamp}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = cardsHtml;
+    }
+
+    function displayNoDataMessage() {
+        const container = document.getElementById('mqtt-data-container');
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No MQTT data available. The service may not have published any data yet.
+                </div>
+            </div>
+        `;
+    }
+
+    function displayErrorMessage(error) {
+        const container = document.getElementById('mqtt-data-container');
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading MQTT data: ${error}
+                </div>
+            </div>
+        `;
+    }
+
+    function getTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffMs = now - time;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        return `${diffDays}d ago`;
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-info-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at the top of content
+        const contentArea = document.querySelector('.content-area') || document.querySelector('.container-fluid');
+        if (contentArea) {
+            contentArea.insertBefore(alertDiv, contentArea.firstChild);
+        }
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
 </script>
 
 <style>
@@ -576,7 +1380,7 @@ function showAlert(message, type) {
     background: #f8f9fa;
     border-radius: 8px;
     padding: 1rem;
-    max-height: 400px;
+    max-height: 500px;
     overflow-y: auto;
 }
 
@@ -585,6 +1389,7 @@ function showAlert(message, type) {
     padding: 0.5rem;
     border-radius: 4px;
     margin-bottom: 1rem;
+    font-weight: 600;
 }
 
 .log-entry {
@@ -594,6 +1399,8 @@ function showAlert(message, type) {
     border-radius: 4px;
     border-left: 4px solid #007bff;
     animation: slideIn 0.3s ease-out;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
 }
 
 .log-entry:hover {
@@ -614,31 +1421,47 @@ function showAlert(message, type) {
 .timestamp {
     font-family: monospace;
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
-.topic {
-    font-weight: 500;
-    color: #495057;
-}
-
-.status {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.status-success {
-    color: #28a745;
-}
-
-.status-error {
-    color: #dc3545;
-}
-
-.message-size {
+.line-number {
     font-family: monospace;
-    color: #6c757d;
-    font-size: 0.9rem;
+    color: #adb5bd;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.log-level {
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.level-error {
+    background-color: #dc3545;
+    color: white;
+}
+
+.level-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.level-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.level-debug {
+    background-color: #6c757d;
+    color: white;
+}
+
+.log-message {
+    color: #495057;
+    word-break: break-word;
 }
 
 .config-item {
@@ -665,5 +1488,111 @@ function showAlert(message, type) {
 .header-actions .btn {
     font-size: 0.875rem;
 }
+
+.log-controls {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+}
+
+.status-indicator {
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.status-indicator.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-indicator.inactive {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-indicator.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* MQTT Data Cards Styling */
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stats-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stats-card-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.stats-card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 0.5rem 0;
+    line-height: 1;
+}
+
+.stats-card-subtitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* Data container grid */
+#mqtt-data-container .col-lg-3,
+#mqtt-data-container .col-md-4,
+#mqtt-data-container .col-sm-6 {
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .stats-card-value {
+        font-size: 1.5rem;
+    }
+    
+    .stats-card-icon {
+        width: 35px;
+        height: 35px;
+    }
+}
 </style>
-{% endblock %}
+{% endblock scripts %}
