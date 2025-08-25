@@ -34,8 +34,8 @@
                 </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
-                    <div class="col-lg-3 col-md-6">
+                <div class="row g-4 justify-content-center">
+                    <div class="col-lg-4 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Service Status</h6>
@@ -51,42 +51,30 @@
                             <p class="stats-card-subtitle">MQTT Service</p>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
-                                <h6 class="stats-card-title">Messages</h6>
+                                <h6 class="stats-card-title">Messages Published</h6>
                                 <div class="stats-card-icon bg-info">
-                                    <i class="fas fa-envelope"></i>
+                                    <i class="fas fa-paper-plane"></i>
                                 </div>
                             </div>
                             <h4 class="stats-card-value" id="message-count">0</h4>
-                            <p class="stats-card-subtitle">Published Today</p>
+                            <p class="stats-card-subtitle">Total Records Today</p>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Last Activity</h6>
-                                <div class="stats-card-icon bg-warning">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-                            <h4 class="stats-card-value" id="last-activity">--:--</h4>
-                            <p class="stats-card-subtitle">Last Record</p>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-4 col-md-6">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Service Control</h6>
-                                <div class="stats-card-icon bg-danger">
-                                    <i class="fas fa-sync-alt"></i>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-cog"></i>
                                 </div>
                             </div>
-                            <div class="d-grid">
+                            <div class="d-grid gap-2">
                                 <button class="btn btn-modern btn-warning btn-sm" id="restart-service" onclick="restartMqttService()">
                                     <i class="fas fa-redo me-1"></i>
-                                    Restart
+                                    Restart Service
                                 </button>
                             </div>
                             <p class="stats-card-subtitle">Service Management</p>
@@ -136,26 +124,90 @@
 <!-- Main Content Row -->
 <div class="row">
     <!-- MQTT Monitor Panel -->
-    <div class="col-lg-8 mb-4">
+    <div class="col-lg-12 mb-4">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
-                    <i class="fas fa-monitor text-primary me-2"></i>
-                    MQTT Publish Monitor
+                    <i class="fas fa-terminal text-primary me-2"></i>
+                    MQTT Publish Monitor & Control
                     <span class="badge bg-secondary ms-2" id="log-type-badge">Service Logs</span>
                 </h5>
                 <div class="header-actions">
-                    <button class="btn btn-modern btn-outline-primary btn-sm" id="clear-log" onclick="clearLog()">
+                    <button class="btn btn-modern btn-outline-danger btn-sm" id="clear-log" onclick="clearLog()">
                         <i class="fas fa-trash me-1"></i>
-                        Clear Log
+                        Clear
                     </button>
                     <button class="btn btn-modern btn-outline-secondary btn-sm" id="auto-scroll" onclick="toggleAutoScroll()">
                         <i class="fas fa-arrows-alt-v me-1"></i>
                         Auto Scroll
                     </button>
+                    <button class="btn btn-modern btn-outline-primary btn-sm" onclick="refreshMqttLogs()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        Refresh
+                    </button>
                 </div>
             </div>
             <div class="modern-card-body">
+                <!-- Quick Controls Row -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="log-type" class="form-label">
+                            <i class="fas fa-file-alt me-1"></i>
+                            Log Type
+                        </label>
+                        <select class="form-select form-select-sm" id="log-type" onchange="refreshMqttLogs()">
+                            <option value="systemd">System Service Logs</option>
+                            <option value="mqtt_all.log" selected>All MQTT Logs</option>
+                            <option value="mqtt_errors.log">Error Logs Only</option>
+                            <option value="mqtt_warnings.log">Warning Logs Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="log-lines" class="form-label">
+                            <i class="fas fa-list-ol me-1"></i>
+                            Lines
+                        </label>
+                        <select class="form-select form-select-sm" id="log-lines" onchange="refreshMqttLogs()">
+                            <option value="5" selected>10 lines</option>
+                            <option value="10">20 lines</option>
+                            <option value="50">50 lines</option>
+                            <option value="100">100 lines</option>
+                            <option value="200">200 lines</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="auto-refresh-logs" checked>
+                                <label class="form-check-label" for="auto-refresh-logs">
+                                    Auto-refresh
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="reverse-order" checked>
+                                <label class="form-check-label" for="reverse-order">
+                                    Newest first
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn btn-outline-info btn-sm" onclick="downloadLogs()">
+                                <i class="fas fa-download me-1"></i>
+                                Download Logs
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="toggleDataUpload()">
+                                <i class="fas fa-upload me-1"></i>
+                                Upload Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monitor Display -->
                 <div class="mqtt-monitor">
                     <div class="monitor-header">
                         <div class="row">
@@ -173,152 +225,133 @@
                             </div>
                         </div>
                     </div>
-                    <div class="monitor-log" id="mqtt-log">
+                    <div class="monitor-log" id="mqtt-log" style="height: 400px; overflow-y: auto;">
                         <div class="text-center text-muted p-3">
                             <i class="fas fa-spinner fa-spin me-2"></i>
                             Loading MQTT service logs...
-                        </div>
-                    </div>
-                    <div class="log-controls mt-3">
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="log-type" class="form-label">
-                                    <i class="fas fa-file-alt me-1"></i>
-                                    Log Type
-                                </label>
-                                <select class="form-select form-select-sm" id="log-type" onchange="refreshMqttLogs()">
-                                    <option value="systemd">System Service Logs</option>
-                                    <option value="mqtt_all.log" selected>All MQTT Logs</option>
-                                    <option value="mqtt_errors.log">Error Logs Only</option>
-                                    <option value="mqtt_warnings.log">Warning Logs Only</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="log-lines" class="form-label">
-                                    <i class="fas fa-list-ol me-1"></i>
-                                    Show Lines
-                                </label>
-                                <select class="form-select form-select-sm" id="log-lines" onchange="refreshMqttLogs()">
-                                    <option value="5" selected>Latest 10 lines</option>
-                                    <option value="10">Latest 20 lines</option>
-                                    <option value="50">Latest 50 lines</option>
-                                    <option value="100">Latest 100 lines</option>
-                                    <option value="200">Latest 200 lines</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="refreshMqttLogs()">
-                                        <i class="fas fa-sync-alt me-1"></i>
-                                        Refresh
-                                    </button>
-                                    <button class="btn btn-outline-primary btn-sm flex-fill" onclick="downloadLogs()">
-                                        <i class="fas fa-download me-1"></i>
-                                        Download
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="auto-refresh-logs" checked>
-                                    <label class="form-check-label" for="auto-refresh-logs">
-                                        Auto-refresh logs (every 5 seconds)
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="reverse-order" checked>
-                                    <label class="form-check-label" for="reverse-order">
-                                        Show newest first
-                                    </label>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Data Upload Panel -->
-    <div class="col-lg-4 mb-4">
+<!-- Data Upload Panel (Collapsible) -->
+<div class="row" id="upload-panel" style="display: none;">
+    <div class="col-12 mb-4">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-upload text-info me-2"></i>
-                    Data Upload
+                    MQTT Data Upload
                 </h5>
+                <div class="header-actions">
+                    <button class="btn btn-modern btn-outline-secondary btn-sm" onclick="toggleDataUpload()">
+                        <i class="fas fa-times me-1"></i>
+                        Close
+                    </button>
+                </div>
             </div>
             <div class="modern-card-body">
-                <form id="upload-form" onsubmit="uploadMqttData(event)">
-                    <div class="mb-3">
-                        <label for="date-range" class="form-label">
-                            <i class="fas fa-calendar me-2"></i>
-                            Date Range
-                        </label>
-                        <div class="input-group">
-                            <input type="date" class="form-control" id="start-date" name="start-date" required>
-                            <span class="input-group-text">to</span>
-                            <input type="date" class="form-control" id="end-date" name="end-date" required>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <form id="upload-form" onsubmit="uploadMqttData(event)">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="date-range" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>
+                                        Date Range
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="date" class="form-control" id="start-date" name="start-date" required>
+                                        <span class="input-group-text">to</span>
+                                        <input type="date" class="form-control" id="end-date" name="end-date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="data-type" class="form-label">
+                                        <i class="fas fa-database me-2"></i>
+                                        Data Type
+                                    </label>
+                                    <select class="form-control" id="data-type" name="data-type" required>
+                                        <option value="">Select Data Type</option>
+                                        <option value="scc">SCC Data</option>
+                                        <option value="battery">Battery Data</option>
+                                        <option value="system">System Logs</option>
+                                        <option value="all">All Data</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="topic" class="form-label">
+                                        <i class="fas fa-tag me-2"></i>
+                                        MQTT Topic
+                                    </label>
+                                    <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g., data/upload/batch" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="batch-size" class="form-label">
+                                        <i class="fas fa-layer-group me-2"></i>
+                                        Batch Size
+                                    </label>
+                                    <select class="form-control" id="batch-size" name="batch-size">
+                                        <option value="100">100 records</option>
+                                        <option value="500" selected>500 records</option>
+                                        <option value="1000">1000 records</option>
+                                        <option value="2000">2000 records</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-modern btn-info">
+                                        <i class="fas fa-upload me-2"></i>
+                                        Start Upload Process
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-4">
+                        <!-- Upload Progress -->
+                        <div class="upload-progress" id="upload-progress" style="display: none;">
+                            <h6 class="mb-3">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Upload Progress
+                            </h6>
+                            <div class="progress mb-3">
+                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <small class="text-muted">
+                                    <span id="progress-text">Preparing upload...</span>
+                                </small>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="data-type" class="form-label">
-                            <i class="fas fa-database me-2"></i>
-                            Data Type
-                        </label>
-                        <select class="form-control" id="data-type" name="data-type" required>
-                            <option value="">Select Data Type</option>
-                            <option value="scc">SCC Data</option>
-                            <option value="battery">Battery Data</option>
-                            <option value="system">System Logs</option>
-                            <option value="all">All Data</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="topic" class="form-label">
-                            <i class="fas fa-tag me-2"></i>
-                            MQTT Topic
-                        </label>
-                        <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g., data/upload/batch" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="batch-size" class="form-label">
-                            <i class="fas fa-layer-group me-2"></i>
-                            Batch Size
-                        </label>
-                        <select class="form-control" id="batch-size" name="batch-size">
-                            <option value="100">100 records</option>
-                            <option value="500" selected>500 records</option>
-                            <option value="1000">1000 records</option>
-                            <option value="2000">2000 records</option>
-                        </select>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-modern btn-info" id="upload-btn">
-                            <i class="fas fa-upload me-2"></i>
-                            Upload Data
-                        </button>
-                    </div>
-                </form>
-                
-                <!-- Upload Progress -->
-                <div class="upload-progress mt-3" id="upload-progress" style="display: none;">
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-info mt-2">
-                        <small class="text-muted">
-                            <span id="progress-text">Preparing upload...</span>
-                        </small>
+                        
+                        <!-- Upload Instructions -->
+                        <div id="upload-instructions">
+                            <h6 class="mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Upload Instructions
+                            </h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Select date range for data to upload
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Choose specific data type or all data
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Specify MQTT topic for publishing
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Adjust batch size for optimal performance
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -496,6 +529,15 @@
                     clearInterval(autoRefreshInterval);
                     autoRefreshInterval = null;
                 }
+            }
+        });
+
+        // Auto-refresh data toggle
+        document.getElementById('auto-refresh-data').addEventListener('change', function() {
+            if (this.checked) {
+                startAutoRefreshData();
+            } else {
+                stopAutoRefreshData();
             }
         });
         
@@ -1007,14 +1049,13 @@
         }
     }
 
-    function updateLastActivity(timestamp) {
-        const lastActivityElement = document.getElementById('last-activity');
-        if (timestamp) {
-            const date = new Date(timestamp);
-            const timeString = date.toLocaleTimeString();
-            lastActivityElement.textContent = timeString;
+    function toggleDataUpload() {
+        const uploadPanel = document.getElementById('upload-panel');
+        if (uploadPanel.style.display === 'none' || uploadPanel.style.display === '') {
+            uploadPanel.style.display = 'block';
+            uploadPanel.scrollIntoView({ behavior: 'smooth' });
         } else {
-            lastActivityElement.textContent = '--:--';
+            uploadPanel.style.display = 'none';
         }
     }
 
@@ -1211,19 +1252,16 @@
 
             if (result.status === 'success' && result.data && result.data.latest_data) {
                 displayMqttDataCards(result.data.latest_data, result.data.record_timestamp);
-                updateLastActivity(result.data.record_timestamp);
                 statusBadge.textContent = 'Connected';
                 statusBadge.className = 'badge bg-success ms-2';
             } else {
                 displayNoDataMessage();
-                updateLastActivity(null);
                 statusBadge.textContent = 'No Data';
                 statusBadge.className = 'badge bg-warning ms-2';
             }
         } catch (error) {
             console.error('Failed to fetch MQTT data:', error);
             displayErrorMessage(error.message);
-            updateLastActivity(null);
             statusBadge.textContent = 'Error';
             statusBadge.className = 'badge bg-danger ms-2';
         }
@@ -1251,47 +1289,81 @@
             'pv.scc3_voltage': { name: 'SCC3 PV Voltage', unit: 'V', icon: 'fas fa-solar-panel', color: 'primary' },
             'pv.scc3_current': { name: 'SCC3 PV Current', unit: 'A', icon: 'fas fa-solar-panel', color: 'info' },
             'pv.scc3_power': { name: 'SCC3 PV Power', unit: 'W', icon: 'fas fa-bolt', color: 'warning' },
-            'batt.scc1_voltage': { name: 'Battery 1 Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
-            'batt.scc2_voltage': { name: 'Battery 2 Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
-            'batt.scc3_voltage': { name: 'Battery 3 Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
-            'power.vsat_voltage': { name: 'VSAT Voltage', unit: 'V', icon: 'fas fa-satellite-dish', color: 'secondary' },
-            'power.vsat_current': { name: 'VSAT Current', unit: 'A', icon: 'fas fa-satellite-dish', color: 'secondary' },
-            'power.bts_voltage': { name: 'BTS Voltage', unit: 'V', icon: 'fas fa-broadcast-tower', color: 'dark' },
-            'power.bts_current': { name: 'BTS Current', unit: 'A', icon: 'fas fa-broadcast-tower', color: 'dark' },
-            'power.lvd1_status': { name: 'LVD1 Status', unit: '', icon: 'fas fa-toggle-on', color: 'danger' },
-            'power.lvd2_status': { name: 'LVD2 Status', unit: '', icon: 'fas fa-toggle-on', color: 'danger' },
-            'power.lvd3_status': { name: 'LVD3 Status', unit: '', icon: 'fas fa-toggle-on', color: 'danger' }
+            'battery.voltage': { name: 'Battery Voltage', unit: 'V', icon: 'fas fa-battery-half', color: 'success' },
+            'battery.current': { name: 'Battery Current', unit: 'A', icon: 'fas fa-battery-half', color: 'info' },
+            'inverter.ac_voltage': { name: 'AC Voltage', unit: 'V', icon: 'fas fa-plug', color: 'primary' },
+            'inverter.ac_current': { name: 'AC Current', unit: 'A', icon: 'fas fa-plug', color: 'info' },
+            'inverter.frequency': { name: 'Frequency', unit: 'Hz', icon: 'fas fa-wave-square', color: 'secondary' },
+            'load_power': { name: 'Load Power', unit: 'W', icon: 'fas fa-home', color: 'danger' }
         };
-
-        Object.entries(data).forEach(([key, value]) => {
-            if (key === 'timestamp' || key === 'site') return; // Skip metadata
-            
-            const mapping = keyMappings[key] || { 
-                name: key.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), 
-                unit: '', 
-                icon: 'fas fa-info-circle', 
-                color: 'secondary' 
-            };
-            
-            const formattedValue = isNaN(value) ? value : parseFloat(value).toFixed(2);
-            
-            cardsHtml += `
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="stats-card">
-                        <div class="stats-card-header">
-                            <h6 class="stats-card-title">${mapping.name}</h6>
-                            <div class="stats-card-icon bg-${mapping.color}">
-                                <i class="${mapping.icon}"></i>
+        
+        // Sort keys by their importance
+        const orderedKeys = [
+            'pv.scc1_power', 'pv.scc2_power', 'pv.scc3_power',
+            'battery.voltage', 'battery.current', 
+            'inverter.ac_voltage', 'inverter.ac_current',
+            'load_power', 'inverter.frequency'
+        ];
+        
+        // First display the ordered keys
+        orderedKeys.forEach(key => {
+            if (data.hasOwnProperty(key) && data[key] !== null && data[key] !== undefined) {
+                const config = keyMappings[key] || { 
+                    name: key, 
+                    unit: '', 
+                    icon: 'fas fa-chart-line', 
+                    color: 'secondary' 
+                };
+                
+                const value = typeof data[key] === 'number' ? data[key].toFixed(2) : data[key];
+                
+                cardsHtml += `
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">${config.name}</h6>
+                                <div class="stats-card-icon bg-${config.color}">
+                                    <i class="${config.icon}"></i>
+                                </div>
                             </div>
+                            <h4 class="stats-card-value">${value} ${config.unit}</h4>
+                            <p class="stats-card-subtitle">${key}</p>
                         </div>
-                        <h4 class="stats-card-value">${formattedValue} ${mapping.unit}</h4>
-                        <p class="stats-card-subtitle">${key}</p>
                     </div>
-                </div>
-            `;
+                `;
+            }
         });
-
-        // Add timestamp card
+        
+        // Then display any remaining keys not in the ordered list
+        Object.keys(data).forEach(key => {
+            if (!orderedKeys.includes(key) && data[key] !== null && data[key] !== undefined) {
+                const config = keyMappings[key] || { 
+                    name: key.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), 
+                    unit: '', 
+                    icon: 'fas fa-chart-line', 
+                    color: 'secondary' 
+                };
+                
+                const value = typeof data[key] === 'number' ? data[key].toFixed(2) : data[key];
+                
+                cardsHtml += `
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">${config.name}</h6>
+                                <div class="stats-card-icon bg-${config.color}">
+                                    <i class="${config.icon}"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value">${value} ${config.unit}</h4>
+                            <p class="stats-card-subtitle">${key}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        // Add timestamp card if available
         if (timestamp) {
             const timeAgo = getTimeAgo(timestamp);
             cardsHtml += `
@@ -1309,29 +1381,35 @@
                 </div>
             `;
         }
-
-        container.innerHTML = cardsHtml;
+        
+        if (cardsHtml) {
+            container.innerHTML = cardsHtml;
+        } else {
+            displayNoDataMessage();
+        }
     }
-
+    
     function displayNoDataMessage() {
         const container = document.getElementById('mqtt-data-container');
         container.innerHTML = `
             <div class="col-12 text-center">
-                <div class="alert alert-info">
+                <div class="alert alert-info" role="alert">
                     <i class="fas fa-info-circle me-2"></i>
-                    No MQTT data available. The service may not have published any data yet.
+                    <strong>No MQTT Data Available</strong><br>
+                    <small class="text-muted">No recent data received from MQTT broker. Check service status or data transmission.</small>
                 </div>
             </div>
         `;
     }
-
+    
     function displayErrorMessage(error) {
         const container = document.getElementById('mqtt-data-container');
         container.innerHTML = `
             <div class="col-12 text-center">
-                <div class="alert alert-danger">
+                <div class="alert alert-danger" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    Error loading MQTT data: ${error}
+                    <strong>Error Loading MQTT Data</strong><br>
+                    <small class="text-muted">${error}</small>
                 </div>
             </div>
         `;
@@ -1352,36 +1430,240 @@
     }
 
     function showAlert(message, type) {
+        // Create alert element
         const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
         alertDiv.innerHTML = `
-            <i class="fas fa-info-circle me-2"></i>
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
         
-        // Insert at the top of content
-        const contentArea = document.querySelector('.content-area') || document.querySelector('.container-fluid');
-        if (contentArea) {
-            contentArea.insertBefore(alertDiv, contentArea.firstChild);
-        }
+        // Add to page
+        document.body.appendChild(alertDiv);
         
-        // Auto-hide after 5 seconds
+        // Auto remove after 5 seconds
         setTimeout(() => {
             if (alertDiv.parentNode) {
-                alertDiv.remove();
+                alertDiv.parentNode.removeChild(alertDiv);
             }
         }, 5000);
     }
 </script>
 
 <style>
+/* Enhanced styles for MQTT service page */
 .mqtt-monitor {
     background: #f8f9fa;
     border-radius: 8px;
     padding: 1rem;
-    max-height: 500px;
+}
+
+.monitor-log {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 1rem;
+    max-height: 400px;
     overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.monitor-header {
+    background: #e9ecef;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.log-entry {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+    animation: slideIn 0.3s ease-out;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.log-entry:hover {
+    background: #f1f3f4;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.timestamp {
+    font-family: monospace;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.line-number {
+    font-family: monospace;
+    color: #adb5bd;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.log-level {
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.level-error {
+    background: #dc3545;
+    color: white;
+}
+
+.level-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.level-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.level-debug {
+    background: #6c757d;
+    color: white;
+}
+
+.log-message {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    color: #495057;
+    word-break: break-word;
+}
+
+/* Enhanced stats cards */
+.stats-card {
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: #dee2e6;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #007bff 0%, #6f42c1 100%);
+}
+
+.stats-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stats-card-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-card-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.stats-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 0.5rem 0;
+    line-height: 1;
+}
+
+.stats-card-subtitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* Upload panel styling */
+#upload-panel {
+    transition: all 0.3s ease;
+}
+
+#upload-panel .modern-card {
+    border: 2px dashed #dee2e6;
+    transition: border-color 0.3s ease;
+}
+
+#upload-panel .modern-card:hover {
+    border-color: #007bff;
+}
+
+.upload-progress {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border-left: 4px solid #17a2b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .stats-card-value {
+        font-size: 1.5rem;
+    }
+    
+    .stats-card-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .monitor-log {
+        max-height: 300px;
+        font-size: 0.8rem;
+    }
 }
 
 .monitor-header {
