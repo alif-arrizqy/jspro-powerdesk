@@ -142,6 +142,10 @@ SNMP Monitoring
 
 {% block scripts %}
 <script>
+// API Configuration
+const API_BASE_URL = '/api/v1/service';
+const SNMP_API_URL = '/api/v1/service/snmp';
+
 class SNMPMonitor {
     constructor() {
         this.snmpOids = [
@@ -304,7 +308,7 @@ class SNMPMonitor {
         // Process each OID
         for (const item of this.snmpOids) {
             try {
-                const response = await fetch('/api/v1/snmp/get', {
+                const response = await fetch(`${SNMP_API_URL}/get`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -332,10 +336,9 @@ class SNMPMonitor {
                     this.updateCard(item, null, false, result.error || 'No data');
                     this.snmpData[item.name] = {
                         value: null,
-                        unit: item.unit,
+                        error: result.error || 'No data',
                         timestamp: new Date().toISOString(),
-                        status: 'error',
-                        error: result.error || 'No data'
+                        status: 'error'
                     };
                     errorCount++;
                 }
