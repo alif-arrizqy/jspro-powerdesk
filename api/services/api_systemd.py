@@ -35,9 +35,11 @@ ALLOWED_SERVICES = [
     'snmp_handler.service',
     'thread_bms.service',
     'scc.service',
+    'scc_logs.timer',
     'store_data_5min.timer',
     'accumulate_energy.service',
     'webapp.service',
+    'nginx.service',
     'i2c-heartbeat.service'
 ]
 
