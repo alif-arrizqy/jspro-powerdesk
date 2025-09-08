@@ -469,14 +469,14 @@ def snmp_info():
             'oid': '.1.3.6.1.2.1.25.1.19',
             'name': 'lvd1',
             'label': 'LVD 1',
-            'unit': '',
+            'unit': 'V',
             'description': 'Low Voltage Disconnect 1 status'
         },
         {
             'oid': '.1.3.6.1.2.1.25.1.20',
             'name': 'lvd2',
             'label': 'LVD 2',
-            'unit': '',
+            'unit': 'V',
             'description': 'Low Voltage Disconnect 2 status'
         },
         {
@@ -511,7 +511,7 @@ def snmp_info():
             'oid': '.1.3.6.1.2.1.25.1.25',
             'name': 'lvd3',
             'label': 'LVD 3',
-            'unit': '',
+            'unit': 'V',
             'description': 'Low Voltage Disconnect 3 status'
         }
     ]
