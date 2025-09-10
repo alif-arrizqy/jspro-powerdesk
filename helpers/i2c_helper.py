@@ -1,6 +1,8 @@
 from smbus2 import SMBus
 import json
 import os
+from datetime import datetime
+from pathlib import Path
 
 def send_i2c_message(address, message):
     bus = SMBus(1)
@@ -13,8 +15,6 @@ def send_i2c_message(address, message):
 
 def send_i2c_heartbeat(address=0x28, message=ord('H')):
     """Send I2C heartbeat with logging"""
-    import json
-    from datetime import datetime
     
     bus = SMBus(1)
     timestamp = datetime.now().isoformat()
@@ -46,12 +46,13 @@ def send_i2c_heartbeat(address=0x28, message=ord('H')):
 
 def log_i2c_communication(result):
     """Log I2C communication results to file"""
-    import json
-    from datetime import datetime
     
-    log_file = '/var/lib/sundaya/jspro-powerdesk/logs/i2c_communication.log'
+    log_file = Path('/var/lib/sundaya/jspro-powerdesk/logs/i2c_communication.log')
     
     try:
+        # Ensure directory exists
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        
         log_entry = {
             'timestamp': result['timestamp'],
             'success': result['success'],
@@ -61,11 +62,14 @@ def log_i2c_communication(result):
         }
         
         # Read existing logs
-        try:
-            with open(log_file, 'r') as f:
-                logs = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            logs = []
+        logs = []
+        if log_file.exists():
+            try:
+                with open(log_file, 'r') as f:
+                    logs = json.load(f)
+            except (json.JSONDecodeError, PermissionError):
+                # If file is corrupted or permission denied, start fresh
+                logs = []
         
         # Add new log entry
         logs.append(log_entry)
@@ -74,36 +78,43 @@ def log_i2c_communication(result):
         if len(logs) > 1000:
             logs = logs[-1000:]
         
-        # Write back to file
-        with open(log_file, 'w') as f:
-            json.dump(logs, f, indent=2)
+        # Write back to file with error handling
+        try:
+            with open(log_file, 'w') as f:
+                json.dump(logs, f, indent=2)
+        except PermissionError:
+            # If can't write, just silently continue (don't crash the service)
+            pass
             
     except Exception as e:
-        print(f"Error logging I2C communication: {e}")
+        # Don't let logging errors crash the service
+        print(f"Warning: Error logging I2C communication: {e}")
+        pass
 
 
 def get_i2c_logs(limit=50):
     """Get I2C communication logs"""
-    import json
     
-    log_file = '/var/lib/sundaya/jspro-powerdesk/logs/i2c_communication.log'
+    log_file = Path('/var/lib/sundaya/jspro-powerdesk/logs/i2c_communication.log')
     
     try:
+        if not log_file.exists():
+            return []
+            
         with open(log_file, 'r') as f:
             logs = json.load(f)
         
         # Return latest logs
         return logs[-limit:] if len(logs) > limit else logs
         
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (json.JSONDecodeError, PermissionError):
         return []
 
 
 def get_i2c_settings():
     """Get I2C monitoring settings"""
-    import json
     
-    settings_file = '/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json'
+    settings_file = Path('/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json')
     
     default_settings = {
         'enabled': True,
@@ -115,24 +126,29 @@ def get_i2c_settings():
     }
     
     try:
+        if not settings_file.exists():
+            # Create default settings file
+            save_i2c_settings(default_settings)
+            return default_settings
+            
         with open(settings_file, 'r') as f:
             settings = json.load(f)
         return settings
-    except (FileNotFoundError, json.JSONDecodeError):
-        # Create default settings file
-        save_i2c_settings(default_settings)
+    except (json.JSONDecodeError, PermissionError):
+        # If settings file is corrupted or permission denied, use defaults
         return default_settings
 
 
 def save_i2c_settings(settings):
     """Save I2C monitoring settings"""
-    import json
-    from datetime import datetime
     
-    settings_file = '/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json'
+    settings_file = Path('/var/lib/sundaya/jspro-powerdesk/dist/i2c_settings.json')
     settings['last_modified'] = datetime.now().isoformat()
     
     try:
+        # Ensure directory exists
+        settings_file.parent.mkdir(parents=True, exist_ok=True)
+        
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=2)
         
