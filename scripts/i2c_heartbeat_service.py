@@ -19,6 +19,7 @@ from helpers.i2c_helper import send_i2c_heartbeat, get_i2c_settings
 class I2CHeartbeatService:
     def __init__(self):
         self.running = False
+        self.start_time = None
         self.setup_logging()
         self.setup_signal_handlers()
         
@@ -58,7 +59,7 @@ class I2CHeartbeatService:
                 'message': settings.get('message', 'H')
             }
         except Exception as e:
-            self.logger.error(f"Error getting settings: {e}")
+            self.logger.warning(f"Error getting settings, using defaults: {e}")
             return {
                 'enabled': True,
                 'interval_minutes': 2,
@@ -83,54 +84,94 @@ class I2CHeartbeatService:
             result = send_i2c_heartbeat(address, message)
             
             if result['success']:
-                self.logger.info(f"Heartbeat sent successfully to {result['address']}: {result['message']}")
+                self.logger.debug(f"Heartbeat sent successfully to {result['address']}: {result['message']}")
+                return True
             else:
                 self.logger.warning(f"Heartbeat failed to {result['address']}: {result['error']}")
+                return False
                 
         except Exception as e:
-            self.logger.error(f"Error sending heartbeat: {e}")
+            self.logger.warning(f"Error sending heartbeat (will continue): {e}")
+            return False
     
     def run(self):
         """Main service loop"""
-        self.logger.info("I2C Heartbeat Service starting...")
+        self.start_time = datetime.now()
+        self.logger.info(f"I2C Heartbeat Service starting at {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
         self.running = True
         
         last_heartbeat = 0
         last_settings_check = 0
         current_interval = 2  # Default 2 minutes
+        error_count = 0
+        max_consecutive_errors = 10
+        heartbeat_count = 0
+        successful_heartbeats = 0
+        failed_heartbeats = 0
         
-        while self.running:
-            try:
-                current_time = time.time()
-                
-                # Check settings every 30 seconds
-                if current_time - last_settings_check >= 30:
-                    settings = self.get_current_settings()
-                    new_interval = settings['interval_minutes']
+        try:
+            while self.running:
+                try:
+                    current_time = time.time()
                     
-                    if new_interval != current_interval:
-                        self.logger.info(f"Interval changed from {current_interval} to {new_interval} minutes")
-                        current_interval = new_interval
+                    # Check settings every 30 seconds
+                    if current_time - last_settings_check >= 30:
+                        settings = self.get_current_settings()
+                        new_interval = settings['interval_minutes']
+                        
+                        if new_interval != current_interval:
+                            self.logger.info(f"Interval changed from {current_interval} to {new_interval} minutes")
+                            current_interval = new_interval
+                        
+                        last_settings_check = current_time
                     
-                    last_settings_check = current_time
-                
-                # Send heartbeat based on interval
-                interval_seconds = current_interval * 60
-                if current_time - last_heartbeat >= interval_seconds:
-                    self.send_heartbeat()
-                    last_heartbeat = current_time
-                
-                # Sleep for 1 second before next iteration
-                time.sleep(1)
-                
-            except KeyboardInterrupt:
-                self.logger.info("Service interrupted by user")
-                break
-            except Exception as e:
-                self.logger.error(f"Unexpected error in main loop: {e}")
-                time.sleep(5)  # Wait 5 seconds before retrying
+                    # Send heartbeat based on interval
+                    interval_seconds = current_interval * 60
+                    if current_time - last_heartbeat >= interval_seconds:
+                        success = self.send_heartbeat()
+                        last_heartbeat = current_time
+                        heartbeat_count += 1
+                        
+                        if success:
+                            successful_heartbeats += 1
+                        else:
+                            failed_heartbeats += 1
+                        
+                        error_count = 0  # Reset error count on successful iteration
+                        
+                        # Log summary every 10 heartbeats to reduce log noise
+                        if heartbeat_count % 10 == 0:
+                            uptime = datetime.now() - self.start_time
+                            success_rate = (successful_heartbeats / heartbeat_count * 100) if heartbeat_count > 0 else 0
+                            self.logger.info(f"Service summary: {heartbeat_count} heartbeats sent ({successful_heartbeats} success, {failed_heartbeats} failed), success rate: {success_rate:.1f}%, uptime: {uptime}")
+                    
+                    # Sleep for 1 second before next iteration
+                    time.sleep(1)
+                    
+                except KeyboardInterrupt:
+                    self.logger.info("Service interrupted by user")
+                    break
+                except Exception as e:
+                    error_count += 1
+                    self.logger.error(f"Unexpected error in main loop (#{error_count}): {e}")
+                    
+                    if error_count >= max_consecutive_errors:
+                        self.logger.critical(f"Too many consecutive errors ({error_count}), stopping service")
+                        break
+                    
+                    # Exponential backoff for retries
+                    sleep_time = min(60, 5 * (2 ** min(error_count, 5)))
+                    self.logger.info(f"Waiting {sleep_time} seconds before retry...")
+                    time.sleep(sleep_time)
+            
+        except Exception as e:
+            self.logger.critical(f"Fatal error in service main loop: {e}")
+            raise
         
-        self.logger.info("I2C Heartbeat Service stopped")
+        end_time = datetime.now()
+        uptime = end_time - self.start_time if self.start_time else "unknown"
+        success_rate = (successful_heartbeats / heartbeat_count * 100) if heartbeat_count > 0 else 0
+        self.logger.info(f"I2C Heartbeat Service stopped at {end_time.strftime('%Y-%m-%d %H:%M:%S')}, total uptime: {uptime}, heartbeats sent: {heartbeat_count} (success rate: {success_rate:.1f}%)")
     
     def status(self):
         """Get service status"""
@@ -148,22 +189,18 @@ def main():
     parser = argparse.ArgumentParser(description='I2C Heartbeat Background Service')
     parser.add_argument('command', choices=['start', 'stop', 'status', 'test'], 
                        help='Service command')
-    parser.add_argument('--daemon', action='store_true', 
-                       help='Run as daemon (background process)')
     
     args = parser.parse_args()
     
     service = I2CHeartbeatService()
     
     if args.command == 'start':
-        if args.daemon:
-            # Run as daemon
-            import daemon
-            with daemon.DaemonContext():
-                service.run()
-        else:
-            # Run in foreground
+        # Always run in foreground for systemd
+        try:
             service.run()
+        except Exception as e:
+            service.logger.critical(f"Failed to start service: {e}")
+            sys.exit(1)
             
     elif args.command == 'test':
         # Test single heartbeat
@@ -179,8 +216,8 @@ def main():
         print(f"Last Check: {status['timestamp']}")
         
     elif args.command == 'stop':
-        # Stop service (this would need to be implemented with PID file)
-        print("Stop command requires PID file implementation")
+        # Stop service (handled by systemd)
+        print("Use 'systemctl stop i2c-heartbeat.service' to stop the service")
 
 if __name__ == '__main__':
     main()
