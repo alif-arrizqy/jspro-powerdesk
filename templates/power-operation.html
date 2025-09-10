@@ -241,12 +241,12 @@
                                 <div class="mb-3">
                                     <label for="i2cInterval" class="form-label">Heartbeat Interval (minutes)</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" id="i2cInterval" value="2" min="1" max="60">
+                                        <input type="number" class="form-control" id="i2cInterval" value="2" min="1" max="4">
                                         <button class="btn btn-outline-success" type="button" onclick="updateI2cSettings();">
                                             <i class="fas fa-save me-1"></i>Update
                                         </button>
                                     </div>
-                                    <small class="form-text text-muted">Interval for sending I2C heartbeat signals (1-60 minutes)</small>
+                                    <small class="form-text text-muted">Interval for sending I2C heartbeat signals (1-4 minutes)</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="i2cAddress" class="form-label">I2C Address</label>

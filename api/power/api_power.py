@@ -274,10 +274,10 @@ def update_i2c_settings():
         
         # Validate settings
         interval = settings.get('interval_minutes', 2)
-        if interval < 1 or interval > 60:
+        if interval < 1 or interval > 4:
             return jsonify({
                 'success': False,
-                'error': 'Interval must be between 1 and 60 minutes'
+                'error': 'Interval must be between 1 and 4 minutes'
             }), 400
         
         # Add modified_by to settings
