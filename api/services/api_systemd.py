@@ -40,7 +40,8 @@ ALLOWED_SERVICES = [
     'accumulate_energy.service',
     'webapp.service',
     'nginx.service',
-    'i2c-heartbeat.service'
+    'i2c-heartbeat.service',
+    'handle_canbus.service'
 ]
 
 # Allowed actions
