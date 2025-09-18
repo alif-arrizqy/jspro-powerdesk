@@ -36,9 +36,14 @@ create_directories() {
     
     sudo mkdir -p "$INSTALL_DIR"
     sudo mkdir -p /etc/logrotate.d
+    sudo mkdir -p "$WEBAPP_DIR/logs"
     
     # Set proper ownership
     sudo chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
+    sudo chown "$SERVICE_USER:$SERVICE_USER" "$WEBAPP_DIR/logs"
+    
+    # Set permissions for logs directory
+    sudo chmod 777 "$WEBAPP_DIR/logs"
     
     log "Directories created successfully."
 }
@@ -52,7 +57,7 @@ install_scripts() {
     sudo chmod +x "$INSTALL_DIR/disk_auto_reboot.sh"
     
     # Create configuration file
-    cat > "$INSTALL_DIR/config.conf" << EOF
+    sudo tee "$INSTALL_DIR/config.conf" > /dev/null << EOF
 # Disk Auto Reboot Configuration
 THRESHOLD=60
 WEBAPP_URL="http://localhost:5000"
@@ -62,6 +67,10 @@ ENABLE_NOTIFICATIONS=true
 CLEANUP_BEFORE_REBOOT=true
 EOF
     
+    # Set proper ownership and permissions for config file
+    sudo chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/config.conf"
+    sudo chmod 644 "$INSTALL_DIR/config.conf"
+    
     log "Scripts installed to $INSTALL_DIR"
 }
 
@@ -70,14 +79,14 @@ setup_log_rotation() {
     log "Setting up log rotation..."
     
     sudo tee /etc/logrotate.d/disk-auto-reboot > /dev/null << EOF
-/var/log/disk_auto_reboot.log {
+$WEBAPP_DIR/logs/disk_auto_reboot.log {
     daily
     rotate 30
     compress
     delaycompress
     missingok
     notifempty
-    create 644 $SERVICE_USER $SERVICE_USER
+    create 777 $SERVICE_USER $SERVICE_USER
     postrotate
         # Send log rotation notification to webapp
         curl -s -X POST "http://localhost:5000/api/system/disk-alert" \\
@@ -87,14 +96,14 @@ setup_log_rotation() {
     endscript
 }
 
-/var/log/auto_reboot.db* {
+$WEBAPP_DIR/logs/auto_reboot.db* {
     weekly
     rotate 4
     compress
     delaycompress
     missingok
     notifempty
-    create 644 $SERVICE_USER $SERVICE_USER
+    create 777 $SERVICE_USER $SERVICE_USER
 }
 EOF
     
@@ -113,7 +122,15 @@ setup_crontab() {
     fi
     
     # Add new crontab entry
-    (crontab -l 2>/dev/null; echo "*/5 * * * * $INSTALL_DIR/disk_auto_reboot.sh >> /var/log/disk_auto_reboot.log 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "*/5 * * * * $INSTALL_DIR/disk_auto_reboot.sh >> $WEBAPP_DIR/logs/disk_auto_reboot.log 2>&1") | crontab -
+    
+    # Create log file with proper permissions if it doesn't exist
+    mkdir -p "$WEBAPP_DIR/logs"
+    touch "$WEBAPP_DIR/logs/disk_auto_reboot.log"
+    chmod 777 "$WEBAPP_DIR/logs/disk_auto_reboot.log"
+    
+    # Also create a symlink in the install directory for easy access
+    sudo ln -sf "$WEBAPP_DIR/logs/disk_auto_reboot.log" "$INSTALL_DIR/current.log" 2>/dev/null || true
     
     log "Crontab configured to run every 5 minutes."
 }
@@ -122,12 +139,12 @@ setup_crontab() {
 create_status_script() {
     log "Creating status monitoring script..."
     
-    cat > "$INSTALL_DIR/status.sh" << 'EOF'
+    sudo tee "$INSTALL_DIR/status.sh" > /dev/null << EOF
 #!/bin/bash
 
 # Disk Auto Reboot Monitoring Status Script
 
-LOGFILE="/var/log/disk_auto_reboot.log"
+LOGFILE="$WEBAPP_DIR/logs/disk_auto_reboot.log"
 INSTALL_DIR="/opt/disk-monitor"
 
 echo "=== Disk Auto Reboot Monitoring Status ==="
@@ -137,8 +154,8 @@ echo
 echo "1. Monitoring Status:"
 if crontab -l 2>/dev/null | grep -q "disk_auto_reboot.sh"; then
     echo "   ✓ Active (runs every 5 minutes)"
-    NEXT_RUN=$(crontab -l | grep "disk_auto_reboot.sh" | head -1)
-    echo "   Schedule: $NEXT_RUN"
+    NEXT_RUN=\$(crontab -l | grep "disk_auto_reboot.sh" | head -1)
+    echo "   Schedule: \$NEXT_RUN"
 else
     echo "   ✗ Not configured in crontab"
 fi
@@ -146,22 +163,27 @@ echo
 
 # Check current disk usage
 echo "2. Current Disk Usage:"
-DISK_USAGE=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
-echo "   Usage: ${DISK_USAGE}%"
-if [ "$DISK_USAGE" -gt 60 ]; then
-    echo "   Status: ⚠️  Above threshold (60%)"
-elif [ "$DISK_USAGE" -gt 50 ]; then
-    echo "   Status: ⚠️  Approaching threshold"
+DISK_USAGE=\$(df / 2>/dev/null | awk 'NR==2 {print \$5}' | sed 's/%//' 2>/dev/null)
+if [ -z "\$DISK_USAGE" ] || ! echo "\$DISK_USAGE" | grep -q '^[0-9][0-9]*\$'; then
+    echo "   Usage: Unable to determine (non-Linux environment)"
+    echo "   Status: ⚠️  Cannot check disk usage"
 else
-    echo "   Status: ✓ Normal"
+    echo "   Usage: \${DISK_USAGE}%"
+    if [ "\$DISK_USAGE" -gt 60 ]; then
+        echo "   Status: ⚠️  Above threshold (60%)"
+    elif [ "\$DISK_USAGE" -gt 50 ]; then
+        echo "   Status: ⚠️  Approaching threshold"
+    else
+        echo "   Status: ✓ Normal"
+    fi
 fi
 echo
 
 # Check recent log entries
 echo "3. Recent Activity (last 10 entries):"
-if [ -f "$LOGFILE" ]; then
-    tail -n 10 "$LOGFILE" | while read line; do
-        echo "   $line"
+if [ -f "\$LOGFILE" ]; then
+    tail -n 10 "\$LOGFILE" | while read line; do
+        echo "   \$line"
     done
 else
     echo "   No log file found"
@@ -179,16 +201,16 @@ echo
 
 # Show configuration
 echo "5. Configuration:"
-if [ -f "$INSTALL_DIR/config.conf" ]; then
-    cat "$INSTALL_DIR/config.conf" | grep -E "^[A-Z]" | while read line; do
-        echo "   $line"
+if [ -f "\$INSTALL_DIR/config.conf" ]; then
+    cat "\$INSTALL_DIR/config.conf" | grep -E "^[A-Z]" | while read line; do
+        echo "   \$line"
     done
 else
     echo "   No configuration file found"
 fi
 EOF
     
-    chmod +x "$INSTALL_DIR/status.sh"
+    sudo chmod +x "$INSTALL_DIR/status.sh"
     
     log "Status script created at $INSTALL_DIR/status.sh"
 }
@@ -197,7 +219,7 @@ EOF
 create_uninstall_script() {
     log "Creating uninstall script..."
     
-    cat > "$INSTALL_DIR/uninstall.sh" << 'EOF'
+    sudo tee "$INSTALL_DIR/uninstall.sh" > /dev/null << 'EOF'
 #!/bin/bash
 
 # Uninstall Disk Auto Reboot Monitoring System
@@ -217,12 +239,12 @@ echo "Removing installation directory..."
 sudo rm -rf /opt/disk-monitor
 
 # Keep log files for manual review
-echo "Log files preserved in /var/log/ for manual review"
+echo "Log files preserved in jspro-powerdesk/logs/ for manual review"
 
 echo "Uninstallation completed."
 EOF
     
-    chmod +x "$INSTALL_DIR/uninstall.sh"
+    sudo chmod +x "$INSTALL_DIR/uninstall.sh"
     
     log "Uninstall script created at $INSTALL_DIR/uninstall.sh"
 }
@@ -270,7 +292,7 @@ main() {
         echo "• Configuration: $INSTALL_DIR/config.conf"
         echo "• Status check: $INSTALL_DIR/status.sh"
         echo "• Uninstall: $INSTALL_DIR/uninstall.sh"
-        echo "• Log file: /var/lib/sundaya/jspro-powerdesk/logs/disk_auto_reboot.log"
+        echo "• Log file: $WEBAPP_DIR/logs/disk_auto_reboot.log (permission: 777)"
         echo "• Crontab: Runs every 5 minutes"
         echo
         echo "To check status: $INSTALL_DIR/status.sh"

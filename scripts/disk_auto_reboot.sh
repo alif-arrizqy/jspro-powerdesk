@@ -6,14 +6,50 @@
 
 # Configuration
 THRESHOLD=60
-LOGFILE="/var/lib/sundaya/jspro-powerdesk/logs/disk_auto_reboot.log"
+
+# Determine log file path based on script location and available directories
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Check multiple possible locations for webapp directory
+LOGFILE=""
+for WEBAPP_PATH in \
+    "$(dirname "$SCRIPT_DIR")/logs" \
+    "/var/lib/sundaya/jspro-powerdesk/logs" \
+    "/home/*/jspro-powerdesk/logs" \
+    "/opt/jspro-powerdesk/logs" \
+    "/tmp"; do
+    
+    # Expand wildcard for home directory
+    if echo "$WEBAPP_PATH" | grep -q '\*'; then
+        for expanded_path in $WEBAPP_PATH; do
+            if [ -d "$(dirname "$expanded_path")" ]; then
+                LOGFILE="$expanded_path/disk_auto_reboot.log"
+                mkdir -p "$(dirname "$LOGFILE")" 2>/dev/null
+                break 2
+            fi
+        done
+    else
+        if [ -d "$(dirname "$WEBAPP_PATH")" ] || mkdir -p "$(dirname "$WEBAPP_PATH")" 2>/dev/null; then
+            LOGFILE="$WEBAPP_PATH/disk_auto_reboot.log"
+            break
+        fi
+    fi
+done
+
+# Fallback if no suitable directory found
+LOGFILE="${LOGFILE:-/tmp/disk_auto_reboot.log}"
 LOCKFILE="/tmp/disk_reboot.lock"
 WEBAPP_URL="http://localhost:5000"
 AUTH_TOKEN="d1587d98aa2348b600edc7e7569e3997"
 
 # Functions
 log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOGFILE"
+    # Ensure log directory exists
+    mkdir -p "$(dirname "$LOGFILE")" 2>/dev/null || true
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOGFILE" 2>/dev/null || {
+        # If can't write to log file, try stderr
+        echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >&2
+    }
 }
 
 send_webapp_notification() {
@@ -48,7 +84,10 @@ log_auto_reboot() {
 
 cleanup_before_reboot() {
     log_message "Performing cleanup before reboot..."
-    
+
+    # Clear rsyslog
+    sudo systemctl restart rsyslog 2>/dev/null || true
+
     # Clear systemd logs older than 3 days
     journalctl --vacuum-time=3d 2>/dev/null || true
     
@@ -81,10 +120,14 @@ main() {
     # Ensure cleanup on exit
     trap 'rm -f "$LOCKFILE"' EXIT
 
-    # Rotate log if too big (1MB)
-    if [ -f "$LOGFILE" ] && [ $(stat -c%s "$LOGFILE") -gt 1048576 ]; then
-        mv "$LOGFILE" "${LOGFILE}.old"
-        log_message "Log rotated"
+    # Rotate log if too big (1MB) - use ls for better compatibility
+    if [ -f "$LOGFILE" ]; then
+        # Use ls to check file size (more portable than stat)
+        LOG_SIZE=$(ls -l "$LOGFILE" 2>/dev/null | awk '{print $5}' 2>/dev/null || echo 0)
+        if [ "$LOG_SIZE" -gt 1048576 ] 2>/dev/null; then
+            mv "$LOGFILE" "${LOGFILE}.old"
+            log_message "Log rotated"
+        fi
     fi
 
     # Get disk usage (more efficient for Raspberry Pi)
