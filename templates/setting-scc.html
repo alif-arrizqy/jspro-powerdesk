@@ -77,13 +77,13 @@
                             <i class="fas fa-microchip me-2"></i>
                             SCC Type
                         </label>
-                        {% if scc_type == 'scc-srne' or scc_type == 'scc-epveper' %}
+                        {% if scc_type == 'scc-srne' or scc_type == 'scc-epever' %}
                         <select class="form-control form-control-lg" name="scc-type" id="scc-type" required>
                             <option value="" disabled {% if not scc_type %}selected{% endif %}>Choose SCC Type</option>
                             <option value="scc-srne" {% if scc_type == 'scc-srne' %}selected{% endif %}>
                                 <i class="fas fa-bolt"></i> SCC SRNE
                             </option>
-                            <option value="scc-epveper" {% if scc_type == 'scc-epveper' %}selected{% endif %}>
+                            <option value="scc-epever" {% if scc_type == 'scc-epever' %}selected{% endif %}>
                                 <i class="fas fa-solar-panel"></i> SCC Epveper
                             </option>
                         </select>
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Show/hide rules button based on SCC type
-        if (sccType === 'scc-srne' || sccType === 'scc-epveper') {
+        if (sccType === 'scc-srne' || sccType === 'scc-epever') {
             toggleRulesBtn.style.display = 'inline-block';
         } else {
             toggleRulesBtn.style.display = 'none';
@@ -460,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     toggleRulesBtn.addEventListener('click', function() {
         const sccType = document.querySelector('select[name="scc-type"]').value;
-        if (sccType === 'scc-srne' || sccType === 'scc-epveper') {
+        if (sccType === 'scc-srne' || sccType === 'scc-epever') {
             loadConfigRules(sccType);
             rulesPanel.style.display = 'block';
             rulesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
