@@ -28,15 +28,21 @@ class I2CHeartbeatService:
         log_dir = Path('/var/lib/sundaya/jspro-powerdesk/logs')
         log_dir.mkdir(parents=True, exist_ok=True)
         
+        # Configure logging with explicit flush
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,  # Changed to DEBUG for more detailed logging
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
                 logging.FileHandler(log_dir / 'i2c_heartbeat_service.log'),
                 logging.StreamHandler(sys.stdout)
-            ]
+            ],
+            force=True  # Force reconfiguration
         )
         self.logger = logging.getLogger('I2CHeartbeatService')
+        
+        # Ensure immediate flushing
+        for handler in self.logger.handlers:
+            handler.flush()
         
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
@@ -54,7 +60,7 @@ class I2CHeartbeatService:
             settings = get_i2c_settings()
             return {
                 'enabled': settings.get('enabled', True),
-                'interval_minutes': settings.get('interval_minutes', 2),
+                'interval_seconds': settings.get('interval_seconds', 2), 
                 'i2c_address': settings.get('i2c_address', '0x28'),
                 'message': settings.get('message', 'H')
             }
@@ -62,7 +68,7 @@ class I2CHeartbeatService:
             self.logger.warning(f"Error getting settings, using defaults: {e}")
             return {
                 'enabled': True,
-                'interval_minutes': 2,
+                'interval_seconds': 2,
                 'i2c_address': '0x28',
                 'message': 'H'
             }
@@ -74,7 +80,7 @@ class I2CHeartbeatService:
             
             if not settings['enabled']:
                 self.logger.debug("I2C monitoring is disabled, skipping heartbeat")
-                return
+                return True
             
             # Convert address from hex string to int
             address = int(settings['i2c_address'], 16)
@@ -91,56 +97,79 @@ class I2CHeartbeatService:
                 return False
                 
         except Exception as e:
-            self.logger.warning(f"Error sending heartbeat (will continue): {e}")
+            self.logger.error(f"Error sending heartbeat: {e}", exc_info=True)
             return False
     
     def run(self):
         """Main service loop"""
         self.start_time = datetime.now()
         self.logger.info(f"I2C Heartbeat Service starting at {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        self.logger.info(f"Python version: {sys.version}")
+        self.logger.info(f"Process PID: {os.getpid()}")
+        
         self.running = True
         
         last_heartbeat = 0
         last_settings_check = 0
-        current_interval = 2  # Default 2 minutes
+        current_interval = 2  # Default 2 seconds
         error_count = 0
         max_consecutive_errors = 10
         heartbeat_count = 0
         successful_heartbeats = 0
         failed_heartbeats = 0
+        loop_count = 0
+        
+        self.logger.info(f"Service loop started with interval: {current_interval} seconds")
         
         try:
+            self.logger.info("Entering main service loop...")
+            sys.stdout.flush()
+            
             while self.running:
                 try:
+                    loop_count += 1
                     current_time = time.time()
                     
-                    # Check settings every 30 seconds
-                    if current_time - last_settings_check >= 30:
+                    # Log every 60 seconds to show service is alive
+                    if loop_count % 60 == 0:
+                        self.logger.debug(f"Service alive - loop #{loop_count}, uptime: {datetime.now() - self.start_time}")
+                    
+                    # Check settings every 2 seconds
+                    if current_time - last_settings_check >= 2:
+                        self.logger.debug("Checking settings...")
                         settings = self.get_current_settings()
-                        new_interval = settings['interval_minutes']
+                        new_interval = settings['interval_seconds'] 
                         
                         if new_interval != current_interval:
-                            self.logger.info(f"Interval changed from {current_interval} to {new_interval} minutes")
+                            self.logger.info(f"Interval changed from {current_interval} to {new_interval} seconds")
                             current_interval = new_interval
                         
                         last_settings_check = current_time
                     
                     # Send heartbeat based on interval
-                    interval_seconds = current_interval * 60
-                    if current_time - last_heartbeat >= interval_seconds:
+                    interval_seconds = current_interval  # Already in seconds
+                    time_since_last = current_time - last_heartbeat
+                    
+                    if time_since_last >= interval_seconds:
+                        self.logger.info(f"Time for heartbeat (last heartbeat was {time_since_last:.1f} seconds ago, interval: {interval_seconds}s)")
                         success = self.send_heartbeat()
                         last_heartbeat = current_time
                         heartbeat_count += 1
                         
                         if success:
                             successful_heartbeats += 1
+                            self.logger.info(f"Heartbeat #{heartbeat_count} successful - next heartbeat in {interval_seconds} seconds")
                         else:
                             failed_heartbeats += 1
+                            self.logger.warning(f"Heartbeat #{heartbeat_count} failed - next heartbeat in {interval_seconds} seconds")
                         
                         error_count = 0  # Reset error count on successful iteration
                         
-                        # Log summary every 10 heartbeats to reduce log noise
-                        if heartbeat_count % 10 == 0:
+                        # Flush logs immediately after heartbeat
+                        sys.stdout.flush()
+                        
+                        # Log summary every 5 heartbeats for debugging
+                        if heartbeat_count % 5 == 0:
                             uptime = datetime.now() - self.start_time
                             success_rate = (successful_heartbeats / heartbeat_count * 100) if heartbeat_count > 0 else 0
                             self.logger.info(f"Service summary: {heartbeat_count} heartbeats sent ({successful_heartbeats} success, {failed_heartbeats} failed), success rate: {success_rate:.1f}%, uptime: {uptime}")
@@ -153,7 +182,8 @@ class I2CHeartbeatService:
                     break
                 except Exception as e:
                     error_count += 1
-                    self.logger.error(f"Unexpected error in main loop (#{error_count}): {e}")
+                    self.logger.error(f"Unexpected error in main loop (#{error_count}): {e}", exc_info=True)
+                    sys.stdout.flush()
                     
                     if error_count >= max_consecutive_errors:
                         self.logger.critical(f"Too many consecutive errors ({error_count}), stopping service")
@@ -161,11 +191,14 @@ class I2CHeartbeatService:
                     
                     # Exponential backoff for retries
                     sleep_time = min(60, 5 * (2 ** min(error_count, 5)))
-                    self.logger.info(f"Waiting {sleep_time} seconds before retry...")
+                    self.logger.warning(f"Waiting {sleep_time} seconds before retry...")
                     time.sleep(sleep_time)
             
+            self.logger.info("Main service loop ended normally")
+            
         except Exception as e:
-            self.logger.critical(f"Fatal error in service main loop: {e}")
+            self.logger.critical(f"Fatal error in service main loop: {e}", exc_info=True)
+            sys.stdout.flush()
             raise
         
         end_time = datetime.now()
@@ -196,11 +229,21 @@ def main():
     
     if args.command == 'start':
         # Always run in foreground for systemd
+        exit_code = 0
         try:
+            service.logger.info("Starting I2C Heartbeat Service...")
             service.run()
+            service.logger.info("Service ended normally")
+        except KeyboardInterrupt:
+            service.logger.info("Service interrupted by user")
+            exit_code = 0
         except Exception as e:
-            service.logger.critical(f"Failed to start service: {e}")
-            sys.exit(1)
+            service.logger.critical(f"Failed to start service: {e}", exc_info=True)
+            exit_code = 1
+        finally:
+            service.logger.info(f"Service exiting with code {exit_code}")
+            sys.stdout.flush()
+            sys.exit(exit_code)
             
     elif args.command == 'test':
         # Test single heartbeat
