@@ -796,7 +796,7 @@ def get_storage_overview():
         # Get SQLite statistics and file size
         try:
             # Get SQLite database file size
-            sqlite_db_path = f'{PATH}/data_storage.db'
+            sqlite_db_path = f'{PATH}/database/data_storage.db'
             if os.path.exists(sqlite_db_path):
                 sqlite_file_size = os.path.getsize(sqlite_db_path)
                 # Convert bytes to MB

@@ -5,7 +5,7 @@ import json
 from ..redisconnection import connection as red
 from config import PATH
 
-SQLITE_DB_PATH = f'{PATH}/data_storage.db'
+SQLITE_DB_PATH = f'{PATH}/database/data_storage.db'
 
 def get_sqlite_connection():
     """Get SQLite database connection"""

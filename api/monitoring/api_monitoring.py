@@ -170,7 +170,7 @@ def get_scc_chart_data():
     try:
         # Path to SQLite database (adjust as needed)
         # db_path = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis/data_storage.db"
-        db_path = f"{PATH}/data_storage.db"
+        db_path = f"{PATH}/database/data_storage.db"
 
         # Check if database exists
         if not os.path.exists(db_path):
@@ -478,7 +478,7 @@ def get_battery_chart_data():
         hours = request.args.get('hours', 24, type=int)  # Default last 24 hours
         
         # Path to SQLite database
-        db_path = f"{PATH}/data_storage.db"
+        db_path = f"{PATH}/database/data_storage.db"
         print(f"DEBUG: Database path: {db_path}")
 
         # Check if database exists
