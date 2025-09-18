@@ -5,22 +5,31 @@ from datetime import datetime
 from pathlib import Path
 
 def send_i2c_message(address, message):
-    bus = SMBus(1)
+    bus = None
     try:
+        bus = SMBus(1)
         bus.write_byte(address, message)
         return True
     except OSError:
         return False
+    finally:
+        if bus is not None:
+            try:
+                bus.close()
+            except Exception:
+                pass
 
 
 def send_i2c_heartbeat(address=0x28, message=ord('H')):
     """Send I2C heartbeat with logging"""
     
-    bus = SMBus(1)
     timestamp = datetime.now().isoformat()
+    bus = None
     
     try:
+        bus = SMBus(1)
         bus.write_byte(address, message)
+        
         result = {
             'success': True,
             'timestamp': timestamp,
@@ -31,17 +40,45 @@ def send_i2c_heartbeat(address=0x28, message=ord('H')):
         # Log successful communication
         log_i2c_communication(result)
         return result
+        
     except OSError as e:
+        error_msg = f"OSError {e.errno}: {e.strerror}"
+        if e.errno == 121:
+            error_msg = f"Device not responding at address {hex(address)} (Remote I/O error)"
+        elif e.errno == 2:
+            error_msg = "I2C bus not available (No such file or directory)"
+        elif e.errno == 13:
+            error_msg = "Permission denied to access I2C bus"
+        
         result = {
             'success': False,
             'timestamp': timestamp,
             'address': hex(address),
             'message': chr(message),
-            'error': str(e)
+            'error': error_msg
         }
         # Log failed communication
         log_i2c_communication(result)
         return result
+        
+    except Exception as e:
+        result = {
+            'success': False,
+            'timestamp': timestamp,
+            'address': hex(address),
+            'message': chr(message),
+            'error': f"Unexpected error: {str(e)}"
+        }
+        log_i2c_communication(result)
+        return result
+        
+    finally:
+        # Always close the bus
+        if bus is not None:
+            try:
+                bus.close()
+            except Exception:
+                pass  # Ignore close errors
 
 
 def log_i2c_communication(result):
@@ -118,7 +155,7 @@ def get_i2c_settings():
     
     default_settings = {
         'enabled': True,
-        'interval_minutes': 2,
+        'interval_seconds': 2,
         'i2c_address': '0x28',
         'message': 'H',
         'last_modified': None,
@@ -133,6 +170,13 @@ def get_i2c_settings():
             
         with open(settings_file, 'r') as f:
             settings = json.load(f)
+        
+        # Migration: convert old interval_minutes to interval_seconds
+        if 'interval_minutes' in settings and 'interval_seconds' not in settings:
+            settings['interval_seconds'] = settings['interval_minutes'] * 60
+            del settings['interval_minutes']
+            save_i2c_settings(settings)
+            
         return settings
     except (json.JSONDecodeError, PermissionError):
         # If settings file is corrupted or permission denied, use defaults
@@ -169,7 +213,7 @@ def save_i2c_settings(settings):
 
 def validate_i2c_settings(settings):
     """Validate I2C settings structure and values"""
-    required_fields = ['enabled', 'interval_minutes', 'i2c_address', 'message']
+    required_fields = ['enabled', 'interval_seconds', 'i2c_address', 'message']
     
     # Check required fields
     for field in required_fields:
@@ -182,10 +226,11 @@ def validate_i2c_settings(settings):
         if not isinstance(settings['enabled'], bool):
             return False, "enabled must be boolean"
         
-        # interval_minutes should be integer between 1-60
-        interval = int(settings['interval_minutes'])
-        if interval < 1 or interval > 60:
-            return False, "interval_minutes must be between 1-60"
+        # interval_seconds should be one of allowed values
+        interval = int(settings['interval_seconds'])
+        allowed_intervals = [1, 2, 5, 10, 15, 20, 25, 30, 60, 120, 180, 240, 300]
+        if interval not in allowed_intervals:
+            return False, f"interval_seconds must be one of: {allowed_intervals}"
         
         # i2c_address should be valid hex address
         address = settings['i2c_address']
@@ -234,7 +279,7 @@ def reset_i2c_settings():
     """Reset I2C settings to default values"""
     default_settings = {
         'enabled': True,
-        'interval_minutes': 2,
+        'interval_seconds': 2,
         'i2c_address': '0x28',
         'message': 'H',
         'last_modified': None,
