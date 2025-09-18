@@ -1,6 +1,6 @@
 {
     "enabled": true,
-    "interval_minutes": 2,
+    "interval_seconds": 2,
     "i2c_address": "0x28",
     "message": "H",
     "last_modified": null,
