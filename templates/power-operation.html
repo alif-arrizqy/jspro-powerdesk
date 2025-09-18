@@ -239,14 +239,28 @@
                                     I2C Settings
                                 </h6>
                                 <div class="mb-3">
-                                    <label for="i2cInterval" class="form-label">Heartbeat Interval (minutes)</label>
+                                    <label for="i2cInterval" class="form-label">Heartbeat Interval</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" id="i2cInterval" value="2" min="1" max="4">
+                                        <select class="form-select" id="i2cInterval">
+                                            <option value="1">1 second</option>
+                                            <option value="2" selected>2 seconds</option>
+                                            <option value="5">5 seconds</option>
+                                            <option value="10">10 seconds</option>
+                                            <option value="15">15 seconds</option>
+                                            <option value="20">20 seconds</option>
+                                            <option value="25">25 seconds</option>
+                                            <option value="30">30 seconds</option>
+                                            <option value="60">1 minute</option>
+                                            <option value="120">2 minutes</option>
+                                            <option value="180">3 minutes</option>
+                                            <option value="240">4 minutes</option>
+                                            <option value="300">5 minutes</option>
+                                        </select>
                                         <button class="btn btn-outline-success" type="button" onclick="updateI2cSettings();">
                                             <i class="fas fa-save me-1"></i>Update
                                         </button>
                                     </div>
-                                    <small class="form-text text-muted">Interval for sending I2C heartbeat signals (1-4 minutes)</small>
+                                    <small class="form-text text-muted">Interval for sending I2C heartbeat signals (1-300 seconds)</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="i2cAddress" class="form-label">I2C Address</label>
@@ -806,7 +820,7 @@
     
     // Display I2C settings
     function displayI2cSettings(settings) {
-        document.getElementById('i2cInterval').value = settings.interval_minutes || 2;
+        document.getElementById('i2cInterval').value = settings.interval_seconds || 30;
         document.getElementById('i2cAddress').value = settings.i2c_address || '0x28';
         document.getElementById('i2cEnabled').checked = settings.enabled || false;
     }
@@ -860,13 +874,14 @@
             return;
         }
         
-        const interval = document.getElementById('i2cInterval').value;
+        const interval = parseInt(document.getElementById('i2cInterval').value);
         const enabled = document.getElementById('i2cEnabled').checked;
         const address = document.getElementById('i2cAddress').value;
         
         // Validate interval
-        if (interval < 1 || interval > 60) {
-            alert('Interval must be between 1 and 60 minutes.');
+        const allowedIntervals = [1, 2, 5, 10, 15, 20, 25, 30, 60, 120, 180, 240, 300];
+        if (!allowedIntervals.includes(interval)) {
+            alert('Invalid interval. Please select from available options.');
             return;
         }
         
@@ -885,7 +900,7 @@
         const userToken = '{{ session.get("auth_token", "") }}';
         const settings = {
             enabled: enabled,
-            interval_minutes: parseInt(interval),
+            interval_seconds: interval,
             i2c_address: address,
             message: 'H'
         };
