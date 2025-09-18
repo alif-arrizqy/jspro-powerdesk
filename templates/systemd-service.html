@@ -366,6 +366,14 @@
             critical: false,
             hasLogs: true,
             logFiles: ['i2c_communication.log']
+        },
+        {
+            name: 'handle_canbus.service',
+            displayName: 'CAN Bus Handler',
+            description: 'CAN Bus data handling service',
+            category: 'hardware',
+            critical: true,
+            hasLogs: false
         }
     ];
     
