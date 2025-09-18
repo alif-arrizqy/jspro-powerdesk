@@ -191,7 +191,9 @@
                                     </div>
                                 </div>
                                 <h3 class="stats-card-value" id="cell-max-{{i}}">Loading...</h3>
-                                <p class="stats-card-subtitle">Maximum Cell Millivoltage</p>
+                                <p class="stats-card-subtitle">
+                                    <span id="cell-max-info-{{i}}">Maximum Cell Millivoltage</span>
+                                </p>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -203,7 +205,9 @@
                                     </div>
                                 </div>
                                 <h3 class="stats-card-value" id="cell-min-{{i}}">Loading...</h3>
-                                <p class="stats-card-subtitle">Minimum Cell Millivoltage</p>
+                                <p class="stats-card-subtitle">
+                                    <span id="cell-min-info-{{i}}">Minimum Cell Millivoltage</span>
+                                </p>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -654,10 +658,43 @@
             const cellMaxEl = document.getElementById(`cell-max-${packNumber}`);
             const cellMinEl = document.getElementById(`cell-min-${packNumber}`);
             const cellDiffEl = document.getElementById(`cell-diff-${packNumber}`);
+            const cellMaxInfoEl = document.getElementById(`cell-max-info-${packNumber}`);
+            const cellMinInfoEl = document.getElementById(`cell-min-info-${packNumber}`);
 
             if (cellMaxEl) cellMaxEl.textContent = `${bms.max_cell_voltage || 0} mV`;
             if (cellMinEl) cellMinEl.textContent = `${bms.min_cell_voltage || 0} mV`;
             if (cellDiffEl) cellDiffEl.textContent = `${bms.cell_difference || 0} mV`;
+            
+            // Find and display which cell has max/min voltage
+            if (bms.cell_voltage && Array.isArray(bms.cell_voltage)) {
+                const cellVoltages = bms.cell_voltage;
+                const maxVoltage = Math.max(...cellVoltages.filter(v => v > 0));
+                const minVoltage = Math.min(...cellVoltages.filter(v => v > 0));
+                
+                const maxCellIndex = cellVoltages.findIndex(v => v === maxVoltage);
+                const minCellIndex = cellVoltages.findIndex(v => v === minVoltage);
+                
+                if (cellMaxEl && maxCellIndex !== -1) {
+                    cellMaxEl.textContent = `Cell ${maxCellIndex + 1} - ${maxVoltage} mV`;
+                }
+                
+                if (cellMinEl && minCellIndex !== -1) {
+                    cellMinEl.textContent = `Cell ${minCellIndex + 1} - ${minVoltage} mV`;
+                }
+                
+                if (cellMaxInfoEl && maxCellIndex !== -1) {
+                    cellMaxInfoEl.textContent = `Maximum Cell Millivoltage`;
+                }
+                
+                if (cellMinInfoEl && minCellIndex !== -1) {
+                    cellMinInfoEl.textContent = `Minimum Cell Millivoltage`;
+                }
+            } else {
+                if (cellMaxEl) cellMaxEl.textContent = `${bms.max_cell_voltage || 0} mV`;
+                if (cellMinEl) cellMinEl.textContent = `${bms.min_cell_voltage || 0} mV`;
+                if (cellMaxInfoEl) cellMaxInfoEl.textContent = "Maximum Cell Millivoltage";
+                if (cellMinInfoEl) cellMinInfoEl.textContent = "Minimum Cell Millivoltage";
+            }
             
             // Update cell difference status using helper function
             const cellDiffStatusInfo = getCellDifferenceStatus(bms.cell_difference);
