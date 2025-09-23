@@ -70,6 +70,7 @@ def index():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
+            'battery_type': battery_type,
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc,
