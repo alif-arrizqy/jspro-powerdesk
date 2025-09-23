@@ -211,6 +211,15 @@
                                 </a>
                             </li>
                             {% endif %}
+                            {% if menu_access.settings.mqtt_settings %}
+                            <li>
+                                <a href="/setting-mqtt" class="nav-link {{ 'active' if request.endpoint == 'setting_mqtt' }}">
+                                    <i class="fas fa-exchange"></i>
+                                    <span>MQTT Settings</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}

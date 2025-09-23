@@ -1,0 +1,385 @@
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}MQTT Settings{% endblock breadcrumbs %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-broadcast-tower text-primary me-2"></i>
+                    MQTT Configuration
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <p class="text-muted mb-0">Configure MQTT broker connection settings for data publishing.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Status Summary -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    MQTT Connection Status
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">MQTT Host</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="mqtt-host-display">{{mqtt_config.host or 'Not Set'}}</h4>
+                            <p class="stats-card-subtitle">Broker Address</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Port</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="mqtt-port-display">{{mqtt_config.port or 'Not Set'}}</h4>
+                            <p class="stats-card-subtitle">Connection Port</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Username</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="mqtt-username-display">{{mqtt_config.username or 'Not Set'}}</h4>
+                            <p class="stats-card-subtitle">Authentication</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value">
+                                <span class="badge bg-success" id="mqtt-status">
+                                    {% if mqtt_config.host %}
+                                        Configured
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </span>
+                            </h4>
+                            <p class="stats-card-subtitle">Connection Status</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Configuration Form -->
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cog text-primary me-2"></i>
+                    MQTT Broker Settings
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <form method="POST" id="mqtt-form">
+                    <input type="hidden" name="setting-mqtt-form" value="setting-mqtt-form">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mqtt-host" class="form-label">
+                                <i class="fas fa-server me-2"></i>
+                                MQTT Host/IP Address
+                            </label>
+                            <input type="text" class="form-control" name="host" id="mqtt-host" 
+                                   placeholder="192.168.1.100" value="{{mqtt_config.host}}" required>
+                            <div class="form-text">IP address or hostname of the MQTT broker</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="mqtt-port" class="form-label">
+                                <i class="fas fa-plug me-2"></i>
+                                Port
+                            </label>
+                            <input type="number" class="form-control" name="port" id="mqtt-port" 
+                                   placeholder="1883" value="{{mqtt_config.port}}" min="1" max="65535" required>
+                            <div class="form-text">Standard MQTT port is 1883, secure MQTT is 8883</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mqtt-username" class="form-label">
+                                <i class="fas fa-user me-2"></i>
+                                Username
+                            </label>
+                            <input type="text" class="form-control" name="username" id="mqtt-username" 
+                                   placeholder="mqtt_user" value="{{mqtt_config.username}}">
+                            <div class="form-text">Leave empty if no authentication is required</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="mqtt-password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>
+                                Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password" id="mqtt-password" 
+                                       placeholder="••••••••" value="{{mqtt_config.password}}">
+                                <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                    <i class="fas fa-eye" id="toggle-password-icon"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Password for MQTT authentication</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mqtt-openvpn-ip" class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                OpenVPN IP Address
+                            </label>
+                            <input type="text" class="form-control" name="openvpn_ip" id="mqtt-openvpn-ip" 
+                                   placeholder="10.8.0.1" value="{{mqtt_config.openvpn_ip}}">
+                            <div class="form-text">VPN gateway IP for secure MQTT connection</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="mqtt-topic" class="form-label">
+                                <i class="fas fa-folder me-2"></i>
+                                Topic Prefix
+                            </label>
+                            <input type="text" class="form-control" name="topic" id="mqtt-topic" 
+                                   placeholder="sundaya/mqtt/site" value="{{mqtt_config.topic}}" required>
+                            <div class="form-text">Base topic for all MQTT messages</div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-modern btn-primary" id="save-mqtt">
+                            <i class="fas fa-save me-2"></i>
+                            Save MQTT Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle functionality
+    const togglePassword = document.getElementById('toggle-password');
+    const passwordField = document.getElementById('mqtt-password');
+    const toggleIcon = document.getElementById('toggle-password-icon');
+    
+    if (togglePassword && passwordField) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            
+            if (type === 'password') {
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        });
+    }
+    
+    // Form validation
+    const mqttForm = document.getElementById('mqtt-form');
+    if (mqttForm) {
+        mqttForm.addEventListener('submit', function(e) {
+            const requiredFields = ['mqtt-host', 'mqtt-port', 'mqtt-topic'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field && !field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else if (field) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
+            });
+            
+            // Port validation
+            const portField = document.getElementById('mqtt-port');
+            if (portField) {
+                const port = parseInt(portField.value);
+                if (port < 1 || port > 65535) {
+                    portField.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    portField.classList.remove('is-invalid');
+                    portField.classList.add('is-valid');
+                }
+            }
+            
+            // IP address validation for host
+            const hostField = document.getElementById('mqtt-host');
+            if (hostField && hostField.value) {
+                const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                const hostnamePattern = /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/;
+                
+                if (!ipPattern.test(hostField.value) && !hostnamePattern.test(hostField.value)) {
+                    hostField.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    hostField.classList.remove('is-invalid');
+                    hostField.classList.add('is-valid');
+                }
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                showAlert('Please fix the validation errors before submitting', 'danger');
+                return;
+            }
+            
+            // Handle form submission
+            const submitBtn = document.getElementById('save-mqtt');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+                
+                // Re-enable after 5 seconds as fallback
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save MQTT Configuration';
+                }, 5000);
+            }
+            
+            // Update status display
+            updateStatusDisplay();
+        });
+    }
+    
+    // Real-time input validation
+    const inputs = document.querySelectorAll('#mqtt-form input');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid', 'is-valid');
+            
+            if (this.value.trim()) {
+                // Basic validation on input
+                if (this.id === 'mqtt-port') {
+                    const port = parseInt(this.value);
+                    if (port >= 1 && port <= 65535) {
+                        this.classList.add('is-valid');
+                    }
+                } else if (this.id === 'mqtt-host') {
+                    const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                    const hostnamePattern = /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/;
+                    
+                    if (ipPattern.test(this.value) || hostnamePattern.test(this.value)) {
+                        this.classList.add('is-valid');
+                    }
+                } else {
+                    this.classList.add('is-valid');
+                }
+            }
+            
+            // Update status display in real-time
+            updateStatusDisplay();
+        });
+    });
+    
+    function updateStatusDisplay() {
+        const host = document.getElementById('mqtt-host').value;
+        const port = document.getElementById('mqtt-port').value;
+        const username = document.getElementById('mqtt-username').value;
+        const topic = document.getElementById('mqtt-topic').value;
+        
+        // Update summary cards
+        const hostDisplay = document.getElementById('mqtt-host-display');
+        const portDisplay = document.getElementById('mqtt-port-display');
+        const usernameDisplay = document.getElementById('mqtt-username-display');
+        const statusDisplay = document.getElementById('mqtt-status');
+        
+        if (hostDisplay) hostDisplay.textContent = host || 'Not Set';
+        if (portDisplay) portDisplay.textContent = port || 'Not Set';
+        if (usernameDisplay) usernameDisplay.textContent = username || 'Not Set';
+        
+        // Update status badge
+        if (statusDisplay) {
+            if (host && port && topic) {
+                statusDisplay.textContent = 'Configured';
+                statusDisplay.className = 'badge bg-success';
+            } else {
+                statusDisplay.textContent = 'Pending';
+                statusDisplay.className = 'badge bg-warning';
+            }
+        }
+    }
+    
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-info-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at the top of the page
+        const firstCard = document.querySelector('.modern-card');
+        firstCard.parentNode.insertBefore(alertDiv, firstCard);
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+    
+    // Initialize tooltips
+    const tooltips = {
+        'mqtt-host': 'IP address or hostname of the MQTT broker server',
+        'mqtt-port': 'Port number for MQTT connection (standard: 1883, secure: 8883)',
+        'mqtt-username': 'Username for MQTT broker authentication',
+        'mqtt-password': 'Password for MQTT broker authentication',
+        'mqtt-openvpn-ip': 'OpenVPN gateway IP address for secure connections',
+        'mqtt-topic': 'Base topic prefix for all MQTT messages from this device'
+    };
+
+    Object.keys(tooltips).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.setAttribute('title', tooltips[id]);
+            element.setAttribute('data-bs-toggle', 'tooltip');
+        }
+    });
+    
+    // Initialize status display
+    updateStatusDisplay();
+});
+</script>
+{% endblock scripts %}

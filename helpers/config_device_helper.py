@@ -535,3 +535,33 @@ def update_ip_configuration(path, form):
     with open(path, 'w') as f:
         json.dump(data, f, indent=4)
     return True
+
+
+def update_setting_mqtt(path, data):
+    """Update MQTT settings in config_device.json"""
+    # Read json file first
+    with open(path, 'r') as f:
+        config_data = json.load(f)
+    
+    # Ensure mqtt_config section exists
+    if 'mqtt_config' not in config_data:
+        config_data['mqtt_config'] = {}
+    
+    # Update MQTT settings from data dictionary
+    mqtt_settings = ['host', 'port', 'username', 'password', 'openvpn_ip', 'topic']
+    for setting in mqtt_settings:
+        if setting in data:
+            # config_data['mqtt_config'][setting] = data[setting]
+            # if port is provided, convert to int
+            if setting == 'port':
+                try:
+                    config_data['mqtt_config'][setting] = int(data[setting])
+                except ValueError:
+                    continue
+            else:
+                config_data['mqtt_config'][setting] = data[setting]
+    
+    # Write json file
+    with open(path, 'w') as f:
+        json.dump(config_data, f, indent=4)
+    return True

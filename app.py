@@ -970,6 +970,82 @@ def get_scc_rules(scc_type):
         print(f"get_scc_rules() error: {e}")
         return jsonify({'error': 'Failed to load rules'}), 500
 
+@app.route('/setting-mqtt', methods=['GET', 'POST'])
+@login_required
+def setting_mqtt():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'mqtt_settings'):
+        audit_access(username, 'mqtt_settings', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
+
+    # path config device
+    path = f'{PATH}/config_device.json'
+
+    form_setting_mqtt = request.form.get('setting-mqtt-form')
+
+    if request.method == 'POST':
+        data = request.form.to_dict()
+
+        if form_setting_mqtt:
+            response = update_setting_mqtt(path, data)            
+            if response:
+                flash('MQTT Settings have been updated successfully', 'success')
+                audit_access(username, 'mqtt_settings', 'update_mqtt_settings')
+                os.system(f'sudo python3 {PATH}/config_scc.py')
+                bash_command('sudo systemctl restart mqtt_publish.service device_config_loader.service webapp.service')
+            else:
+                flash('Failed to update MQTT Settings', 'danger')
+            return redirect(url_for('setting_mqtt'))
+    
+    try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
+        with open(path, 'r') as file:
+            data = json.load(file)
+
+        # get site name
+        site_name = red.hget('device_config', 'site_name')
+
+        context = {
+            'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
+            'site_name': site_name,
+            'scc_type': scc_type,
+            'mqtt_config': data.get('mqtt_config'),
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
+        }
+        
+        # Audit page access
+        audit_access(username, 'mqtt_settings', 'view')
+        
+    except Exception as e:
+        print(f"setting_mqtt() error: {e}")
+        
+        try:
+            with open(path, 'r') as file:
+                data = json.load(file)
+        except:
+            data = {'mqtt_config': {}}
+
+        context = {
+            'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
+            'site_name': 'Site Name',
+            'scc_type': scc_type,
+            'mqtt_config': data.get('mqtt_config', {}),
+            'ip_address': get_ip_address('eth0'),
+            # 'ip_address': '192.168.1.1',
+        }
+    return render_template('setting-mqtt.html', **context)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
