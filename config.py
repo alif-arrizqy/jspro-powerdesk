@@ -20,6 +20,25 @@ if device is None:
     number_of_cell = 16
     slave_ids = 10
 else:
+    battery_type = device.get('battery_type')
+    if battery_type == "talis5":
+        number_of_batt = 10
+        number_of_cell = 16
+        slave_ids = 10
+    elif battery_type == "jspro":
+        number_of_batt = 16
+        number_of_cell = 14
+        slave_ids = 16
+    elif battery_type == "mix":
+        number_of_batt = 16
+        number_of_cell = 16
+        slave_ids = 16
+    else:
+        # Default fallback to talis5 configuration
+        number_of_batt = 10
+        number_of_cell = 16
+        slave_ids = 10
+
     scc_type = device.get('scc_type')
 
     if scc_type == "scc-srne":
