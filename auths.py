@@ -68,6 +68,7 @@ ROLE_PERMISSIONS = {
             'device_settings',
             'scc_settings',
             'ip_configuration',
+            'mqtt_settings',
             'power_operations'
         ],
         'actions': [
@@ -78,6 +79,7 @@ ROLE_PERMISSIONS = {
             'view_site_info',
             'configure_device',
             'configure_scc',
+            'configure_mqtt',
             'configure_network',
             'system_reboot',
             'system_shutdown'
@@ -94,13 +96,15 @@ ROLE_PERMISSIONS = {
             'scc_monitoring',
             'snmp_service',
             'site_information',
-            'device_settings'
+            'device_settings',
+            'mqtt_settings'
         ],
         'actions': [
             'view_dashboard',
             'view_scc_data',
             'view_site_info',
-            'configure_device'
+            'configure_device',
+            'configure_mqtt'
         ],
         'api_endpoints': [
             '/api/v1/device/*',
@@ -121,6 +125,7 @@ ROLE_PERMISSIONS = {
             'site_information',
             'device_settings',
             'scc_settings',
+            'mqtt_settings',
             'ip_configuration',
             'power_operations',
             'user_management'
@@ -136,6 +141,7 @@ ROLE_PERMISSIONS = {
             'view_site_info',
             'configure_device',
             'configure_scc',
+            'configure_mqtt',
             'configure_network',
             'system_reboot',
             'system_shutdown',
@@ -157,7 +163,7 @@ MENU_ACCESS = {
             'battery': True
         },
         'services': {
-            'mqtt': False,
+            'mqtt': True,
             'systemd': True,
             'snmp': True
         },
@@ -169,7 +175,8 @@ MENU_ACCESS = {
         'settings': {
             'device_settings': True,
             'scc_settings': True,
-            'ip_configuration': True
+            'ip_configuration': True,
+            'mqtt_settings': True
         },
         'power_operations': True
     },
@@ -192,7 +199,8 @@ MENU_ACCESS = {
         'settings': {
             'device_settings': True,
             'scc_settings': False,
-            'ip_configuration': False
+            'ip_configuration': False,
+            'mqtt_settings': True
         },
         'power_operations': False
     },
@@ -215,7 +223,8 @@ MENU_ACCESS = {
         'settings': {
             'device_settings': True,
             'scc_settings': True,
-            'ip_configuration': True
+            'ip_configuration': True,
+            'mqtt_settings': True
         },
         'power_operations': True
     }
