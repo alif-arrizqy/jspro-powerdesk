@@ -51,5 +51,5 @@ else:
         number_of_scc = 2
 
 # Application PATH configuration
-# PATH = "/var/lib/sundaya/ehub-talis"  # Production path
-PATH = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis"  # Development path
+# PATH = "/var/lib/sundaya/ehub-universal"  # Production path
+PATH = "D:/sundaya/developments/ehub-developments/bakti-projects/ehub-universal"  # Development path
