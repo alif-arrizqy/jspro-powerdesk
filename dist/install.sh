@@ -17,10 +17,10 @@ echo 'copy service'
 sudo cp /var/lib/sundaya/jspro-powerdesk/dist/service/webapp.service /etc/systemd/system/
 
 echo 'copy nginx config'
-sudo cp /var/lib/sundaya/jspro-powerdesk/dist/nginx/joulestore-webapp /etc/nginx/sites-available/
+sudo cp /var/lib/sundaya/jspro-powerdesk/dist/nginx/jspro-powerdesk /etc/nginx/sites-available/
 
 echo 'create symlink'
-sudo ln -s /etc/nginx/sites-available/joulestore-webapp /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/jspro-powerdesk /etc/nginx/sites-enabled
 
 echo 'enable and start service'
 sudo systemctl start webapp.service
