@@ -87,6 +87,7 @@ def index():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
+            'battery_type': battery_type,
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc,
@@ -168,6 +169,7 @@ def battery():
             'scc_type': scc_type,
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
+            'battery_type': battery_type,
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }
@@ -185,6 +187,7 @@ def battery():
             'scc_type': scc_type,
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
+            'battery_type': battery_type,
             'number_of_battery': number_of_batt,
             'number_of_cell': number_of_cell
         }

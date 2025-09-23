@@ -8,6 +8,12 @@ from ..redisconnection import connection as red
 from auths import token_auth as auth
 from config import number_of_scc, slave_ids, PATH
 
+# Import battery configuration for section filtering
+try:
+    from config import battery_type as default_battery_type
+except ImportError:
+    default_battery_type = 'talis5'
+
 
 def get_battery_port_configuration():
     """
@@ -48,6 +54,71 @@ def get_battery_port_configuration():
         print(f"Error getting battery port configuration: {e}")
         # Fallback to default configuration
         return ['usb0']
+
+
+def get_redis_keys_for_section(section=None):
+    """
+    Get appropriate Redis keys based on section parameter
+    
+    Args:
+        section: Battery section (talis5, jspro, mix) or None for default
+        
+    Returns:
+        dict: Dictionary with key patterns for different data types
+    """
+    if section is None:
+        section = default_battery_type
+    
+    if section == 'talis5':
+        return {
+            'bms_pattern': 'bms_usb*',
+            'active_pattern': 'bms_active_*',
+            'ports': ['usb0', 'usb1']
+        }
+    elif section == 'jspro':
+        return {
+            'bms_pattern': 'jspro_battery_*',
+            'active_pattern': 'jspro_active_*',
+            'ports': []  # JSPro doesn't use USB ports
+        }
+    elif section == 'mix':
+        return {
+            'bms_pattern': ['bms_usb*', 'jspro_battery_*'],
+            'active_pattern': ['bms_active_*', 'jspro_active_*'],
+            'ports': ['usb0', 'usb1']
+        }
+    else:
+        # Default fallback to talis5
+        return {
+            'bms_pattern': 'bms_usb*',
+            'active_pattern': 'bms_active_*',
+            'ports': ['usb0', 'usb1']
+        }
+
+
+def get_tables_for_section(section=None, default_table='bms_data'):
+    """
+    Get appropriate SQLite table names based on section parameter
+    
+    Args:
+        section: Battery section (talis5, jspro, mix) or None for default
+        default_table: Default table name if not specified
+        
+    Returns:
+        list: List of table names to query
+    """
+    if section is None:
+        section = default_battery_type
+    
+    if section == 'talis5':
+        return ['bms_data', 'energy_data']
+    elif section == 'jspro':
+        return ['jspro_battery_data']  # Assuming JSPro has its own table
+    elif section == 'mix':
+        return ['bms_data', 'energy_data', 'jspro_battery_data']
+    else:
+        # Default fallback based on specified table or default
+        return [default_table]
 
 
 @monitoring_bp.route('/scc', methods=['GET'])
@@ -287,71 +358,223 @@ def get_scc_chart_data():
             "data": None
         }), 500
 
+
 @monitoring_bp.route('/battery', methods=['GET'])
 @auth.login_required
 def get_battery_monitoring():
-    """Get battery monitoring data from Redis hget bms_usb* keys based on active slaves configuration"""
+    """
+    Get battery monitoring data from Redis based on section configuration
+    Query parameters:
+    - section: Battery section (talis5, jspro, mix) for filtering data
+    """
     try:
+        # Parse query parameters
+        section = request.args.get('section')
+        
         bms_data = []
         active_slaves_config = {}
         
+        # Get section-specific Redis key configuration
+        redis_keys = get_redis_keys_for_section(section)
+        
         # First, read bms_active_slaves configuration
         try:
-            active_slaves_data = red.hget('bms_active_slaves', 'status')
-            if active_slaves_data:
-                # Parse the JSON data
-                if isinstance(active_slaves_data, bytes):
-                    active_slaves_data = active_slaves_data.decode('utf-8')
-                
-                active_slaves_config = json.loads(active_slaves_data)
-                ports_config = active_slaves_config.get('ports', {})
-                last_update = active_slaves_config.get('last_update', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            if section == 'jspro':
+                # For JSPro, only include active docks (status = 1) like /battery/active
+                ports_config = _get_jspro_active_ports_config()
+                last_update = str(red.hget('dock_active', 'last_update') or datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             else:
-                # Fallback to get active ports configuration
-                active_ports = get_battery_port_configuration()
-                ports_config = {}
-                for port in active_ports:
-                    ports_config[port] = list(range(1, slave_ids + 1))
+                # For talis5 and mix, get active batteries from Redis bms_active data
+                if section == 'talis5':
+                    # Talis5: Get active batteries from both USB ports (up to 10 each)
+                    ports_config = {}
+                    
+                    for usb_port in ['usb0', 'usb1']:
+                        try:
+                            # Get active data from Redis for this USB port
+                            bms_active_data = red.hgetall(f'bms_active_{usb_port}')
+                            active_slaves = []
+                            
+                            if bms_active_data:
+                                # Check each slave_id (1-10) for active status
+                                for slave_id in range(1, 11):  # Talis5 has up to 10 slaves per USB
+                                    slave_key = f"slave_id_{slave_id}"
+                                    status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
+                                    
+                                    if status_value is not None:
+                                        # Convert to boolean (handle bytes/string)
+                                        if isinstance(status_value, bytes):
+                                            status_value = status_value.decode('utf-8')
+                                        
+                                        try:
+                                            if bool(int(status_value)):  # Only include if status is true
+                                                active_slaves.append(slave_id)
+                                        except (ValueError, TypeError):
+                                            continue
+                            
+                            if active_slaves:
+                                ports_config[usb_port] = active_slaves
+                                
+                        except Exception as e:
+                            print(f"Error reading {usb_port} active data: {e}")
+                            continue
+                    
+                    # If no active slaves found, fallback to empty config
+                    if not ports_config:
+                        ports_config = {}
+                        
+                elif section == 'mix':
+                    # Mix: Get only active batteries from both Talis5 and JSPro
+                    ports_config = _get_mix_active_ports_config()
+                else:
+                    # Default fallback using existing configuration
+                    active_slaves_data = red.hget('bms_active_slaves', 'status')
+                    
+                    if active_slaves_data:
+                        # Parse the JSON data
+                        if isinstance(active_slaves_data, bytes):
+                            active_slaves_data = active_slaves_data.decode('utf-8')
+                        
+                        active_slaves_config = json.loads(active_slaves_data)
+                        ports_config = active_slaves_config.get('ports', {})
+                    else:
+                        # Fallback to get active ports configuration
+                        active_ports = redis_keys['ports']
+                        ports_config = {}
+                        for port in active_ports:
+                            ports_config[port] = list(range(1, slave_ids + 1))
+                
                 last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
         except (json.JSONDecodeError, Exception) as e:
             print(f"Error parsing active slaves configuration: {e}")
-            # Fallback to get active ports configuration
-            active_ports = get_battery_port_configuration()
-            ports_config = {}
-            for port in active_ports:
-                ports_config[port] = list(range(1, slave_ids + 1))
+            # Fallback to section-based port configuration
+            if section == 'jspro':
+                ports_config = {'dock': []}  # JSPro: empty dock list if error (no active docks)
+            elif section == 'talis5':
+                # Fallback: empty config for Talis5 (will show no batteries if Redis fails)
+                ports_config = {}
+            elif section == 'mix':
+                # Fallback: empty config for mix mode (will show no batteries if Redis fails)
+                ports_config = {}
+            else:
+                active_ports = redis_keys['ports']
+                ports_config = {}
+                for port in active_ports:
+                    ports_config[port] = list(range(1, slave_ids + 1))
             last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Get BMS data from each active port and slave based on configuration
-        for port, active_slave_list in ports_config.items():
+        # Get BMS data from each active port/dock and slave based on configuration
+        for port_or_dock, active_slave_list in ports_config.items():
             try:
-                # Get data for each active slave ID on this port
+                # Get data for each active slave ID on this port/dock
                 for slave_id in active_slave_list:
-                    bms_data_json = red.hget(f"bms_{port}", f"slave_id_{slave_id}")
-                    
-                    if bms_data_json:
-                        try:
-                            bms_logger = json.loads(bms_data_json)
+                    if section == 'jspro' or (section == 'mix' and port_or_dock == 'dock'):
+                        # For JSPro or JSPro part in mix mode, use individual pms keys (pms0, pms1, etc.)
+                        pms_key = f"pms{slave_id}"
+                        bms_data_raw = red.hgetall(pms_key)
+                        
+                        if bms_data_raw:
+                            # Convert JSPro data format to standard BMS format
+                            jspro_data = {
+                                'slave_id': slave_id,
+                                'port': 'N/A',
+                                'dock': slave_id,  # Add dock identifier for JSPro
+                                'pack_voltage': int(float(bms_data_raw.get('voltage', 0)) if bms_data_raw.get('voltage') else 0),
+                                'pack_current': int(float(bms_data_raw.get('current', 0)) if bms_data_raw.get('current') else 0),
+                                'cmos_state': bms_data_raw.get('cmos_state', 'OFF') if bms_data_raw.get('cmos_state') else 'OFF',
+                                'dmos_state': bms_data_raw.get('dmos_state', 'OFF') if bms_data_raw.get('dmos_state') else 'OFF',
+                                'temp_top': int(float(bms_data_raw.get('temp_top', 0)) if bms_data_raw.get('temp_top') else 0),
+                                'temp_mid': int(float(bms_data_raw.get('temp_mid', 0)) if bms_data_raw.get('temp_mid') else 0),
+                                'temp_bot': int(float(bms_data_raw.get('temp_bot', 0)) if bms_data_raw.get('temp_bot') else 0),
+                                'temp_cmos': int(float(bms_data_raw.get('temp_cmos', 0)) if bms_data_raw.get('temp_cmos') else 0),
+                                'temp_dmos': int(float(bms_data_raw.get('temp_dmos', 0)) if bms_data_raw.get('temp_dmos') else 0),
+                                'cell_voltage': [],
+                                'section': section or default_battery_type,
+                                'battery_type': 'jspro',  # Add battery type identifier
+                                'last_update': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            }
                             
-                            # Only include data that has pcb_code
-                            if 'pcb_code' in bms_logger and bms_logger['pcb_code']:
-                                # Clean pcb_code
-                                bms_logger['pcb_code'] = str(bms_logger['pcb_code']).strip()
+                            # Extract cell voltages (cell1_v to cell14_v for JSPro)
+                            for cell_num in range(1, 15):  # JSPro has 14 cells
+                                cell_key = f'cell{cell_num}_v'
+                                cell_voltage = int(float(bms_data_raw.get(cell_key, 0)) if bms_data_raw.get(cell_key) else 0)
+                                jspro_data['cell_voltage'].append(cell_voltage)
+                            
+                            # Calculate max, min, and difference
+                            active_cells = [v for v in jspro_data['cell_voltage'] if v > 0]
+                            if active_cells:
+                                jspro_data['max_cell_voltage'] = max(active_cells)
+                                jspro_data['min_cell_voltage'] = min(active_cells)
+                                jspro_data['cell_difference'] = jspro_data['max_cell_voltage'] - jspro_data['min_cell_voltage']
+                            else:
+                                jspro_data['max_cell_voltage'] = 0
+                                jspro_data['min_cell_voltage'] = 0
+                                jspro_data['cell_difference'] = 0
+                            
+                            bms_data.append(jspro_data)
+                    else:
+                        # For talis5 and talis5 part in mix mode, use port-based keys
+                        bms_data_json = red.hget(f"bms_{port_or_dock}", f"slave_id_{slave_id}")
+                        
+                        if bms_data_json:
+                            try:
+                                bms_logger = json.loads(bms_data_json)
                                 
-                                # Add port information
-                                bms_logger['port'] = port
-                                
-                                bms_data.append(bms_logger)
-                                
-                        except json.JSONDecodeError as e:
-                            print(f"Error parsing BMS data for {port} slave {slave_id}: {e}")
+                                # Only include data that has pcb_code
+                                if 'pcb_code' in bms_logger and bms_logger['pcb_code']:
+                                    # Clean pcb_code
+                                    bms_logger['pcb_code'] = str(bms_logger['pcb_code']).strip()
+                                    
+                                    # Add port/dock information
+                                    bms_logger['port'] = port_or_dock
+                                    bms_logger['section'] = section or default_battery_type
+                                    bms_logger['battery_type'] = 'talis5'  # Add battery type identifier
+                                    
+                                    bms_data.append(bms_logger)
+                                    
+                            except json.JSONDecodeError as e:
+                                print(f"Error parsing BMS data for {port_or_dock} slave {slave_id}: {e}")
                             
             except Exception as e:
-                print(f"Error processing port {port}: {e}")
+                print(f"Error processing {port_or_dock}: {e}")
+        
+        # Structure bms_data by battery type (same as /battery/active endpoint)
+        structured_bms_data = {}
+        
+        if section == 'talis5':
+            # For talis5 section, only include talis5 data
+            talis5_data = [item for item in bms_data if item.get('battery_type') == 'talis5']
+            if talis5_data:
+                structured_bms_data['talis5'] = talis5_data
+        elif section == 'jspro':
+            # For jspro section, only include jspro data
+            jspro_data = [item for item in bms_data if item.get('battery_type') == 'jspro']
+            if jspro_data:
+                structured_bms_data['jspro'] = jspro_data
+        elif section == 'mix':
+            # For mix section, include both talis5 and jspro data
+            talis5_data = [item for item in bms_data if item.get('battery_type') == 'talis5']
+            jspro_data = [item for item in bms_data if item.get('battery_type') == 'jspro']
+            
+            if talis5_data:
+                structured_bms_data['talis5'] = talis5_data
+            if jspro_data:
+                structured_bms_data['jspro'] = jspro_data
+        else:
+            # For other sections, group by battery_type if available
+            battery_types = {}
+            for item in bms_data:
+                battery_type = item.get('battery_type', 'unknown')
+                if battery_type not in battery_types:
+                    battery_types[battery_type] = []
+                battery_types[battery_type].append(item)
+            structured_bms_data = battery_types
         
         response_data = {
-            "bms_data": bms_data,
+            "bms_data": structured_bms_data,
+            "section": section or default_battery_type,
+            "pack_active": ports_config,
             "last_update": last_update
         }
 
@@ -369,12 +592,21 @@ def get_battery_monitoring():
             "data": None
         }), 500
 
+
 @monitoring_bp.route('/battery/active', methods=['GET'])
 @auth.login_required
 def get_battery_monitoring_active():
-    """Get active battery monitoring data based on bms_active_slaves configuration"""
+    """
+    Get active battery monitoring data based on section configuration
+    Query parameters:
+    - section: Battery section (talis5, jspro, mix) for filtering data
+    """
     try:
+        # Parse query parameters
+        section = request.args.get('section')
+        
         bms_data = []
+        slave_mapping = {}  # Store mapping for Talis5: response_slave_id -> (usb_port, original_slave_id)
         
         # Get Battery Voltage
         try:
@@ -383,74 +615,199 @@ def get_battery_monitoring_active():
             print(f"Error getting battery voltage: {e}")
             battery_voltage = 'N/A'
         
+        # Get section-specific Redis key configuration
+        redis_keys = get_redis_keys_for_section(section)
+        
         # Get active slaves configuration from Redis
+        last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         try:
-            active_slaves_data = red.hget('bms_active_slaves', 'status')
-            if active_slaves_data:
-                # Parse the JSON data
-                if isinstance(active_slaves_data, bytes):
-                    active_slaves_data = active_slaves_data.decode('utf-8')
-                
-                active_slaves_config = json.loads(active_slaves_data)
-                ports_config = active_slaves_config.get('ports', {})
-                last_update = active_slaves_config.get('last_update', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            ports_config = {}
+            
+            if section == 'jspro':
+                ports_config = _get_jspro_ports_config()
+            elif section == 'talis5':
+                # Use the specific logic for Talis5 from bms_active_slaves
+                active_slaves_data = red.hget('bms_active_slaves', 'status')
+                if active_slaves_data:
+                    # Parse the JSON data
+                    if isinstance(active_slaves_data, bytes):
+                        active_slaves_data = active_slaves_data.decode('utf-8')
+                    
+                    active_slaves_config = json.loads(active_slaves_data)
+                    ports_config = active_slaves_config.get('ports', {})
+                    last_update = active_slaves_config.get('last_update', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                else:
+                    # Fallback to empty configuration
+                    ports_config = {}
+            elif section == 'mix':
+                ports_config = _get_mix_ports_config()
             else:
-                # Fallback to empty configuration
-                ports_config = {}
-                last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                ports_config = _get_default_ports_config(redis_keys)
                 
         except (json.JSONDecodeError, Exception) as e:
             print(f"Error parsing active slaves configuration: {e}")
-            ports_config = {}
-            last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ports_config = _get_fallback_ports_config(section, redis_keys)
         
-        # Process each port from the configuration
-        for port, active_slave_list in ports_config.items():
-            try:
-                # Get BMS active data for this port
-                bms_active_data = red.hgetall(f'bms_active_{port}')
-                
-                # Process all slaves (both active and inactive) for this port
-                for slave_id in active_slave_list:
-                    slave_key = f"slave_id_{slave_id}"
+        # Process data based on section type
+        if section == 'talis5':
+            # Use the specific logic for Talis5
+            for port, active_slave_list in ports_config.items():
+                try:
+                    # Get BMS active data for this port
+                    bms_active_data = red.hgetall(f'bms_active_{port}')
                     
-                    # Get status from Redis (handle both string and bytes)
-                    status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
-                    
-                    if status_value is not None:
-                        # Convert to boolean (handle bytes/string)
-                        if isinstance(status_value, bytes):
-                            status_value = status_value.decode('utf-8')
+                    # Process all slaves (both active and inactive) for this port
+                    for slave_id in active_slave_list:
+                        slave_key = f"slave_id_{slave_id}"
                         
-                        try:
-                            status = bool(int(status_value))
-                        except (ValueError, TypeError):
+                        # Get status from Redis (handle both string and bytes)
+                        status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
+                        
+                        if status_value is not None:
+                            # Convert to boolean (handle bytes/string)
+                            if isinstance(status_value, bytes):
+                                status_value = status_value.decode('utf-8')
+                            
+                            try:
+                                status = bool(int(status_value))
+                            except (ValueError, TypeError):
+                                status = False
+                        else:
                             status = False
-                    else:
-                        status = False
+                        
+                        bms_info = {
+                            "slave_id": slave_id,
+                            "port": port,
+                            "status": status,
+                            "section": "talis5",
+                            "battery_type": "talis5"
+                        }
+                        bms_data.append(bms_info)
+                        
+                except Exception as e:
+                    print(f"Error processing port {port}: {e}")
+                    # Add error entries for this port's slaves
+                    for slave_id in active_slave_list:
+                        bms_info = {
+                            "slave_id": slave_id,
+                            "port": port,
+                            "status": False,
+                            "section": "talis5",
+                            "battery_type": "talis5",
+                            "error": f"Failed to read data for port {port}"
+                        }
+                        bms_data.append(bms_info)
+        elif section == 'mix':
+            # For mix mode, process Talis5 using the specific logic
+            try:
+                active_slaves_data = red.hget('bms_active_slaves', 'status')
+                if active_slaves_data:
+                    # Parse the JSON data
+                    if isinstance(active_slaves_data, bytes):
+                        active_slaves_data = active_slaves_data.decode('utf-8')
                     
-                    bms_info = {
-                        "slave_id": slave_id,
-                        "port": port,
-                        "status": status
-                    }
-                    bms_data.append(bms_info)
-                    
+                    active_slaves_config = json.loads(active_slaves_data)
+                    talis5_ports_config = active_slaves_config.get('ports', {})
+                else:
+                    talis5_ports_config = {}
+                
+                # Process Talis5 part in mix mode
+                for port, active_slave_list in talis5_ports_config.items():
+                    try:
+                        # Get BMS active data for this port
+                        bms_active_data = red.hgetall(f'bms_active_{port}')
+                        
+                        # Process all slaves (both active and inactive) for this port
+                        for slave_id in active_slave_list:
+                            slave_key = f"slave_id_{slave_id}"
+                            
+                            # Get status from Redis (handle both string and bytes)
+                            status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
+                            
+                            if status_value is not None:
+                                # Convert to boolean (handle bytes/string)
+                                if isinstance(status_value, bytes):
+                                    status_value = status_value.decode('utf-8')
+                                
+                                try:
+                                    status = bool(int(status_value))
+                                except (ValueError, TypeError):
+                                    status = False
+                            else:
+                                status = False
+                            
+                            bms_info = {
+                                "slave_id": slave_id,
+                                "port": port,
+                                "status": status,
+                                "section": "talis5",
+                                "battery_type": "talis5"
+                            }
+                            bms_data.append(bms_info)
+                            
+                    except Exception as e:
+                        print(f"Error processing Talis5 port {port} in mix mode: {e}")
+                        # Add error entries for this port's slaves
+                        for slave_id in active_slave_list:
+                            bms_info = {
+                                "slave_id": slave_id,
+                                "port": port,
+                                "status": False,
+                                "section": "talis5",
+                                "battery_type": "talis5",
+                                "error": f"Failed to read data for port {port}"
+                            }
+                            bms_data.append(bms_info)
             except Exception as e:
-                print(f"Error processing port {port}: {e}")
-                # Add error entries for this port's slaves
-                for slave_id in active_slave_list:
-                    bms_info = {
-                        "slave_id": slave_id,
-                        "port": port,
-                        "status": False,
-                        "error": f"Failed to read data for port {port}"
-                    }
-                    bms_data.append(bms_info)
+                print(f"Error processing Talis5 in mix mode: {e}")
+            
+            # Add JSPro data for mix mode
+            jspro_data = _process_mix_jspro_data()
+            bms_data.extend(jspro_data)
+        else:
+            # For JSPro and other sections, use standard processing
+            bms_data = _process_standard_data(section, ports_config)
 
+        # Prepare response with structured bms_data by battery type
+        response_section = _get_response_section(section)
+        
+        # Structure bms_data by battery type
+        structured_bms_data = {}
+        
+        if section == 'talis5':
+            # For talis5 section, only include talis5 data
+            talis5_data = [item for item in bms_data if item.get('battery_type') == 'talis5' or item.get('section') == 'talis5']
+            if talis5_data:
+                structured_bms_data['talis5'] = talis5_data
+        elif section == 'jspro':
+            # For jspro section, only include jspro data
+            jspro_data = [item for item in bms_data if item.get('battery_type') == 'jspro' or item.get('section') == 'jspro']
+            if jspro_data:
+                structured_bms_data['jspro'] = jspro_data
+        elif section == 'mix':
+            # For mix section, include both talis5 and jspro data
+            talis5_data = [item for item in bms_data if item.get('battery_type') == 'talis5' or item.get('section') == 'talis5']
+            jspro_data = [item for item in bms_data if item.get('battery_type') == 'jspro' or item.get('section') == 'jspro']
+            
+            if talis5_data:
+                structured_bms_data['talis5'] = talis5_data
+            if jspro_data:
+                structured_bms_data['jspro'] = jspro_data
+        else:
+            # For other sections, group by battery_type if available, otherwise use flat structure
+            battery_types = {}
+            for item in bms_data:
+                battery_type = item.get('battery_type', 'unknown')
+                if battery_type not in battery_types:
+                    battery_types[battery_type] = []
+                battery_types[battery_type].append(item)
+            structured_bms_data = battery_types
+        
         response_data = {
             "battery_voltage": battery_voltage,
-            "bms_data": bms_data,
+            "bms_data": structured_bms_data,
+            "section": response_section,
             "last_update": last_update
         }
 
@@ -468,233 +825,390 @@ def get_battery_monitoring_active():
             "data": None
         }), 500
 
-@monitoring_bp.route('/battery/chart', methods=['GET'])
-@auth.login_required
-def get_battery_chart_data():
-    """Get battery monitoring data for chart from SQLite database by slave ID"""
-    try:
-        # Get query parameters
-        slave_id = request.args.get('slave_id', type=int)
-        hours = request.args.get('hours', 24, type=int)  # Default last 24 hours
-        
-        # Path to SQLite database
-        db_path = f"{PATH}/database/data_storage.db"
-        print(f"DEBUG: Database path: {db_path}")
 
-        # Check if database exists
-        if not os.path.exists(db_path):
-            print(f"DEBUG: Database not found at: {db_path}")
-            return jsonify({
-                "status_code": 404,
-                "status": "error",
-                "message": "Database not found",
-                "data": None
-            }), 404
+def _get_jspro_ports_config():
+    """Get ports configuration for JSPro section - show all docks (active and inactive)"""
+    dock_active_data = red.hgetall('dock_active')
+    if dock_active_data:
+        # Parse JSPro dock_active data to get all pms list (regardless of status)
+        all_pms_list = []
+        for key, value in dock_active_data.items():
+            if isinstance(key, bytes):
+                key = key.decode('utf-8')
+            if isinstance(value, bytes):
+                value = value.decode('utf-8')
+            
+            # Include all pms regardless of status (active or inactive)
+            if key.startswith('pms'):
+                try:
+                    pms_num = int(key[3:])  # Extract number from 'pmsX'
+                    # For pms1-pms16, use direct mapping (no conversion needed)
+                    if pms_num >= 1 and pms_num <= 16:
+                        all_pms_list.append(pms_num)  # Direct mapping: pms1 -> slave_id 1
+                except ValueError:
+                    continue
+        
+        # Sort the list to ensure proper order
+        all_pms_list.sort()
+        return {'dock': all_pms_list}
+    else:
+        # No dock_active data found, return all possible docks (1-16)
+        return {'dock': list(range(1, 17))}
 
-        # Connect to SQLite database
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Calculate timestamp for specified hours ago
-        hours_ago = datetime.now() - timedelta(hours=hours)
-        print(f"DEBUG: Querying data from: {hours_ago.strftime('%Y-%m-%d %H:%M:%S')}")
-        
-        # Build query based on whether slave_id is specified
-        if slave_id:
-            print(f"DEBUG: Querying for specific slave_id: {slave_id}")
-            # Query for specific slave ID
-            cursor.execute("""
-                SELECT 
-                    collection_time, slave_id, pcb_code, pack_voltage, 
-                    pack_current, max_cell_voltage, min_cell_voltage,
-                    cell_difference
-                FROM bms_data 
-                WHERE collection_time >= ? AND slave_id = ?
-                ORDER BY collection_time ASC
-            """, (hours_ago.strftime('%Y-%m-%d %H:%M:%S'), slave_id))
-        else:
-            print("DEBUG: Querying for all slave_ids")
-            # Query for all slave IDs
-            cursor.execute("""
-                SELECT 
-                    collection_time, slave_id, pcb_code, pack_voltage, 
-                    pack_current, max_cell_voltage, min_cell_voltage,
-                    cell_difference
-                FROM bms_data 
-                WHERE collection_time >= ?
-                ORDER BY collection_time ASC, slave_id ASC
-            """, (hours_ago.strftime('%Y-%m-%d %H:%M:%S'),))
-        
-        rows = cursor.fetchall()
-        print(f"DEBUG: Found {len(rows)} rows in database")
-        
-        # Debug: Print first few rows if any
-        if rows:
-            print(f"DEBUG: First row sample: {rows[0]}")
-        else:
-            # Check if table exists and has any data
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='bms_data'")
-            table_exists = cursor.fetchone()
-            print(f"DEBUG: Table 'bms_data' exists: {table_exists is not None}")
+
+def _get_jspro_active_ports_config():
+    """Get ports configuration for JSPro section - show only active docks (status = 1)"""
+    dock_active_data = red.hgetall('dock_active')
+    if dock_active_data:
+        # Parse JSPro dock_active data to get only active pms list (status = 1)
+        active_pms_list = []
+        for key, value in dock_active_data.items():
+            if isinstance(key, bytes):
+                key = key.decode('utf-8')
+            if isinstance(value, bytes):
+                value = value.decode('utf-8')
             
-            if table_exists:
-                cursor.execute("SELECT COUNT(*) FROM bms_data")
-                total_count = cursor.fetchone()[0]
-                print(f"DEBUG: Total records in bms_data: {total_count}")
-                
-                cursor.execute("SELECT MAX(collection_time), MIN(collection_time) FROM bms_data")
-                time_range = cursor.fetchone()
-                print(f"DEBUG: Data time range: {time_range}")
+            # Include only pms with status = 1 (active)
+            if key.startswith('pms'):
+                try:
+                    pms_num = int(key[3:])  # Extract number from 'pmsX'
+                    # For pms1-pms16, use direct mapping (no conversion needed)
+                    if pms_num >= 1 and pms_num <= 16:
+                        # Check if status is 1 (active)
+                        try:
+                            status = bool(int(value))
+                            if status:  # Only include if status is True/1
+                                active_pms_list.append(pms_num)  # Direct mapping: pms1 -> slave_id 1
+                        except (ValueError, TypeError):
+                            continue
+                except ValueError:
+                    continue
         
-        conn.close()
-        
-        # Process data for chart
-        chart_data = {
-            "labels": [],
-            "datasets": {
-                "pack_voltage": [],
-                "pack_current": [],
-                "max_cell_voltage": [],
-                "min_cell_voltage": [],
-                "cell_difference": []
-            },
-            "slave_data": {}
-        }
-        
-        # Group data by slave_id
-        slave_groups = {}
-        time_labels = set()
-        
-        for row in rows:
-            collection_time, s_id, pcb_code, pack_voltage, pack_current, max_cell_voltage, min_cell_voltage, cell_difference = row
+        # Sort the list to ensure proper order
+        active_pms_list.sort()
+        return {'dock': active_pms_list}
+    else:
+        # No dock_active data found, return empty (no active docks)
+        return {'dock': []}
+
+
+def _get_mix_ports_config():
+    """Get ports configuration for mix section"""
+    ports_config = {}
+    
+    for usb_port in ['usb0', 'usb1']:
+        try:
+            # Get active data from Redis for this USB port
+            bms_active_data = red.hgetall(f'bms_active_{usb_port}')
+            active_slaves = []
             
-            # Parse datetime and format for chart label
-            try:
-                dt = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S')
-                time_label = dt.strftime('%H:%M')
-                time_labels.add(time_label)
+            if bms_active_data:
+                # Check each slave_id (1-10) for active status
+                for slave_id in range(1, 11):  # Talis5 has up to 10 slaves per USB
+                    slave_key = f"slave_id_{slave_id}"
+                    status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
+                    
+                    if status_value is not None:
+                        # Convert to boolean (handle bytes/string)
+                        if isinstance(status_value, bytes):
+                            status_value = status_value.decode('utf-8')
+                        
+                        try:
+                            if bool(int(status_value)):  # Only include if status is true
+                                active_slaves.append(slave_id)
+                        except (ValueError, TypeError):
+                            continue
+            
+            if active_slaves:
+                ports_config[usb_port] = active_slaves
                 
-                # Group by slave_id
-                if s_id not in slave_groups:
-                    slave_groups[s_id] = {
-                        "pcb_code": pcb_code,
-                        "data": [],
-                        "pack_voltage": [],
-                        "pack_current": [],
-                        "max_cell_voltage": [],
-                        "min_cell_voltage": [],
-                        "cell_difference": []
-                    }
+        except Exception as e:
+            print(f"Error reading {usb_port} active data: {e}")
+            continue
+    
+    return ports_config
+
+
+def _get_mix_active_ports_config():
+    """Get ports configuration for mix section - only active batteries"""
+    ports_config = {}
+    
+    # Get active Talis5 batteries
+    for usb_port in ['usb0', 'usb1']:
+        try:
+            # Get active data from Redis for this USB port
+            bms_active_data = red.hgetall(f'bms_active_{usb_port}')
+            active_slaves = []
+            
+            if bms_active_data:
+                # Check each slave_id (1-10) for active status
+                for slave_id in range(1, 11):  # Talis5 has up to 10 slaves per USB
+                    slave_key = f"slave_id_{slave_id}"
+                    status_value = bms_active_data.get(slave_key) or bms_active_data.get(slave_key.encode('utf-8'))
+                    
+                    if status_value is not None:
+                        # Convert to boolean (handle bytes/string)
+                        if isinstance(status_value, bytes):
+                            status_value = status_value.decode('utf-8')
+                        
+                        try:
+                            if bool(int(status_value)):  # Only include if status is true
+                                active_slaves.append(slave_id)
+                        except (ValueError, TypeError):
+                            continue
+            
+            if active_slaves:
+                ports_config[usb_port] = active_slaves
                 
-                # Add data point
-                data_point = {
-                    "time": time_label,
-                    "pack_voltage": round(float(pack_voltage or 0), 2),
-                    "pack_current": round(float(pack_current or 0), 2),
-                    "max_cell_voltage": (max_cell_voltage or 0),
-                    "min_cell_voltage": (min_cell_voltage or 0),
-                    "cell_difference": (cell_difference or 0),
+        except Exception as e:
+            print(f"Error reading {usb_port} active data: {e}")
+            continue
+    
+    # Get active JSPro batteries
+    dock_active_data = red.hgetall('dock_active')
+    if dock_active_data:
+        active_pms_list = []
+        for key, value in dock_active_data.items():
+            if isinstance(key, bytes):
+                key = key.decode('utf-8')
+            if isinstance(value, bytes):
+                value = value.decode('utf-8')
+            
+            # Include only pms with status = 1 (active)
+            if key.startswith('pms'):
+                try:
+                    pms_num = int(key[3:])  # Extract number from 'pmsX'
+                    # For pms1-pms16, use direct mapping (no conversion needed)
+                    if pms_num >= 1 and pms_num <= 16:
+                        # Check if status is 1 (active)
+                        try:
+                            status = bool(int(value))
+                            if status:  # Only include if status is True/1
+                                active_pms_list.append(pms_num)  # Direct mapping: pms1 -> slave_id 1
+                        except (ValueError, TypeError):
+                            continue
+                except ValueError:
+                    continue
+        
+        if active_pms_list:
+            active_pms_list.sort()
+            ports_config['dock'] = active_pms_list
+    
+    return ports_config
+
+
+def _get_default_ports_config(redis_keys):
+    """Get default ports configuration"""
+    active_slaves_data = red.hget('bms_active_slaves', 'status')
+    
+    if active_slaves_data:
+        # Parse the JSON data
+        if isinstance(active_slaves_data, bytes):
+            active_slaves_data = active_slaves_data.decode('utf-8')
+        
+        active_slaves_config = json.loads(active_slaves_data)
+        return active_slaves_config.get('ports', {})
+    else:
+        # Fallback to section-based configuration
+        ports_config = {}
+        for port in redis_keys['ports']:
+            ports_config[port] = list(range(1, slave_ids + 1))
+        return ports_config
+
+
+def _get_fallback_ports_config(section, redis_keys):
+    """Get fallback ports configuration when error occurs"""
+    if section == 'jspro':
+        return {'dock': []}  # JSPro: empty dock list if error (no active docks)
+    elif section == 'talis5':
+        return {}
+    elif section == 'mix':
+        return {}
+    else:
+        ports_config = {}
+        for port in redis_keys['ports']:
+            ports_config[port] = list(range(1, slave_ids + 1))
+        return ports_config
+
+
+def _process_standard_data(section, ports_config):
+    """Process data for JSPro and other standard sections"""
+    bms_data = []
+    
+    for port_or_dock, active_slave_list in ports_config.items():
+        try:
+            # Get BMS active data for this port/dock based on section
+            if section == 'jspro':
+                # For JSPro, use dock_active data for status information
+                bms_active_data = red.hgetall('dock_active')
+            else:
+                bms_active_data = red.hgetall(f'bms_active_{port_or_dock}')
+            
+            # Process all slaves for this port/dock
+            for slave_id in active_slave_list:
+                if section == 'jspro':
+                    bms_info = _process_jspro_slave(slave_id, port_or_dock, bms_active_data)
+                else:
+                    bms_info = _process_other_slave(slave_id, port_or_dock, section)
+                
+                bms_data.append(bms_info)
+                
+        except Exception as e:
+            print(f"Error processing {port_or_dock}: {e}")
+            # Add error entries for this port/dock's slaves
+            for slave_id in active_slave_list:
+                bms_info = {
+                    "slave_id": slave_id,
+                    "status": False,
+                    "error": f"Failed to read data for {port_or_dock}"
                 }
                 
-                slave_groups[s_id]["data"].append(data_point)
-                slave_groups[s_id]["pack_voltage"].append(data_point["pack_voltage"])
-                slave_groups[s_id]["pack_current"].append(data_point["pack_current"])
-                slave_groups[s_id]["max_cell_voltage"].append(data_point["max_cell_voltage"])
-                slave_groups[s_id]["min_cell_voltage"].append(data_point["min_cell_voltage"])
-                slave_groups[s_id]["cell_difference"].append(data_point["cell_difference"])
+                if section == 'jspro':
+                    bms_info["port"] = "N/A"
+                    bms_info["battery_type"] = "jspro"
+                    bms_info["section"] = "jspro"
+                else:
+                    bms_info["port"] = port_or_dock
+                    bms_info["battery_type"] = section or default_battery_type
+                    bms_info["section"] = section or default_battery_type
+                bms_data.append(bms_info)
+    
+    return bms_data
+
+
+def _process_jspro_slave(slave_id, port_or_dock, bms_active_data):
+    """Process individual JSPro slave data"""
+    # For JSPro, check pms status from dock_active
+    # Use pms1-pms16 mapping directly with slave_id (1-16)
+    pms_key = f"pms{slave_id}"  # Direct mapping: slave_id 1 -> pms1, slave_id 2 -> pms2, etc.
+    status_value = bms_active_data.get(pms_key) or bms_active_data.get(pms_key.encode('utf-8'))
+    
+    if status_value is not None:
+        # Convert to boolean (handle bytes/string)
+        if isinstance(status_value, bytes):
+            status_value = status_value.decode('utf-8')
+        
+        try:
+            status = bool(int(status_value))
+        except (ValueError, TypeError):
+            status = False
+    else:
+        status = False
+    
+    # Dock number is same as slave_id for JSPro (1-16)
+    dock_number = slave_id
+    
+    return {
+        "port": "N/A",
+        "battery_type": "jspro",
+        "section": "jspro",
+        "slave_id": slave_id,
+        "dock": dock_number,  # Add dock information
+        "status": status,
+    }
+
+
+def _process_other_slave(slave_id, port_or_dock, section):
+    """Process individual slave data for non-JSPro sections"""
+    return {
+        "port": port_or_dock,
+        "battery_type": section or default_battery_type,
+        "section": section or default_battery_type,
+        "slave_id": slave_id,
+        "status": True,
+    }
+
+
+def _process_mix_jspro_data():
+    """Process JSPro data for mix mode"""
+    jspro_data = []
+    
+    try:
+        # Get JSPro dock_active data
+        dock_active_data = red.hgetall('dock_active')
+        if dock_active_data:
+            # Parse JSPro dock_active data to get all pms list (regardless of status)
+            all_pms_list = []
+            for key, value in dock_active_data.items():
+                if isinstance(key, bytes):
+                    key = key.decode('utf-8')
+                if isinstance(value, bytes):
+                    value = value.decode('utf-8')
                 
-            except ValueError as e:
-                print(f"Error parsing datetime: {e}")
-                continue
-        
-        print(f"DEBUG: Processed {len(slave_groups)} slave groups")
-        
-        # Sort time labels
-        sorted_labels = sorted(list(time_labels))
-        chart_data["labels"] = sorted_labels
-        
-        # Prepare datasets for chart visualization
-        for s_id, slave_info in slave_groups.items():
-            pcb_code = slave_info["pcb_code"] or f"Slave_{s_id}"
+                # Include all pms1-pms16 regardless of status (0 or 1)
+                if key.startswith('pms'):
+                    try:
+                        pms_num = int(key[3:])  # Extract number from 'pmsX'
+                        # For pms1-pms16, use direct mapping (no conversion needed)
+                        if pms_num >= 1 and pms_num <= 16:
+                            all_pms_list.append(pms_num)  # Direct mapping: pms1 -> slave_id 1
+                    except ValueError:
+                        continue
             
-            chart_data["datasets"]["pack_voltage"].append({
-                "label": f"{pcb_code} - Pack Voltage (V)",
-                "slave_id": s_id,
-                "data": slave_info["pack_voltage"]
-            })
+            # Sort the list to ensure proper order
+            all_pms_list.sort()
             
-            chart_data["datasets"]["pack_current"].append({
-                "label": f"{pcb_code} - Pack Current (A)",
-                "slave_id": s_id,
-                "data": slave_info["pack_current"]
-            })
-            
-            chart_data["datasets"]["max_cell_voltage"].append({
-                "label": f"{pcb_code} - Max Cell Voltage (mV)",
-                "slave_id": s_id,
-                "data": slave_info["max_cell_voltage"]
-            })
-            
-            chart_data["datasets"]["min_cell_voltage"].append({
-                "label": f"{pcb_code} - Min Cell Voltage (mV)",
-                "slave_id": s_id,
-                "data": slave_info["min_cell_voltage"]
-            })
-            
-            chart_data["datasets"]["cell_difference"].append({
-                "label": f"{pcb_code} - Cell Difference (mV)",
-                "slave_id": s_id,
-                "data": slave_info["cell_difference"]
-            })
-        
-        # Store detailed slave data
-        chart_data["slave_data"] = slave_groups
-        
-        # If no data found, return empty structure
-        if not rows:
-            chart_data["labels"] = []
-            for metric in chart_data["datasets"]:
-                chart_data["datasets"][metric] = []
-        
-        response_data = {
-            "chart_data": chart_data,
-            "query_params": {
-                "slave_id": slave_id,
-                "hours": hours
-            },
-            "data_points": len(rows),
-            "slaves_count": len(slave_groups),
-            "query_time": hours_ago.strftime("%Y-%m-%d %H:%M:%S"),
-            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "debug_info": {
-                "db_path": db_path,
-                "db_exists": os.path.exists(db_path),
-                "rows_found": len(rows),
-                "time_range_query": hours_ago.strftime('%Y-%m-%d %H:%M:%S')
-            }
-        }
-
-        return jsonify({
-            "status_code": 200,
-            "status": "success",
-            "data": response_data
-        }), 200
-
-    except sqlite3.Error as e:
-        print(f"SQLite error: {e}")
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": f"Database error: {str(e)}",
-            "data": None
-        }), 500
-        
+            # Process JSPro batteries for mix mode
+            for slave_id in all_pms_list:
+                pms_key = f"pms{slave_id}"  # Direct mapping: slave_id 1 -> pms1, slave_id 2 -> pms2, etc.
+                status_value = dock_active_data.get(pms_key) or dock_active_data.get(pms_key.encode('utf-8'))
+                
+                if status_value is not None:
+                    # Convert to boolean (handle bytes/string)
+                    if isinstance(status_value, bytes):
+                        status_value = status_value.decode('utf-8')
+                    
+                    try:
+                        status = bool(int(status_value))
+                    except (ValueError, TypeError):
+                        status = False
+                else:
+                    status = False
+                
+                bms_info = {
+                    "port": 'dock',
+                    "section": 'jspro',  # Mark as JSPro section within mix
+                    "slave_id": slave_id,
+                    "dock": slave_id,  # Add dock information
+                    "status": status,
+                    "battery_type": 'jspro'  # Additional identifier for mix mode
+                }
+                
+                jspro_data.append(bms_info)
+        else:
+            # Fallback: add all 16 JSPro batteries as inactive
+            for slave_id in range(1, 17):
+                bms_info = {
+                    "port": 'dock',
+                    "section": 'jspro',
+                    "slave_id": slave_id,
+                    "status": False,
+                    "battery_type": 'jspro'
+                }
+                jspro_data.append(bms_info)
+                
     except Exception as e:
-        print(f"Error getting battery chart data: {e}")
-        return jsonify({
-            "status_code": 500,
-            "status": "error", 
-            "message": f"Internal server error: {str(e)}",
-            "data": None
-        }), 500
+        print(f"Error processing JSPro batteries in mix mode: {e}")
+        # Add error entries for JSPro batteries
+        for slave_id in range(1, 17):
+            bms_info = {
+                "port": 'dock',
+                "section": 'jspro',
+                "slave_id": slave_id,
+                "status": False,
+                "battery_type": 'jspro',
+                "error": "Failed to read JSPro data"
+            }
+            jspro_data.append(bms_info)
+    
+    return jspro_data
 
+
+def _get_response_section(section):
+    """Get correct section name for response"""
+    if section == 'talis5':
+        return 'talis5'  # Force talis5 regardless of default_battery_type
+    elif not section:
+        return default_battery_type
+    else:
+        return section
