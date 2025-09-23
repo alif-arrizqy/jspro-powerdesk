@@ -118,7 +118,7 @@
                                 <select class="form-control" name="scc-type" id="scc-type">
                                     <option value="" disabled {% if not device_version.scc_type %}selected{% endif %}>Select SCC Type</option>
                                     <option value="scc-srne" {% if device_version.scc_type == 'scc-srne' %}selected{% endif %}>SCC SRNE</option>
-                                    <option value="scc-epveper" {% if device_version.scc_type == 'scc-epveper' %}selected{% endif %}>SCC EPVEPER</option>
+                                    <option value="scc-epever" {% if device_version.scc_type == 'scc-epever' %}selected{% endif %}>SCC EPEVER</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -151,8 +151,8 @@
                                 </label>
                                 <select class="form-control" name="usb-type" id="usb-type">
                                     <option value="" disabled {% if not device_version.usb_type %}selected{% endif %}>Select USB Type</option>
-                                    <option value="talis5" {% if device_version.usb_type == 'talis5' %}selected{% endif %}>Seri</option>
-                                    <option value="jspro" {% if device_version.usb_type == 'jspro' %}selected{% endif %}>Paralel</option>
+                                    <option value="seri" {% if device_version.usb_type == 'seri' %}selected{% endif %}>Seri</option>
+                                    <option value="paralel" {% if device_version.usb_type == 'paralel' %}selected{% endif %}>Paralel</option>
                                 </select>
                             </div>
                         </div>
