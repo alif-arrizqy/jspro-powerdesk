@@ -13,7 +13,8 @@ except Exception as e:
     device = None
 
 if device is None:
-    scc_type = "scc-epveper"
+    battery_type = "talis5"
+    scc_type = "scc-epever"
     number_of_scc = 2
     number_of_batt = 10
     number_of_cell = 16
@@ -23,17 +24,12 @@ else:
 
     if scc_type == "scc-srne":
         number_of_scc = 3
-    elif scc_type == "scc-epveper":
+    elif scc_type == "scc-epever":
         number_of_scc = 2
     elif scc_type == "scc-tristar":
         number_of_scc = 2
     else:
         number_of_scc = 2
-
-    number_of_batt = 10
-    number_of_cell = 16
-
-slave_ids = 10
 
 # Application PATH configuration
 # PATH = "/var/lib/sundaya/ehub-talis"  # Production path
