@@ -39,8 +39,8 @@
                                     <i class="fas fa-network-wired"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="primary-ip-display">{{ ip_address_primary if ip_address_primary else 'Not Set' }}</h4>
-                            <p class="stats-card-subtitle">Main Network</p>
+                            <h4 class="stats-card-value" id="primary-ip-display">{{ ip_address if ip_address else 'Not Set' }}</h4>
+                            <p class="stats-card-subtitle">IP Address</p>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -51,8 +51,8 @@
                                     <i class="fas fa-network-wired"></i>
                                 </div>
                             </div>
-                            <h4 class="stats-card-value" id="subnet_mask_display">{{ subnet_mask if subnet_mask else 'Not Set' }}</h4>
-                            <p class="stats-card-subtitle">Backup Network</p>
+                            <h4 class="stats-card-value" id="subnet-mask-display">{{ subnet_mask if subnet_mask else 'Not Set' }}</h4>
+                            <p class="stats-card-subtitle">Subnet Mask</p>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -121,14 +121,14 @@
                 <!-- Primary IP Form -->
                 <form method="POST" id="primary-form">
                     <input type="hidden" id="site" name="site">
-                    <input type="hidden" id="type-ip-address" name="type-ip-address" value="ip-primary">
+                    <input type="hidden" id="type-ip-address" name="type-ip-address" value="ip-address">
 
                     <div class="mb-3">
-                        <label for="ip-address-primary" class="form-label">
+                        <label for="ip-address" class="form-label">
                             <i class="fas fa-globe me-2"></i>
-                            IP Address Primary
+                            IP Address
                         </label>
-                        <input type="text" class="form-control" name="ip-address-primary" id="ip-address-primary" placeholder="192.168.1.100" value="{{ip_address_primary}}">
+                        <input type="text" class="form-control" name="ip-address" id="ip-address" placeholder="192.168.1.100" value="{{ip_address}}">
                     </div>
                     
                     <div class="mb-3">
@@ -136,7 +136,7 @@
                             <i class="fas fa-mask me-2"></i>
                             Net Mask
                         </label>
-                        <input type="text" class="form-control" name="net-mask" id="net-mask" placeholder="24 or 255.255.255.0" value="{{subnet_mask}}">
+                        <input type="text" class="form-control" name="net-mask" id="net-mask" placeholder="/29" value="{{subnet_mask}}">
                     </div>
                     
                     <div class="mb-3">
@@ -150,7 +150,7 @@
                     <div class="d-grid">
                         <button type="submit" class="btn btn-modern btn-primary" id="primary-submit">
                             <i class="fas fa-save me-2"></i>
-                            Save Primary IP
+                            Save IP Address
                         </button>
                     </div>
                 </form>
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const result = result_data.find(el => el.ip === selectedIp);
         if (result) {
             // Update primary IP fields
-            document.getElementById('ip-address-primary').value = result.ip;
+            document.getElementById('ip-address').value = result.ip;
             document.getElementById('net-mask').value = result.subnet_mask;
             document.getElementById('gateway').value = result.gateway;
             document.getElementById('site').value = result.site;
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Handle custom IP configuration
             if (result.site === 'IP CUSTOM') {
                 // Remove readonly attributes for custom configuration
-                document.getElementById('ip-address-primary').removeAttribute('readonly');
+                document.getElementById('ip-address').removeAttribute('readonly');
                 document.getElementById('net-mask').removeAttribute('readonly');
                 document.getElementById('gateway').removeAttribute('readonly');
                 document.getElementById('site').value = '{{ site_name|upper }}';
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showAlert('Custom IP mode enabled. You can now edit the IP configuration.', 'info');
             } else {
                 // Re-add readonly attributes for preset configurations
-                document.getElementById('ip-address-primary').setAttribute('readonly', 'readonly');
+                document.getElementById('ip-address').setAttribute('readonly', 'readonly');
                 document.getElementById('net-mask').setAttribute('readonly', 'readonly');
                 document.getElementById('gateway').setAttribute('readonly', 'readonly');
             }
@@ -228,15 +228,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Form submission handlers
     const primaryForm = document.getElementById('primary-form');
-    const secondaryForm = document.getElementById('secondary-form');
 
-    primaryForm.addEventListener('submit', function(e) {
-        handleFormSubmit(e, 'primary-submit', 'Save Primary IP');
-    });
-
-    secondaryForm.addEventListener('submit', function(e) {
-        handleFormSubmit(e, 'secondary-submit', 'Save Secondary IP');
-    });
+    if (primaryForm) {
+        primaryForm.addEventListener('submit', function(e) {
+            handleFormSubmit(e, 'primary-submit', 'Save IP Address');
+        });
+    }
 
     // IP validation
     const ipInputs = document.querySelectorAll('input[name*="ip-address"], input[name="gateway"]');
@@ -315,25 +312,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateSummaryDisplay() {
-        const primaryIp = document.getElementById('ip-address-primary').value;
-        const secondaryIp = document.getElementById('ip-address-secondary').value;
+        const primaryIp = document.getElementById('ip-address').value;
+        const subnetMask = document.getElementById('subnet-mask').value;
         const gateway = document.getElementById('gateway').value;
         
-        // Update summary cards
-        document.getElementById('primary-ip-display').textContent = primaryIp || 'Not Set';
-        document.getElementById('secondary-ip-display').textContent = secondaryIp || 'Not Set';
-        document.getElementById('gateway-display').textContent = gateway || 'Not Set';
+        // Update summary cards (if they exist)
+        const primaryIpDisplay = document.getElementById('primary-ip-display');
+        const subnetMaskDisplay = document.getElementById('subnet-mask-display');
+        const gatewayDisplay = document.getElementById('gateway-display');
+        const networkStatus = document.getElementById('network-status');
+        
+        if (primaryIpDisplay) {
+            primaryIpDisplay.textContent = primaryIp || 'Not Set';
+        }
+
+        if (subnetMaskDisplay) {
+            subnetMaskDisplay.textContent = subnetMask || 'Not Set';
+        }
+        
+        if (gatewayDisplay) {
+            gatewayDisplay.textContent = gateway || 'Not Set';
+        }
         
         // Update status
-        const statusElement = document.getElementById('network-status');
-        if (primaryIp) {
-            statusElement.textContent = 'Configured';
-            statusElement.classList.remove('inactive');
-            statusElement.classList.add('active');
-        } else {
-            statusElement.textContent = 'Pending';
-            statusElement.classList.remove('active');
-            statusElement.classList.add('inactive');
+        if (networkStatus) {
+            if (primaryIp) {
+                networkStatus.textContent = 'Configured';
+                networkStatus.classList.remove('inactive');
+                networkStatus.classList.add('active');
+            } else {
+                networkStatus.textContent = 'Pending';
+                networkStatus.classList.remove('active');
+                networkStatus.classList.add('inactive');
+            }
         }
     }
 
@@ -359,8 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
     const tooltips = {
         'select_ip': 'Select a predefined site configuration or choose custom for manual setup',
-        'ip-address-primary': 'Primary IP address for the main network interface',
-        'ip-address-secondary': 'Secondary IP address for backup network connection',
+        'ip-address': 'IP address for the main network interface',
         'net-mask': 'Network mask in CIDR notation (e.g., 24) or dotted decimal (e.g., 255.255.255.0)',
         'gateway': 'Default gateway IP address for routing network traffic'
     };

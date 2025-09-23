@@ -9,10 +9,14 @@ def validate_subnet_mask(subnet):
     pat = re.compile('^\A/\d{1,2}$')
     return True if pat.match(subnet) else False
 
-def validate_setting_ip(form):    
+def validate_setting_ip(form):
+    ip_address = None
+    subnet_mask = None
+    gateway = None
+    
     # ip primary
-    if form.get('type-ip-address') == 'ip-primary':
-        ip_address = validate_ip_address(form.get('ip-address-primary'))
+    if form.get('type-ip-address') == 'ip-address':
+        ip_address = validate_ip_address(form.get('ip-address'))
         subnet_mask = validate_subnet_mask(form.get('net-mask'))
         gateway = validate_ip_address(form.get('gateway'))
     

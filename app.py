@@ -680,6 +680,9 @@ def setting_ip():
         return redirect(url_for('index'))
     
     site_name = ""
+    ip_address = ""
+    subnet_mask = ""
+    gateway = ""
     
     # path config device
     path = f'{PATH}/config_device.json'
@@ -688,24 +691,45 @@ def setting_ip():
         data = request.form.to_dict()        
         is_valid = validate_setting_ip(request.form)
         if is_valid:
-            # Save to config_device.json
-            response = update_ip_configuration(path, data)
-            
-            if response:
-                flash('IP Configuration has been saved successfully', 'success')
+            try:
+                # Save to config_device.json
+                with open(path, 'r') as f:
+                    config_data = json.load(f)
+                
+                # Update IP configuration section
+                if 'ip_configuration' not in config_data:
+                    config_data['ip_configuration'] = {}
+                
+                config_data['ip_configuration']['ip_address'] = data.get('ip-address', '')
+                config_data['ip_configuration']['subnet_mask'] = data.get('net-mask', '')
+                config_data['ip_configuration']['gateway'] = data.get('gateway', '')
+                
+                # Save updated configuration
+                with open(path, 'w') as f:
+                    json.dump(config_data, f, indent=4)
+                
                 audit_access(username, 'ip_configuration', 'update_ip_settings')
                 
-                # Also update the actual network configuration if needed
-                change_ip_path = './commands/change_ip.py'
+                # Apply network configuration changes
+                change_ip_path = f'./commands/change_ip.py'
                 type_ip_address = data.get('type-ip-address')
-                ip_address_primary = data.get('ip-address-primary')
+                ip_address = data.get('ip-address')
                 subnet_mask = data.get('net-mask')
                 gateway = data.get('gateway')
                 
-                if type_ip_address == 'ip-primary' and ip_address_primary:
-                    change_ip(change_ip_path, ip_address_primary, gateway, subnet_mask)
-            else:
+                if type_ip_address == 'ip-address' and ip_address and gateway and subnet_mask:
+                    result = change_ip(change_ip_path, ip_address, gateway, subnet_mask)
+                    if result:
+                        flash('IP Configuration has been saved and applied successfully. System will reboot.', 'success')
+                    else:
+                        flash('IP Configuration saved but failed to apply to system. Please check logs.', 'warning')
+                else:
+                    flash('IP Configuration saved successfully', 'success')
+                    
+            except Exception as e:
+                print(f"Error updating IP configuration: {e}")
                 flash('Failed to save IP Configuration', 'danger')
+                
             return redirect(url_for('setting_ip'))
         else:
             flash('Invalid IP Address format', 'danger')
@@ -718,15 +742,22 @@ def setting_ip():
         # get site name
         site_name = red.hget('device_config', 'site_name')
         
+        # Initialize default values
+        ip_address = ""
+        subnet_mask = ""
+        gateway = ""
+        
         # open data site
-        with open('./data_site.json', 'r') as f:
+        with open(f'./data_site.json', 'r') as f:
             data_ip = json.load(f)
         
-        # Read IP configuration from config_device.json
-        with open(path, 'r') as f:
-            config_data = json.load(f)
-        
-        ip_config = config_data.get('ip_configuration', {})
+        ipaddr = get_ip_address('eth0')
+        for i in data_ip:
+            if i['ip'] == ipaddr:
+                ip_address = i['ip']
+                subnet_mask = i['subnet_mask']
+                gateway = i['gateway']
+                break
         
         context = {
             'username': username,
@@ -735,11 +766,9 @@ def setting_ip():
             'site_name': site_name,
             'data_ip': data_ip,
             'scc_type': scc_type,
-            # Use data from config_device.json if available, otherwise use defaults
-            'ip_address': ip_config.get('ip_address_primary', '192.168.1.1'),
-            'ip_address_primary': ip_config.get('ip_address_primary', '192.168.1.1'),
-            'subnet_mask': ip_config.get('subnet_mask', '/29'),
-            'gateway': ip_config.get('gateway', '192.168.1.1')
+            'ip_address': ip_address,
+            'subnet_mask': subnet_mask,
+            'gateway': gateway
         }
         
         # Audit page access
@@ -748,12 +777,25 @@ def setting_ip():
     except Exception as e:
         print(f"setting_ip() error: {e}")
         
+        # Initialize default values
+        ip_address = ""
+        subnet_mask = ""
+        gateway = ""
+        
         # Fallback to default data_ip
         try:
-            with open('./data_site.json', 'r') as f:
+            with open(f'{PATH}/data_site.json', 'r') as f:
                 data_ip = json.load(f)
         except:
             data_ip = []
+            
+        ipaddr = get_ip_address('eth0')
+        for i in data_ip:
+            if i['ip'] == ipaddr:
+                ip_address = i['ip']
+                subnet_mask = i['subnet_mask']
+                gateway = i['gateway']
+                break
         
         context = {
             'username': username,
@@ -762,10 +804,9 @@ def setting_ip():
             'site_name': 'Site Name',
             'data_ip': data_ip,
             'scc_type': scc_type,
-            'ip_address': '192.168.1.1',
-            'ip_address_primary': '192.168.1.1',
-            'subnet_mask': '/29',
-            'gateway': '192.168.1.1'
+            'ip_address': ip_address,
+            'subnet_mask': subnet_mask,
+            'gateway': gateway
         }
     return render_template('setting-ip.html', **context)
 

@@ -517,13 +517,13 @@ def update_ip_configuration(path, form):
         data['ip_configuration'] = {}
     
     # Update IP configuration from form
-    ip_address_primary = form_data.get('ip-address-primary')
+    ip_address = form_data.get('ip-address')
     net_mask = form_data.get('net-mask')
     gateway = form_data.get('gateway')
     site = form_data.get('site')
     
-    if ip_address_primary:
-        data['ip_configuration']['ip_address_primary'] = ip_address_primary
+    if ip_address:
+        data['ip_configuration']['ip_address'] = ip_address
     if net_mask:
         data['ip_configuration']['subnet_mask'] = net_mask
     if gateway:
