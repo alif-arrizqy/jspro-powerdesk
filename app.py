@@ -592,13 +592,11 @@ def setting_device():
         data = request.form.to_dict()
         
         if form_site_information:
-            response = update_site_information(path, data)
-            # add site name to redis
-            # red.hset('site_name', 'site_name', data.get('site-name'))
-            
+            response = update_site_information(path, data)            
             if response:
                 flash('Site Information has been updated successfully', 'success')
                 audit_access(username, 'device_settings', 'update_site_information')
+                bash_command('sudo systemctl restart device_config_loader.service webapp.service')
             else:
                 flash('Failed to update Site Information', 'danger')
             return redirect(url_for('setting_device'))
@@ -608,6 +606,7 @@ def setting_device():
             if response:
                 flash('Device Info has been updated successfully', 'success')
                 audit_access(username, 'device_settings', 'update_device_model')
+                bash_command('sudo systemctl restart device_config_loader.service webapp.service')
             else:
                 flash('Failed to update Device Info', 'danger')
             return redirect(url_for('setting_device'))
@@ -617,6 +616,7 @@ def setting_device():
             if response:
                 flash('Device Version has been updated successfully', 'success')
                 audit_access(username, 'device_settings', 'update_device_version')
+                bash_command('sudo systemctl restart scc.service device_config_loader.service webapp.service')
             else:
                 flash('Failed to update Device Version', 'danger')
             return redirect(url_for('setting_device'))
@@ -842,7 +842,7 @@ def setting_scc():
             if response:
                 flash('SCC Type has been updated successfully', 'success')
                 audit_access(username, 'scc_settings', 'update_scc_type')
-                bash_command('sudo systemctl restart scc device_config_loader.service webapp.service')
+                bash_command('sudo systemctl restart scc.service device_config_loader.service webapp.service')
             else:
                 flash('Failed to update SCC Type', 'danger')
             return redirect(url_for('setting_scc'))
