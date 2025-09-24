@@ -771,3 +771,145 @@ def delete_scc_entries_by_timestamp(redis_conn, timestamp, match_type='exact', d
             "deleted_count": 0,
             "timestamp_exists": False
         }
+
+def delete_entries_by_timestamp_section(redis_conn, timestamp, match_type='exact', target_streams=None, debug_mode=False):
+    """
+    Delete Redis stream entries by timestamp from specific streams (section-aware)
+    
+    Parameters:
+    - redis_conn: Redis connection object
+    - timestamp: Timestamp to delete (exact match or prefix)
+    - match_type: 'exact' or 'prefix'
+    - target_streams: List of stream names to target
+    - debug_mode: Enable debug information
+    
+    Returns:
+    - Dictionary with deletion results and validation
+    """
+    try:
+        if not redis_conn:
+            return {
+                "error": "Redis connection unavailable",
+                "total_deleted": 0,
+                "timestamp_exists": False,
+                "streams_deleted": {}
+            }
+        
+        if not target_streams:
+            target_streams = ['stream:bms', 'stream:energy']  # Default streams
+        
+        result = {
+            "total_deleted": 0,
+            "timestamp_exists": False,
+            "streams_deleted": {},
+            "debug_info": {} if debug_mode else None
+        }
+        
+        if debug_mode:
+            result["debug_info"] = {
+                "timestamp_filter": timestamp,
+                "match_type": match_type,
+                "target_streams": target_streams,
+                "streams_processed": [],
+                "entries_found": {},
+                "validation_method": "section_aware_delete"
+            }
+        
+        # Process each target stream
+        for stream_name in target_streams:
+            deleted_count = 0
+            stream_has_timestamp = False
+            
+            try:
+                # Check if stream exists first
+                try:
+                    stream_info = redis_conn.xinfo_stream(stream_name)
+                    total_entries = stream_info['length']
+                    if total_entries == 0:
+                        continue
+                except:
+                    continue  # Stream doesn't exist, skip
+                
+                if debug_mode:
+                    result["debug_info"]["streams_processed"].append(stream_name)
+                    result["debug_info"]["entries_found"][stream_name] = total_entries
+                
+                # Optimized search and delete based on match type
+                entries_to_delete = []
+                
+                if match_type == 'exact':
+                    # For exact match, scan efficiently
+                    chunk_size = 100
+                    start_id = "-"
+                    
+                    while True:
+                        chunk = redis_conn.xrange(stream_name, min=start_id, count=chunk_size)
+                        if not chunk:
+                            break
+                        
+                        for entry_id, fields in chunk:
+                            # Check timestamp field - handle both decoded and non-decoded Redis connections
+                            if 'timestamp' in fields:
+                                entry_timestamp = fields['timestamp']  # For decode_responses=True
+                            elif b'timestamp' in fields:
+                                timestamp_value = fields[b'timestamp']
+                                entry_timestamp = timestamp_value.decode('utf-8') if isinstance(timestamp_value, bytes) else timestamp_value
+                            else:
+                                entry_timestamp = ''
+                            
+                            if entry_timestamp == timestamp:
+                                entries_to_delete.append(entry_id)
+                                stream_has_timestamp = True
+                        
+                        # Update start_id for next chunk
+                        start_id = f"({chunk[-1][0]}"
+                        
+                        # Stop if we've found entries and we're doing exact match
+                        if entries_to_delete and match_type == 'exact':
+                            break
+                
+                elif match_type == 'prefix':
+                    # For prefix match, need to scan all entries
+                    all_entries = redis_conn.xrange(stream_name)
+                    
+                    for entry_id, fields in all_entries:
+                        # Check timestamp field - handle both decoded and non-decoded Redis connections
+                        if 'timestamp' in fields:
+                            entry_timestamp = fields['timestamp']  # For decode_responses=True
+                        elif b'timestamp' in fields:
+                            timestamp_value = fields[b'timestamp']
+                            entry_timestamp = timestamp_value.decode('utf-8') if isinstance(timestamp_value, bytes) else timestamp_value
+                        else:
+                            entry_timestamp = ''
+                        
+                        if entry_timestamp.startswith(timestamp):
+                            entries_to_delete.append(entry_id)
+                            stream_has_timestamp = True
+                
+                # Delete found entries
+                if entries_to_delete:
+                    deleted_count = redis_conn.xdel(stream_name, *entries_to_delete)
+                
+                # Update results
+                result["streams_deleted"][stream_name] = deleted_count
+                result["total_deleted"] += deleted_count
+                
+                if stream_has_timestamp:
+                    result["timestamp_exists"] = True
+                
+            except Exception as stream_error:
+                if debug_mode:
+                    if "stream_errors" not in result["debug_info"]:
+                        result["debug_info"]["stream_errors"] = {}
+                    result["debug_info"]["stream_errors"][stream_name] = str(stream_error)
+                continue
+        
+        return result
+
+    except Exception as e:
+        return {
+            "error": str(e),
+            "total_deleted": 0,
+            "timestamp_exists": False,
+            "streams_deleted": {}
+        }
