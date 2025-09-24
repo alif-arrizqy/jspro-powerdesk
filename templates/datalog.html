@@ -476,6 +476,9 @@
 <script>
     const API_BASE_URL = '/api/v1/loggers';
     const siteName = "{{ site_name }}";
+    // JSPro PowerDesk section - filters data to show only JSPro battery data
+    // Available sections: 'jspro' (JSPro Battery), 'talis5' (BMS), 'scc' (Energy/SCC)
+    const SECTION = "jspro";
     
     // Helper function to update status indicators
     function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'unhealthy']) {
@@ -737,7 +740,7 @@
         const userToken = '{{ session.get("auth_token", "") }}';
 
         try {
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=${limit}`, {
+            const response = await fetch(`${API_BASE_URL}/data/redis?limit=${limit}&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -767,7 +770,7 @@
         const userToken = '{{ session.get("auth_token", "") }}';        
         
         try {
-            const response = await fetch(`${API_BASE_URL}/data/sqlite?limit=${limit}`, {
+            const response = await fetch(`${API_BASE_URL}/data/sqlite?limit=${limit}&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -887,7 +890,8 @@
         showLoadingState();
 
         try {
-            const response = await fetch(`${API_BASE_URL}/data?cursor=${cursorValue}&page_size=500`, {
+            // Use the correct Redis endpoint with section parameter
+            const response = await fetch(`${API_BASE_URL}/data/redis?limit=500&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -899,62 +903,58 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
+            if (result.status_code !== 200) {
+                console.log(`Error: ${result.message || result.status}`);
                 updateStatusIndicator('datalog-status', 'Error');
                 return;
             }
 
-            // Process the data here
-            arrLoggersData.push(...Object.values(data.data));
-
-            // Check if there is a next cursor
-            if (data.next_cursor) {
-                // If there is a next cursor, make another request with the new cursor value
-                handleLoggers(data.next_cursor);
-            } else {
-                // If next cursor is null, stop the requests
-                console.log('No more data to fetch.');
-                console.log(`Total data collected: ${arrLoggersData.length}`);
-                
-                const datalogLengthElement = document.getElementById('datalog-length');
-                const storageUsageElement = document.getElementById('storage-usage');
-                
-                if (datalogLengthElement) {
-                    datalogLengthElement.textContent = arrLoggersData.length.toLocaleString();
-                    
-                    // Update status based on data length
-                    if (arrLoggersData.length > 1000) {
-                        datalogLengthElement.classList.add('text-warning');
-                        updateStatusIndicator('datalog-status', 'High Volume');
-                    } else if (arrLoggersData.length > 500) {
-                        datalogLengthElement.classList.add('text-info');
-                        updateStatusIndicator('datalog-status', 'Normal');
-                    } else {
-                        updateStatusIndicator('datalog-status', 'Low Volume');
-                    }
-                }
-                
-                // Estimate storage usage
-                if (storageUsageElement) {
-                    const estimatedSize = arrLoggersData.length * 1024; // Rough estimate
-                    storageUsageElement.textContent = formatFileSize(estimatedSize);
-                }
-                
-                // Update data health
-                updateStatusIndicator('data-health', 'Healthy');
-                
-                // Update last update time
-                updateLastUpdate();
-                
-                // Update all data lengths (Redis, SQLite)
-                updateAllDataLengths();
-                
-                // Reset button states
-                resetButtonStates();
+            // Process the Redis data - structure is different
+            if (result.data && result.data.records) {
+                arrLoggersData.push(...result.data.records);
             }
+
+            // Redis endpoint doesn't have cursor-based pagination, so we're done
+            console.log('Data fetch completed.');
+            console.log(`Total data collected: ${arrLoggersData.length}`);
+            
+            const datalogLengthElement = document.getElementById('datalog-length');
+            const storageUsageElement = document.getElementById('storage-usage');
+            
+            if (datalogLengthElement) {
+                datalogLengthElement.textContent = arrLoggersData.length.toLocaleString();
+                
+                // Update status based on data length
+                if (arrLoggersData.length > 1000) {
+                    datalogLengthElement.classList.add('text-warning');
+                    updateStatusIndicator('datalog-status', 'High Volume');
+                } else if (arrLoggersData.length > 500) {
+                    datalogLengthElement.classList.add('text-info');
+                    updateStatusIndicator('datalog-status', 'Normal');
+                } else {
+                    updateStatusIndicator('datalog-status', 'Low Volume');
+                }
+            }
+            
+            // Estimate storage usage
+            if (storageUsageElement) {
+                const estimatedSize = arrLoggersData.length * 1024; // Rough estimate
+                storageUsageElement.textContent = formatFileSize(estimatedSize);
+            }
+            
+            // Update data health
+            updateStatusIndicator('data-health', 'Healthy');
+            
+            // Update last update time
+            updateLastUpdate();
+            
+            // Update all data lengths (Redis, SQLite)
+            updateAllDataLengths();
+            
+            // Reset button states
+            resetButtonStates();
         } catch (error) {
             console.error(`Failed to fetch data: ${error.message}`);
             
@@ -998,7 +998,7 @@
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000`, {
+            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1067,7 +1067,7 @@
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/data/sqlite?limit=5000`, {
+            const response = await fetch(`${API_BASE_URL}/data/sqlite?limit=5000&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1141,15 +1141,12 @@
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/loggers/clear/redis`, {
+            const response = await fetch(`${API_BASE_URL}/data/redis?confirm=yes&section=${SECTION}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${userToken}`
-                },
-                body: JSON.stringify({
-                    confirmation: 'yes'
-                })
+                }
             });
             
             if (!response.ok) {
@@ -1217,15 +1214,17 @@
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/loggers/clear/sqlite`, {
+            // For JSPro section, use jspro_battery_data table
+            const tableName = SECTION === 'jspro' ? 'jspro_battery_data' : 
+                             SECTION === 'talis5' ? 'bms_data' : 
+                             SECTION === 'scc' ? 'energy_data' : 'bms_data';
+            
+            const response = await fetch(`${API_BASE_URL}/data/sqlite?confirm=yes&table=${tableName}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${userToken}`
-                },
-                body: JSON.stringify({
-                    confirmation: 'yes'
-                })
+                }
             });
             
             if (!response.ok) {
@@ -1278,7 +1277,7 @@
     };
     
     // Download data
-    const downloadLoggers = async (cursorValue = "") => {
+    const downloadLoggers = async () => {
         const siteName = "{{ site_name }}"; // Ensure siteName is defined
         const userToken = '{{ session.get("auth_token", "") }}';
 
@@ -1289,7 +1288,8 @@
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/data?cursor=${cursorValue}&page_size=500`, {
+            // Use Redis endpoint with higher limit for download
+            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1301,19 +1301,19 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
+            if (result.status_code !== 200) {
+                console.log(`Error: ${result.message || result.status}`);
                 return;
             }
 
-            // Process the data here
-            const chunkData = JSON.stringify(data.data, null, 2);
+            // Process the Redis data
+            const jsonData = JSON.stringify(result.data, null, 2);
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filename = `${siteName}-datalog-${timestamp}-${cursorValue || 'first'}.json`;
+            const filename = `${siteName}-jspro-datalog-${timestamp}.json`;
             
-            const blob = new Blob([chunkData], { type: 'application/json' });
+            const blob = new Blob([jsonData], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1324,26 +1324,20 @@
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
-            // Check if there is a next cursor
-            if (data.next_cursor) {
-                // If there is a next cursor, make another request with the new cursor value
-                downloadLoggers(data.next_cursor);
+            // No cursor pagination, so we're done
+            console.log('Download complete.');
+            
+            // Show success message
+            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+                window.powerDeskApp.showNotification('JSPro datalog downloaded successfully!', 'success');
             } else {
-                // If next cursor is null, stop the requests
-                console.log('Download complete.');
-                
-                // Show success message
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('Download completed successfully!', 'success');
-                } else {
-                    alert('Download completed successfully!');
-                }
-                
-                // Reset button
-                if (downloadBtn) {
-                    downloadBtn.disabled = false;
-                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-                }
+                alert('JSPro datalog downloaded successfully!');
+            }
+            
+            // Reset button
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
             }
         } catch (error) {
             console.error(`Failed to download data: ${error.message}`);
@@ -1381,7 +1375,7 @@
         }
         
         try {
-            const response = await fetch(`/api/loggers/data?cursor=${cursorValue}&page_size=500`, {
+            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000&section=${SECTION}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1393,26 +1387,22 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (data.code == 500) {
-                console.log(`Error: ${data.status}`);
+            if (result.status_code !== 200) {
+                console.log(`Error: ${result.message}`);
                 return;
             }
 
             // Process the data here
-            // get keys of the data object and push them to the array
-            arrClearLoggers.push(...Object.keys(data.data));
+            // get keys from the records object and push them to the array
+            if (result.data && result.data.records) {
+                arrClearLoggers.push(...Object.keys(result.data.records));
+            }
 
-            // Check if there is a next cursor
-            if (data.next_cursor) {
-                // If there is a next cursor, make another request with the new cursor value
-                clearLoggers(data.next_cursor);
-            } else {
-                // If next cursor is null, stop the requests
-                // Start deleting the data
-                const deletePromises = arrClearLoggers.map((el) => {
-                    return fetch(`/api/loggers/data/${el}`, {
+            // Start deleting the data immediately (no cursor pagination)
+            const deletePromises = arrClearLoggers.map((el) => {
+                return fetch(`${API_BASE_URL}/data/redis/${el}?section=${SECTION}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1424,8 +1414,8 @@
                         }
                         
                         return response.json();
-                    }).then((data) => {
-                        console.log(`Data deleted: ${data.status}`);
+                    }).then((result) => {
+                        console.log(`Data deleted: ${result.message}`);
                         return { status: true };
                     }).catch((error) => {
                         console.error(`Failed to delete data: ${error.message}`);
@@ -1478,7 +1468,12 @@
                         alert('Failed to delete data. Please try again.');
                     }
                 });
-            }
+                
+                // Reset button after successful processing
+                if (clearBtn) {
+                    clearBtn.disabled = false;
+                    clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear All';
+                }
         } catch (error) {
             console.error(`Failed to fetch data: ${error.message}`);
             
