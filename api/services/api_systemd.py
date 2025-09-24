@@ -9,19 +9,19 @@ from utils import bash_command
 # Log file paths configuration
 LOG_PATHS = {
     'mqtt_publish.service': {
-        'mqtt_errors.log': '/var/lib/sundaya/ehub-talis/logs/mqtt_errors.log',
-        'mqtt_warnings.log': '/var/lib/sundaya/ehub-talis/logs/mqtt_warnings.log',
-        'mqtt_all.log': '/var/lib/sundaya/ehub-talis/logs/mqtt_all.log'
+        'mqtt_errors.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_errors.log',
+        'mqtt_warnings.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_warnings.log',
+        'mqtt_all.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_all.log'
     },
     'thread_bms.service': {
-        'bms_errors.log': '/var/lib/sundaya/ehub-talis/logs/bms_errors.log',
-        'bms_warnings.log': '/var/lib/sundaya/ehub-talis/logs/bms_warnings.log',
-        'bms_all.log': '/var/lib/sundaya/ehub-talis/logs/bms_all.log'
+        'bms_errors.log': '/var/lib/sundaya/ehub-universal/logs/bms_errors.log',
+        'bms_warnings.log': '/var/lib/sundaya/ehub-universal/logs/bms_warnings.log',
+        'bms_all.log': '/var/lib/sundaya/ehub-universal/logs/bms_all.log'
     },
     'scc.service': {
-        'scc_errors.log': '/var/lib/sundaya/ehub-talis/logs/scc_errors.log',
-        'scc_warnings.log': '/var/lib/sundaya/ehub-talis/logs/scc_warnings.log',
-        'scc_all.log': '/var/lib/sundaya/ehub-talis/logs/scc_all.log'
+        'scc_errors.log': '/var/lib/sundaya/ehub-universal/logs/scc_errors.log',
+        'scc_warnings.log': '/var/lib/sundaya/ehub-universal/logs/scc_warnings.log',
+        'scc_all.log': '/var/lib/sundaya/ehub-universal/logs/scc_all.log'
     },
     'i2c-heartbeat.service': {
         'i2c_communication.log': '/var/lib/sundaya/jspro-powerdesk/logs/i2c_communication.log'

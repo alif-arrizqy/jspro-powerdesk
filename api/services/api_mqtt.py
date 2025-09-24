@@ -7,13 +7,13 @@ from . import service_bp
 from auths import token_auth as auth
 
 # MQTT Database configuration
-MQTT_DB_PATH = '/var/lib/sundaya/ehub-talis/database/mqtt_logs.db'
+MQTT_DB_PATH = '/var/lib/sundaya/ehub-universal/database/mqtt_logs.db'
 
 # MQTT Log file paths
 MQTT_LOG_PATHS = {
-    'mqtt_all.log': '/var/lib/sundaya/ehub-talis/logs/mqtt_all.log',
-    'mqtt_errors.log': '/var/lib/sundaya/ehub-talis/logs/mqtt_errors.log',
-    'mqtt_warnings.log': '/var/lib/sundaya/ehub-talis/logs/mqtt_warnings.log'
+    'mqtt_all.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_all.log',
+    'mqtt_errors.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_errors.log',
+    'mqtt_warnings.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_warnings.log'
 }
 
 @service_bp.route('/mqtt/logs', methods=['GET'])
