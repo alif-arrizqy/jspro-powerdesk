@@ -9,7 +9,6 @@ import sqlite3
 import json
 import os
 import sys
-import shutil
 from functools import wraps
 from ..redisconnection import connection as red
 from .helper import *
@@ -18,6 +17,12 @@ from config import PATH
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+# Import battery configuration for section filtering
+try:
+    from config import battery_type as default_battery_type
+except ImportError:
+    default_battery_type = 'talis5'
 
 try:
     from security_middleware import api_session_required
@@ -32,6 +37,131 @@ except ImportError:
 # Create blueprint
 logger_bp = Blueprint('logger', __name__)
 
+# ============== Section Filtering Helper Functions ===========================
+
+def get_streams_for_section(section=None):
+    """
+    Get appropriate Redis streams based on section parameter
+    
+    Args:
+        section: Battery section (talis5, jspro, scc) or None for default
+        
+    Returns:
+        list: List of stream names to process
+    """
+    if section is None:
+        section = default_battery_type
+    
+    if section == 'talis5':
+        # Talis5: BMS stream only
+        return ['stream:bms']
+    elif section == 'jspro':
+        # JSPro: Only JSPro battery stream
+        return ['stream:jspro_battery']
+    elif section == 'scc':
+        # SCC/Energy: Only Energy/SCC stream
+        return ['stream:energy']
+    else:
+        # Default fallback to talis5 stream
+        return ['stream:bms']
+
+def get_tables_for_section(section=None, default_table='bms_data'):
+    """
+    Get appropriate SQLite table names based on section parameter
+    
+    Args:
+        section: Battery section (talis5, jspro, scc) or None for default
+        default_table: Default table name if not specified
+        
+    Returns:
+        list: List of table names to query
+    """
+    if section is None:
+        section = default_battery_type
+    
+    if section == 'talis5':
+        # Talis5: BMS data table only
+        return ['bms_data']
+    elif section == 'jspro':
+        # JSPro: JSPro battery data table only
+        return ['jspro_battery_data']
+    elif section == 'scc':
+        # SCC/Energy: Energy data table only
+        return ['energy_data']
+    else:
+        # Default fallback based on specified table or default
+        return [default_table]
+
+def format_response_data(data):
+    """
+    Format response data to ensure proper types (arrays vs numeric)
+    Handles JSON string arrays and converts them to proper arrays
+    
+    Args:
+        data: Response data to format
+        
+    Returns:
+        dict: Formatted data with proper types
+    """
+    import json
+    
+    if isinstance(data, dict):
+        formatted = {}
+        for key, value in data.items():
+            if isinstance(value, (list, tuple)):
+                # Keep arrays as arrays
+                formatted[key] = list(value)
+            elif isinstance(value, str):
+                # Check if string is a JSON array
+                if value.strip().startswith('[') and value.strip().endswith(']'):
+                    try:
+                        # Parse JSON array string to actual array
+                        parsed_array = json.loads(value)
+                        if isinstance(parsed_array, list):
+                            formatted[key] = parsed_array
+                        else:
+                            formatted[key] = value
+                    except (json.JSONDecodeError, ValueError):
+                        # If JSON parsing fails, check if it's a numeric string
+                        if value.replace('.', '').replace('-', '').isdigit():
+                            if '.' in value:
+                                try:
+                                    formatted[key] = float(value)
+                                except ValueError:
+                                    formatted[key] = value
+                            else:
+                                try:
+                                    formatted[key] = int(value)
+                                except ValueError:
+                                    formatted[key] = value
+                        else:
+                            formatted[key] = value
+                # Check if string is a numeric value
+                elif value.replace('.', '').replace('-', '').isdigit():
+                    if '.' in value:
+                        try:
+                            formatted[key] = float(value)
+                        except ValueError:
+                            formatted[key] = value
+                    else:
+                        try:
+                            formatted[key] = int(value)
+                        except ValueError:
+                            formatted[key] = value
+                else:
+                    formatted[key] = value
+            elif isinstance(value, dict):
+                # Recursively format nested dictionaries
+                formatted[key] = format_response_data(value)
+            elif isinstance(value, list):
+                # Recursively format list items
+                formatted[key] = [format_response_data(item) if isinstance(item, dict) else item for item in value]
+            else:
+                formatted[key] = value
+        return formatted
+    else:
+        return data
+
 # ============== Redis Data Endpoints ===========================
 
 @logger_bp.route('/data/redis', methods=['GET'])
@@ -44,6 +174,10 @@ def get_redis_data():
     - end_date: End date (ISO 8601 format)  
     - limit: Maximum records (default: 55)
     - offset: Records to skip (default: 0)
+    - section: Battery section for filtering data:
+        * 'talis5': BMS (stream:bms)
+        * 'jspro': JSPro Battery (stream:jspro_battery)
+        * 'scc': Energy/SCC (stream:energy)
     """
     try:
         if not red:
@@ -57,6 +191,7 @@ def get_redis_data():
         # Parse query parameters with smart defaults
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
+        section = request.args.get('section')  # New section parameter
         
         # Smart limit handling: smaller default when no date filter to prevent memory issues
         default_limit = 55 if (start_date or end_date) else 22
@@ -114,36 +249,35 @@ def get_redis_data():
                 }
             })
 
+        # Get appropriate streams based on section parameter
+        target_streams = get_streams_for_section(section)
+        
         # Get data from Redis Streams using highly optimized processing
         if debug_mode:
-            debug_info["streams_checked"] = ['stream:bms', 'stream:energy']
+            debug_info["streams_checked"] = target_streams
             debug_info["processing_steps"].append("Using Redis-level filtering for optimal performance")
+            debug_info["section"] = section or default_battery_type
         
-        # Process both streams efficiently with Redis-level filtering
-        bms_result = process_redis_stream('stream:bms', start_dt, end_dt, redis_start_ts, redis_end_ts, debug_mode, debug_info)
-        energy_result = process_redis_stream('stream:energy', start_dt, end_dt, redis_start_ts, redis_end_ts, debug_mode, debug_info)
+        # Process streams efficiently with Redis-level filtering
+        all_records = []
+        stream_results = {}
         
-        # Combine results (much smaller datasets now)
-        all_records = bms_result['records'] + energy_result['records']
+        for stream_name in target_streams:
+            stream_result = process_redis_stream(stream_name, start_dt, end_dt, redis_start_ts, redis_end_ts, debug_mode, debug_info)
+            stream_results[stream_name] = stream_result
+            all_records.extend(stream_result['records'])
         
         # Update debug info efficiently
-        debug_info["raw_data_found"] = {
-            "bms": bms_result['raw_count'],
-            "energy": energy_result['raw_count']
-        }
+        debug_info["raw_data_found"] = {}
+        debug_info["filter_results"] = {}
         
-        debug_info["filter_results"] = {
-            "bms": {
-                "raw_count": bms_result['raw_count'],
-                "processed_count": bms_result['processed_count'],
-                "filtered_count": bms_result['filtered_count']
-            },
-            "energy": {
-                "raw_count": energy_result['raw_count'],
-                "processed_count": energy_result['processed_count'],
-                "filtered_count": energy_result['filtered_count']
+        for stream_name, result in stream_results.items():
+            debug_info["raw_data_found"][stream_name] = result['raw_count']
+            debug_info["filter_results"][stream_name] = {
+                "raw_count": result['raw_count'],
+                "processed_count": result['processed_count'],
+                "filtered_count": result['filtered_count']
             }
-        }
 
         # Efficient sorting and pagination
         if all_records:
@@ -160,13 +294,18 @@ def get_redis_data():
         # Paginate results efficiently
         paginated_data = paginate_data(all_records, limit, offset)
 
+        # Format response data to ensure proper types
+        formatted_records = [format_response_data(record) for record in paginated_data['records']]
+
         response_data = {
             "status_code": 200,
             "status": "success",
             "data": {
-                "records": paginated_data['records'],
+                "records": formatted_records,
                 "total_records": paginated_data['total_records'],
                 "page_info": paginated_data['page_info'],
+                "section": section or default_battery_type,
+                "target_streams": target_streams,
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }
@@ -174,7 +313,7 @@ def get_redis_data():
         # Add helpful message when no records found but filtering was applied
         if len(all_records) == 0 and (start_dt or end_dt):
             message_parts = []
-            total_raw_count = debug_info["raw_data_found"]["bms"] + debug_info["raw_data_found"]["energy"]
+            total_raw_count = sum(debug_info["raw_data_found"].values())
             
             if total_raw_count == 0:
                 message_parts.append("No data found in the specified date range.")
@@ -188,12 +327,12 @@ def get_redis_data():
                 range_info = {}
                 
                 # Only get range info if no records were found
-                for stream_name, stream_key in [('bms', 'stream:bms'), ('energy', 'stream:energy')]:
+                for stream_name in target_streams:
                     try:
                         # Get first and last efficiently
-                        first_entry = red.xrange(stream_key, count=1)
+                        first_entry = red.xrange(stream_name, count=1)
                         if first_entry:
-                            last_entry = red.xrevrange(stream_key, count=1)
+                            last_entry = red.xrevrange(stream_name, count=1)
                             if last_entry:
                                 first_ts = dict(first_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(first_entry[0][1]).get(b'timestamp', b''), bytes) else dict(first_entry[0][1]).get('timestamp', '')
                                 last_ts = dict(last_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(last_entry[0][1]).get(b'timestamp', b''), bytes) else dict(last_entry[0][1]).get('timestamp', '')
@@ -240,6 +379,7 @@ def delete_redis_by_ts(timestamp):
     
     Query parameters:
     - match_type: 'exact' (default) or 'prefix'
+    - section: Battery section (talis5, jspro, scc) for targeting specific streams
     - debug: Enable debug mode (true/false)
     """
     try:
@@ -252,6 +392,7 @@ def delete_redis_by_ts(timestamp):
 
         # Get query parameters
         match_type = request.args.get('match_type', 'exact').lower()
+        section = request.args.get('section')  # New section parameter
         debug_mode = request.args.get('debug', 'false').lower() == 'true'
         
         # Validate match_type
@@ -270,8 +411,11 @@ def delete_redis_by_ts(timestamp):
                 "message": "Invalid timestamp format. Timestamp too short."
             }), 400
 
-        # Delete from both streams using optimized helper function
-        result = delete_entries_by_timestamp(red, timestamp, match_type, debug_mode)
+        # Get appropriate streams based on section parameter
+        target_streams = get_streams_for_section(section)
+        
+        # Delete from target streams using optimized helper function
+        result = delete_entries_by_timestamp_section(red, timestamp, match_type, target_streams, debug_mode)
         
         # Check if there was an error
         if "error" in result:
@@ -284,28 +428,32 @@ def delete_redis_by_ts(timestamp):
         
         # Check if timestamp exists - return error if not found
         if not result.get("timestamp_exists", False):
+            stream_names = ', '.join(target_streams)
             return jsonify({
                 "status_code": 404,
                 "status": "error",
-                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in Redis streams",
+                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in Redis streams ({stream_names})",
                 "data": {
-                    "bms_deleted": 0,
-                    "energy_deleted": 0,
+                    "streams_deleted": result.get("streams_deleted", {}),
                     "total_deleted": 0,
-                    "timestamp_exists": False
+                    "timestamp_exists": False,
+                    "section": section or default_battery_type,
+                    "target_streams": target_streams
                 }
             }), 404
         
         # Success response when timestamp found and deleted
+        stream_names = ', '.join(target_streams)
         return jsonify({
             "status_code": 200,
             "status": "success", 
-            "message": f"Successfully deleted {result['total_deleted']} entries with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}'",
+            "message": f"Successfully deleted {result['total_deleted']} entries with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}' from streams ({stream_names})",
             "data": {
-                "bms_deleted": result["bms_deleted"],
-                "energy_deleted": result["energy_deleted"],
+                "streams_deleted": result.get("streams_deleted", {}),
                 "total_deleted": result["total_deleted"],
                 "timestamp_exists": result["timestamp_exists"],
+                "section": section or default_battery_type,
+                "target_streams": target_streams,
                 "debug_info": result.get("debug_info") if debug_mode else None
             }
         }), 200
@@ -325,10 +473,11 @@ def delete_redis_by_ts(timestamp):
 @api_session_required
 def delete_all_redis_data():
     """
-    Delete all Redis stream data (both BMS and Energy streams)
+    Delete all Redis stream data based on section
     
     Query parameters:
     - confirm: Must be 'yes' to confirm deletion (required)
+    - section: Battery section (talis5, jspro, scc) for targeting specific streams
     """
     try:
         if not red:
@@ -340,6 +489,7 @@ def delete_all_redis_data():
 
         # Get query parameters
         confirm = request.args.get('confirm', '').lower()
+        section = request.args.get('section')  # New section parameter
         
         # Require confirmation for safety
         if confirm != 'yes':
@@ -349,39 +499,38 @@ def delete_all_redis_data():
                 "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all Redis data."
             }), 400
 
+        # Get appropriate streams based on section parameter
+        target_streams = get_streams_for_section(section)
+        
         # Delete entire streams using DEL command
-        bms_deleted = 0
-        energy_deleted = 0
+        streams_deleted = {}
+        total_deleted = 0
         
-        try:
-            # Check if streams exist and get their length before deletion
-            bms_info = red.xinfo_stream('stream:bms')
-            bms_length = bms_info['length']
-            bms_deleted = red.delete('stream:bms')
-            if bms_deleted:
-                bms_deleted = bms_length
-        except Exception:
-            pass
-            
-        try:
-            energy_info = red.xinfo_stream('stream:energy')
-            energy_length = energy_info['length']
-            energy_deleted = red.delete('stream:energy')
-            if energy_deleted:
-                energy_deleted = energy_length
-        except Exception:
-            pass
+        # Delete each target stream
+        for stream_name in target_streams:
+            try:
+                # Check if stream exists and get its length before deletion
+                stream_info = red.xinfo_stream(stream_name)
+                stream_length = stream_info['length']
+                deleted = red.delete(stream_name)
+                if deleted:
+                    streams_deleted[stream_name] = stream_length
+                    total_deleted += stream_length
+                else:
+                    streams_deleted[stream_name] = 0
+            except Exception:
+                streams_deleted[stream_name] = 0  # Stream doesn't exist or error
         
-        total_deleted = bms_deleted + energy_deleted
-        
+        stream_names = ', '.join(target_streams)
         return jsonify({
             "status_code": 200,
             "status": "success",
-            "message": "All Redis stream data deleted successfully",
+            "message": f"Redis stream data deleted successfully from section '{section or default_battery_type}' ({stream_names})",
             "data": {
-                "bms_entries_deleted": bms_deleted,
-                "energy_entries_deleted": energy_deleted,
-                "total_deleted": total_deleted
+                "streams_deleted": streams_deleted,
+                "total_deleted": total_deleted,
+                "section": section or default_battery_type,
+                "target_streams": target_streams
             }
         }), 200
 
@@ -407,6 +556,10 @@ def get_sqlite_data():
     - limit: Maximum records (default: 100, max: 1000)
     - offset: Records to skip (default: 0)
     - table: Specific table name (default: 'bms_data')
+    - section: Battery section for filtering data:
+        * 'talis5': BMS data (bms_data)
+        * 'jspro': JSPro Battery data (jspro_battery_data)
+        * 'scc': Energy/SCC data (energy_data)
     - debug: Enable debug mode (true/false)
     """
     try:
@@ -421,6 +574,7 @@ def get_sqlite_data():
         # Parse query parameters with validation
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
+        section = request.args.get('section')  # New section parameter
         limit = min(int(request.args.get('limit', 100)), 1000)
         offset = int(request.args.get('offset', 0))
         table_name = request.args.get('table', 'bms_data')
@@ -446,50 +600,100 @@ def get_sqlite_data():
                 "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
             }), 400
 
-        # Validate table name (basic SQL injection prevention)
-        if not table_name.replace('_', '').replace('-', '').isalnum():
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid table name format"
-            }), 400
+        # Determine target tables based on section parameter
+        if section:
+            target_tables = get_tables_for_section(section)
+        else:
+            target_tables = [table_name]  # Use specified table or default
 
-        # Process SQLite data using optimized helper function
-        result = process_sqlite_data(conn, start_dt, end_dt, table_name, limit, offset, debug_mode)
+        # Validate table names (basic SQL injection prevention)
+        for table in target_tables:
+            if not table.replace('_', '').replace('-', '').isalnum():
+                return jsonify({
+                    "status_code": 400,
+                    "status": "error",
+                    "message": f"Invalid table name format: {table}"
+                }), 400
+
+        # Process SQLite data using optimized helper function for multiple tables
+        all_records = []
+        total_records = 0
+        combined_debug_info = {
+            "section": section or default_battery_type,
+            "target_tables": target_tables,
+            "table_results": {}
+        } if debug_mode else None
+        
+        for table in target_tables:
+            try:
+                result = process_sqlite_data(conn, start_dt, end_dt, table, limit, offset, debug_mode)
+                
+                # Check for errors
+                if "error" in result:
+                    conn.close()
+                    return jsonify({
+                        "status_code": 500,
+                        "status": "error", 
+                        "message": f"Failed to retrieve SQLite data from {table}",
+                        "error": result["error"]
+                    }), 500
+                
+                all_records.extend(result["records"])
+                total_records += result["total_records"]
+                
+                if debug_mode:
+                    combined_debug_info["table_results"][table] = {
+                        "records_found": len(result["records"]),
+                        "total_records": result["total_records"],
+                        "processed_count": result["processed_count"]
+                    }
+                    
+            except Exception as e:
+                # If table doesn't exist, skip it (for backwards compatibility)
+                if debug_mode:
+                    combined_debug_info["table_results"][table] = {
+                        "error": f"Table {table} not accessible: {str(e)}",
+                        "records_found": 0
+                    }
+                continue
+        
         conn.close()
 
-        # Check for errors
-        if "error" in result:
-            return jsonify({
-                "status_code": 500,
-                "status": "error", 
-                "message": "Failed to retrieve SQLite data",
-                "error": result["error"]
-            }), 500
+        # Sort combined records by timestamp if we have multiple tables
+        if len(target_tables) > 1 and all_records:
+            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # Apply pagination to combined results
+        paginated_data = paginate_data(all_records, limit, offset)
+
+        # Format response data to ensure proper types
+        formatted_records = [format_response_data(record) for record in paginated_data['records']]
 
         # Build successful response with dynamic pagination
         response_data = {
             "status_code": 200,
             "status": "success",
             "data": {
-                "records": result["records"],
-                "total_records": result["total_records"],
-                "page_info": result["page_info"],
-                "processed_count": result["processed_count"],
+                "records": formatted_records,
+                "total_records": paginated_data['total_records'],
+                "page_info": paginated_data['page_info'],
+                "processed_count": len(all_records),
+                "section": section or default_battery_type,
+                "tables_queried": target_tables,
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }
 
         # Add debug info if requested
-        if debug_mode and result.get("debug_info"):
-            response_data["debug_info"] = result["debug_info"]
+        if debug_mode and combined_debug_info:
+            response_data["debug_info"] = combined_debug_info
 
         # Add helpful message when no records found
-        if result["total_records"] == 0:
+        if len(all_records) == 0:
             if start_dt or end_dt:
                 response_data["message"] = "No records found in the specified date range."
             else:
-                response_data["message"] = "No records found in the table."
+                response_data["message"] = "No records found in the tables."
 
         return jsonify(response_data), 200
     except sqlite3.Error as e:
@@ -733,6 +937,242 @@ def delete_all_sqlite_data():
         return jsonify(error_response), 500
 
 
+# ============== SCC/Energy Data Endpoints ===========================
+
+@logger_bp.route('/scc', methods=['GET'])
+@api_session_required
+def get_scc_data():
+    """
+    Get SCC/Energy data from Redis stream:energy with filtering options
+    This is a dedicated endpoint for SCC/Energy data
+    
+    Query parameters:
+    - start_date: Start date (ISO 8601 format)
+    - end_date: End date (ISO 8601 format)  
+    - limit: Maximum records (default: 55)
+    - offset: Records to skip (default: 0)
+    - debug: Enable debug mode (true/false)
+    """
+    try:
+        if not red:
+            return jsonify({
+                "status_code": 503,
+                "status": "error",
+                "message": "Redis service unavailable",
+                "error": "Cannot connect to Redis database"
+            }), 503
+
+        # Parse query parameters with smart defaults
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # Smart limit handling: smaller default when no date filter to prevent memory issues
+        default_limit = 55 if (start_date or end_date) else 22
+        limit = min(int(request.args.get('limit', default_limit)), 11000)  # Max 11000 records
+        offset = int(request.args.get('offset', 0))
+        debug_mode = request.args.get('debug', 'false').lower() == 'true'
+
+        # Validate dates first
+        start_dt = validate_date_format(start_date) if start_date else None
+        end_dt = validate_date_format(end_date) if end_date else None
+        
+        if start_date and start_dt is False:
+            return jsonify({
+                "status_code": 400,
+                "status": "error",
+                "message": "Invalid start_date format",
+                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
+            }), 400
+            
+        if end_date and end_dt is False:
+            return jsonify({
+                "status_code": 400,
+                "status": "error", 
+                "message": "Invalid end_date format",
+                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
+            }), 400
+
+        # Convert datetime to Redis timestamp format for comparison
+        redis_start_ts = convert_to_redis_timestamp_format(start_dt) if start_dt else None
+        redis_end_ts = convert_to_redis_timestamp_format(end_dt) if end_dt else None
+
+        # Minimal debug info collection (only when needed)
+        debug_info = {
+            "redis_connection": "OK",
+            "processing_steps": [] if debug_mode else None,
+            "raw_data_found": {},
+            "filter_results": {}
+        }
+
+        # Only collect detailed debug info if debug mode is enabled
+        if debug_mode:
+            filtering_method = "redis_level_xrange_filtering" if (start_dt or end_dt) else "recent_data_limit_1000"
+            debug_info.update({
+                "streams_checked": ["stream:energy"],
+                "final_counts": {},
+                "redis_query_params": {
+                    "original_start_date": start_date,
+                    "original_end_date": end_date,
+                    "parsed_start_dt": str(start_dt) if start_dt else None,
+                    "parsed_end_dt": str(end_dt) if end_dt else None,
+                    "redis_start_ts": redis_start_ts,
+                    "redis_end_ts": redis_end_ts,
+                    "filtering_method": filtering_method,
+                    "optimization": "Redis XRANGE with time-based Stream IDs for maximum performance"
+                }
+            })
+
+        # Get data from stream:energy only
+        target_streams = ['stream:energy']
+        
+        # Get data from Redis Streams using highly optimized processing
+        if debug_mode:
+            debug_info["processing_steps"].append("Using Redis-level filtering for SCC/Energy stream")
+            debug_info["section"] = "scc"
+        
+        # Process stream efficiently with Redis-level filtering
+        all_records = []
+        stream_results = {}
+        
+        for stream_name in target_streams:
+            stream_result = process_redis_stream(stream_name, start_dt, end_dt, redis_start_ts, redis_end_ts, debug_mode, debug_info)
+            stream_results[stream_name] = stream_result
+            all_records.extend(stream_result['records'])
+        
+        # Update debug info efficiently
+        debug_info["raw_data_found"] = {}
+        debug_info["filter_results"] = {}
+        
+        for stream_name, result in stream_results.items():
+            debug_info["raw_data_found"][stream_name] = result['raw_count']
+            debug_info["filter_results"][stream_name] = {
+                "raw_count": result['raw_count'],
+                "processed_count": result['processed_count'],
+                "filtered_count": result['filtered_count']
+            }
+
+        # Efficient sorting and pagination
+        if all_records:
+            # Sort by timestamp (newest first) - only if we have records
+            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # Update final counts only if debug mode
+        if debug_mode:
+            debug_info["final_counts"] = {
+                "total_records_before_pagination": len(all_records),
+                "pagination": {"limit": limit, "offset": offset}
+            }
+
+        # Paginate results efficiently
+        paginated_data = paginate_data(all_records, limit, offset)
+
+        # Format response data to ensure proper types
+        formatted_records = [format_response_data(record) for record in paginated_data['records']]
+
+        response_data = {
+            "status_code": 200,
+            "status": "success",
+            "data": {
+                "records": formatted_records,
+                "total_records": paginated_data['total_records'],
+                "page_info": paginated_data['page_info'],
+                "section": "scc",
+                "target_streams": target_streams,
+                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+        }
+        
+        # Add helpful message when no records found but filtering was applied
+        if len(all_records) == 0 and (start_dt or end_dt):
+            message_parts = []
+            total_raw_count = sum(debug_info["raw_data_found"].values())
+            
+            if total_raw_count == 0:
+                message_parts.append("No SCC/Energy data found in the specified date range.")
+            else:
+                message_parts.append(f"No records match the date filter. Redis returned {total_raw_count} entries but none passed validation.")
+            
+            response_data["message"] = " ".join(message_parts)
+            
+            # Add data range info in debug mode - optimized to only run when needed
+            if debug_mode:
+                range_info = {}
+                
+                # Only get range info if no records were found
+                for stream_name in target_streams:
+                    try:
+                        # Get first and last efficiently
+                        first_entry = red.xrange(stream_name, count=1)
+                        if first_entry:
+                            last_entry = red.xrevrange(stream_name, count=1)
+                            if last_entry:
+                                first_ts = dict(first_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(first_entry[0][1]).get(b'timestamp', b''), bytes) else dict(first_entry[0][1]).get('timestamp', '')
+                                last_ts = dict(last_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(last_entry[0][1]).get(b'timestamp', b''), bytes) else dict(last_entry[0][1]).get('timestamp', '')
+                                range_info[f"{stream_name}_data_range"] = {
+                                    "first_timestamp": first_ts,
+                                    "last_timestamp": last_ts
+                                }
+                    except Exception:
+                        continue
+                
+                if range_info:
+                    response_data["data"]["available_data_ranges"] = range_info
+        
+        # Add debug info only if requested (reduces response size)
+        if debug_mode and debug_info:
+            response_data["debug_info"] = debug_info
+
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        error_response = {
+            "status_code": 500,
+            "status": "error",
+            "message": "Failed to retrieve SCC/Energy data",
+            "error": str(e)
+        }
+        
+        # Only add debug info in debug mode and if it exists
+        if debug_mode and 'debug_info' in locals():
+            error_response["debug_info"] = debug_info
+            
+        return jsonify(error_response), 500
+
+
+# ============== Section-based Data Endpoints ===========================
+
+@logger_bp.route('/talis5', methods=['GET'])
+@api_session_required
+def get_talis5_data():
+    """
+    Get Talis5 BMS data - redirects to /data/redis with section=talis5
+    This is a convenience endpoint for Talis5 BMS data
+    """
+    # Copy all query parameters and add section
+    args = dict(request.args)
+    args['section'] = 'talis5'
+    
+    # Forward to the main Redis endpoint with section parameter
+    from flask import redirect, url_for
+    return redirect(url_for('logger.get_redis_data', **args))
+
+
+@logger_bp.route('/jspro', methods=['GET'])
+@api_session_required
+def get_jspro_data():
+    """
+    Get JSPro battery data - redirects to /data/redis with section=jspro
+    This is a convenience endpoint for JSPro battery data
+    """
+    # Copy all query parameters and add section
+    args = dict(request.args)
+    args['section'] = 'jspro'
+    
+    # Forward to the main Redis endpoint with section parameter
+    from flask import redirect, url_for
+    return redirect(url_for('logger.get_redis_data', **args))
+
+
 # ============== Storage Overview Endpoint ===========================
 
 @logger_bp.route('/data/overview', methods=['GET'])
@@ -755,6 +1195,7 @@ def get_storage_overview():
                 "logger_records": 0,
                 "bms_records": 0,
                 "energy_records": 0,
+                "jspro_records": 0,
                 "sqlite_records": 0
             },
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -770,9 +1211,10 @@ def get_storage_overview():
                 redis_storage_mb = round(redis_used_memory / (1024 * 1024), 2)
                 overview_data["storage_overview"]["redis_storage"] = redis_storage_mb
                 
-                # Get stream info for both streams (record counts)
+                # Get stream info for all streams (record counts)
                 bms_count = 0
                 energy_count = 0
+                jspro_count = 0
                 
                 try:
                     bms_info = red.xinfo_stream('stream:bms')
@@ -786,10 +1228,17 @@ def get_storage_overview():
                 except Exception:
                     pass
                 
-                total_redis_entries = bms_count + energy_count
+                try:
+                    jspro_info = red.xinfo_stream('stream:jspro_battery')
+                    jspro_count = jspro_info['length']
+                except Exception:
+                    pass
+                
+                total_redis_entries = bms_count + energy_count + jspro_count
                 overview_data["data_statistics"]["logger_records"] = total_redis_entries
                 overview_data["data_statistics"]["bms_records"] = bms_count
                 overview_data["data_statistics"]["energy_records"] = energy_count
+                overview_data["data_statistics"]["jspro_records"] = jspro_count
             except Exception:
                 pass
 
@@ -820,6 +1269,15 @@ def get_storage_overview():
                 # Count energy_data records
                 try:
                     cursor = conn.execute("SELECT COUNT(*) as total FROM energy_data")
+                    result = cursor.fetchone()
+                    if result:
+                        total_sqlite_records += result['total']
+                except Exception:
+                    pass
+                
+                # Count jspro_battery_data records
+                try:
+                    cursor = conn.execute("SELECT COUNT(*) as total FROM jspro_battery_data")
                     result = cursor.fetchone()
                     if result:
                         total_sqlite_records += result['total']
