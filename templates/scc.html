@@ -827,7 +827,7 @@
             
             // Check each SRNE alarm
             Object.keys(srneAlarmMap).forEach(key => {
-                const value = alarmStatus[key];
+                const value = alarmStatus.fault[key];
                 const elementId = `scc${sccNumber}-${key.replace(/_/g, '-')}`;
                 const element = document.getElementById(elementId);
                 
