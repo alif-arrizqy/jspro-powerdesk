@@ -11,7 +11,6 @@ from api.core import register_blueprints, register_error_handlers
 from api.redisconnection import connection as red
 from auths import USERS, verify_password, record_successful_login, record_failed_attempt, is_user_locked, get_user_role, audit_access, get_menu_access, can_access_page
 from validations import validate_setting_ip, validate_modbus_id
-from config import number_of_scc, PATH
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -856,7 +855,7 @@ def setting_scc():
                 if number_of_scc == 2:
                     for i in range(1, 3):
                         red.set(f'scc:{i}:id', request.form.get(f'scc-id-{i}'))
-                bash_command('sudo systemctl restart scc device_config_loader.service webapp.service')
+                bash_command('sudo systemctl restart scc.service')
                 bash_command('sudo systemctl daemon-reload')
                 flash('SCC ID has been updated successfully', 'success')
                 audit_access(username, 'scc_settings', 'update_scc_id')
@@ -865,23 +864,14 @@ def setting_scc():
             return redirect(url_for('setting_scc'))
             
         if config_relay_form == 'config-relay-form':
-            # Get detailed validation errors first
-            validation_errors = get_validation_errors_for_cutoff_reconnect(path, form_data)
-            
-            if not validation_errors:
-                response = update_config_cutoff_reconnect(path, form_data)
-                if response:
-                    flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
-                    audit_access(username, 'scc_settings', 'update_relay_config')
-                    os.system(f'sudo python3 {PATH}/config_scc.py')
-                    bash_command('sudo systemctl restart scc')
-                else:
-                    flash('Failed to update Config Value Cut off / Reconnect', 'danger')
+            response = update_config_cutoff_reconnect(path, form_data)
+            if response:
+                flash('Config Value Cut off / Reconnect has been updated successfully', 'success')
+                audit_access(username, 'scc_settings', 'update_relay_config')
+                os.system(f'sudo python3 {PATH}/config_scc.py')
+                bash_command('sudo systemctl restart scc.service webapp.service')
             else:
-                # Show detailed validation errors
-                for error in validation_errors:
-                    flash(f'Validation Error: {error}', 'danger')
-                flash('Please check SCC parameters and voltage values according to configuration rules', 'warning')
+                flash('Failed to update Config Value Cut off / Reconnect', 'danger')
             return redirect(url_for('setting_scc'))
             
         if config_scc_form == 'config-scc-form':
@@ -890,7 +880,7 @@ def setting_scc():
                 flash('Config Value SCC has been updated successfully', 'success')
                 audit_access(username, 'scc_settings', 'update_scc_config')
                 os.system(f'sudo python3 {PATH}/config_scc.py')
-                bash_command('sudo systemctl restart scc')
+                bash_command('sudo systemctl restart scc.service webapp.service')
             else:
                 flash('Failed to update Config Value SCC', 'danger')
             return redirect(url_for('setting_scc'))
