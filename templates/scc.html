@@ -273,16 +273,8 @@
                                             <div><span id="scc{{i}}-battery-temp" class="badge bg-info">Loading...</span></div>
                                         </div>
                                         <div class="col-6">
-                                            <small class="text-muted">Controller Temperature</small>
-                                            <div><span id="scc{{i}}-controller-temp" class="badge bg-info">Loading...</span></div>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Charging Mode</small>
-                                            <div><span id="scc{{i}}-charging-mode" class="badge bg-success">Loading...</span></div>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Battery Type</small>
-                                            <div><span id="scc{{i}}-battery-type" class="badge bg-secondary">Loading...</span></div>
+                                            <small class="text-muted">Device Temperature</small>
+                                            <div><span id="scc{{i}}-device-temp" class="badge bg-info">Loading...</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -798,7 +790,7 @@
         }
         
         if (sccData.device_temperature !== undefined) {
-            updateElement(`scc${sccNumber}-controller-temp`, formatValue(sccData.device_temperature, '°C', 1));
+            updateElement(`scc${sccNumber}-device-temp`, formatValue(sccData.device_temperature, '°C', 1));
         }
     }
 
