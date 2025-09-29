@@ -13,7 +13,7 @@ from functools import wraps
 from ..redisconnection import connection as red
 from .helper import *
 from helpers.system_resources_helper import get_disk_detail
-from config import PATH
+from config import PATH, scc_type
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -1138,41 +1138,6 @@ def get_scc_data():
             
         return jsonify(error_response), 500
 
-
-# ============== Section-based Data Endpoints ===========================
-
-@logger_bp.route('/talis5', methods=['GET'])
-@api_session_required
-def get_talis5_data():
-    """
-    Get Talis5 BMS data - redirects to /data/redis with section=talis5
-    This is a convenience endpoint for Talis5 BMS data
-    """
-    # Copy all query parameters and add section
-    args = dict(request.args)
-    args['section'] = 'talis5'
-    
-    # Forward to the main Redis endpoint with section parameter
-    from flask import redirect, url_for
-    return redirect(url_for('logger.get_redis_data', **args))
-
-
-@logger_bp.route('/jspro', methods=['GET'])
-@api_session_required
-def get_jspro_data():
-    """
-    Get JSPro battery data - redirects to /data/redis with section=jspro
-    This is a convenience endpoint for JSPro battery data
-    """
-    # Copy all query parameters and add section
-    args = dict(request.args)
-    args['section'] = 'jspro'
-    
-    # Forward to the main Redis endpoint with section parameter
-    from flask import redirect, url_for
-    return redirect(url_for('logger.get_redis_data', **args))
-
-
 # ============== Storage Overview Endpoint ===========================
 
 @logger_bp.route('/data/overview', methods=['GET'])
@@ -1331,7 +1296,7 @@ def get_scc_alarm_overview():
         severity_count = {
             'critical': 0,
             'warning': 0,
-            'info': 0
+            'normal': 0
         }
         
         # Get alarm count and statistics from Redis Stream
@@ -1346,38 +1311,95 @@ def get_scc_alarm_overview():
                 
                 for entry_id, fields in recent_entries:
                     try:
-                        # Parse timestamp from entry ID
-                        timestamp_ms = int(entry_id.split(b'-')[0])
-                        entry_time = datetime.fromtimestamp(timestamp_ms / 1000)
+                        # Parse timestamp from entry ID (handle both bytes and string formats)
+                        if isinstance(entry_id, bytes):
+                            entry_id_str = entry_id.decode('utf-8')
+                        else:
+                            entry_id_str = str(entry_id)
                         
-                        if not last_alarm_time or entry_time > last_alarm_time:
-                            last_alarm_time = entry_time
-                        
-                        # Parse alarm data if available
-                        if b'data' in fields:
-                            import json
-                            alarm_data = json.loads(fields[b'data'].decode())
+                        # Extract timestamp from Redis Stream ID format (timestamp-sequence)
+                        try:
+                            timestamp_ms = int(entry_id_str.split('-')[0])
+                            entry_time = datetime.fromtimestamp(timestamp_ms / 1000)
                             
-                            # Count different alarm types and severities
+                            # Track the latest alarm time
+                            if not last_alarm_time or entry_time > last_alarm_time:
+                                last_alarm_time = entry_time
+                        except (ValueError, IndexError):
+                            # If timestamp parsing fails, skip this entry
+                            continue
+                        
+                        # Parse alarm data if available (handle both bytes and string formats)
+                        data_field = fields.get('data')
+                        
+                        if data_field:
+                            import json
+                            # Handle both decoded string and bytes format
+                            if isinstance(data_field, bytes):
+                                alarm_data = json.loads(data_field.decode())
+                            else:
+                                alarm_data = json.loads(data_field)
+                            
+                            # Count different alarm types and severities based on SCC type
                             for scc_id, scc_data in alarm_data.items():
                                 if isinstance(scc_data, dict) and 'alarm' in scc_data:
                                     alarm_obj = scc_data['alarm']
+                                    
                                     if alarm_obj:
-                                        active_alarms += 1
+                                        has_active_alarm = False
                                         
-                                        # Categorize alarms by type and severity
-                                        for alarm_type, alarm_status in alarm_obj.items():
-                                            if alarm_type not in alarm_types:
-                                                alarm_types[alarm_type] = 0
-                                            alarm_types[alarm_type] += 1
-                                            
-                                            # Categorize by severity
-                                            if alarm_status in ['fault', 'overvoltage', 'short_circuit', 'overload', 'high_voltage', 'wrong', 'overtemp', 'overdischarge']:
-                                                severity_count['critical'] += 1
-                                            elif alarm_status in ['warning', 'unrecognized', 'abnormal', 'low_voltage', 'undervoltage', 'lowtemp']:
-                                                severity_count['warning'] += 1
-                                            else:
-                                                severity_count['info'] += 1
+                                        # Process based on SCC type
+                                        if scc_type == 'scc-srne':
+                                            # Handle SRNE format: check fault values for 1
+                                            if 'fault' in alarm_obj and isinstance(alarm_obj['fault'], dict):
+                                                for fault_type, fault_value in alarm_obj['fault'].items():
+                                                    # Count all fault types
+                                                    if fault_type not in alarm_types:
+                                                        alarm_types[fault_type] = 0
+                                                    
+                                                    # Check if alarm is active (value = 1)
+                                                    if fault_value == 1:
+                                                        alarm_types[fault_type] += 1
+                                                        has_active_alarm = True
+                                                        # All SRNE faults are critical
+                                                        severity_count['critical'] += 1
+                                                    else:
+                                                        # Count normal status
+                                                        severity_count['normal'] += 1
+                                        
+                                        elif scc_type == 'scc-epever':
+                                            # Handle EPEVER format: nested categories with status values
+                                            for category, category_alarms in alarm_obj.items():
+                                                if isinstance(category_alarms, dict):
+                                                    # Process each alarm within the category
+                                                    for alarm_type, alarm_status in category_alarms.items():
+                                                        # Count alarm types with category prefix
+                                                        full_alarm_type = f"{category}.{alarm_type}"
+                                                        if full_alarm_type not in alarm_types:
+                                                            alarm_types[full_alarm_type] = 0
+                                                        
+                                                        # Always count for total statistics
+                                                        alarm_types[full_alarm_type] += 1
+                                                        
+                                                        # Check if this is an active alarm (not 'normal' or 'running')
+                                                        # Include 'standby' and 'light_load' as informational states
+                                                        if alarm_status not in ['normal', 'running']:
+                                                            has_active_alarm = True
+                                                            
+                                                            # Categorize by severity based on alarm status
+                                                            if alarm_status in ['critical', 'fault', 'overvoltage', 'undervoltage', 'short_circuit', 'overload', 'high_voltage', 'wrong', 'overtemp', 'overdischarge', 'stop_discharging', 'discharge_short']:
+                                                                severity_count['critical'] += 1
+                                                            elif alarm_status in ['warning', 'no_charging', 'unrecognized', 'abnormal', 'low_voltage', 'lowtemp', 'light_load', 'boost', 'standby']:
+                                                                severity_count['warning'] += 1
+                                                            else:
+                                                                severity_count['warning'] += 1  # Default to warning for unknown non-normal status
+                                                        else:
+                                                            # Count normal status
+                                                            severity_count['normal'] += 1
+                                        
+                                        # Only count as active alarm if there are non-normal statuses
+                                        if has_active_alarm:
+                                            active_alarms += 1
                                                 
                     except Exception as e:
                         continue
@@ -1387,16 +1409,13 @@ def get_scc_alarm_overview():
                 total_alarms = 0
 
         overview_data = {
+            "scc_type": scc_type,
             "total_alarms": total_alarms,
             "active_alarms": active_alarms,
             "last_alarm_time": last_alarm_time.strftime("%Y-%m-%d %H:%M:%S") if last_alarm_time else None,
             "alarm_statistics": {
                 "severity_breakdown": severity_count,
                 "top_alarm_types": dict(sorted(alarm_types.items(), key=lambda x: x[1], reverse=True)[:10])
-            },
-            "stream_info": {
-                "stream_name": "scc-logs:data",
-                "total_entries": total_alarms
             },
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
@@ -1414,181 +1433,6 @@ def get_scc_alarm_overview():
             "message": "Failed to get SCC alarm overview",
             "error": str(e)
         }), 500
-
-
-@logger_bp.route('/scc-alarm/history', methods=['GET'])
-@api_session_required
-def get_scc_alarm_history():
-    """
-    Get SCC alarm history from Redis Stream with pagination and filtering
-    Query parameters:
-    - start_date: Start date (ISO 8601 format)
-    - end_date: End date (ISO 8601 format)
-    - limit: Maximum records (default: 50, max: 1000)
-    - offset: Records to skip (default: 0)
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "Redis service unavailable"
-            }), 503
-
-        # Parse query parameters
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        limit = min(int(request.args.get('limit', 50)), 1000)
-        offset = int(request.args.get('offset', 0))
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-
-        # Validate dates
-        start_dt = validate_date_format(start_date) if start_date else None
-        end_dt = validate_date_format(end_date) if end_date else None
-        
-        if start_date and start_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid start_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-            
-        if end_date and end_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid end_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-
-        # Convert datetime to Redis timestamp format for comparison
-        redis_start_ts = convert_to_redis_timestamp_format(start_dt) if start_dt else None
-        redis_end_ts = convert_to_redis_timestamp_format(end_dt) if end_dt else None
-
-        debug_info = {"stream_checked": "scc-logs:data"} if debug_mode else None
-
-        # Get SCC logs from Redis Stream
-        try:
-            if redis_start_ts and redis_end_ts:
-                # Use XRANGE for time-based filtering
-                entries = red.xrange('scc-logs:data', min=f"{redis_start_ts}-0", max=f"{redis_end_ts}-0")
-            elif redis_start_ts:
-                # From start_date to end
-                entries = red.xrange('scc-logs:data', min=f"{redis_start_ts}-0")
-            elif redis_end_ts:
-                # From beginning to end_date
-                entries = red.xrange('scc-logs:data', max=f"{redis_end_ts}-0")
-            else:
-                # Get recent entries (newest first)
-                entries = red.xrevrange('scc-logs:data', count=limit + offset + 100)
-        except Exception as e:
-            if debug_mode:
-                debug_info["stream_error"] = str(e)
-            # Stream doesn't exist or error occurred
-            entries = []
-
-        # Process entries
-        all_records = []
-        for entry_id, fields in entries:
-            try:
-                # Parse timestamp from entry ID (milliseconds)
-                timestamp_ms = int(entry_id.split(b'-')[0]) if isinstance(entry_id, bytes) else int(entry_id.split('-')[0])
-                entry_time = datetime.fromtimestamp(timestamp_ms / 1000)
-                
-                # Decode entry data
-                timestamp = fields.get(b'timestamp', b'').decode('utf-8') if isinstance(fields.get(b'timestamp', b''), bytes) else fields.get('timestamp', '')
-                data_json = fields.get(b'data', b'').decode('utf-8') if isinstance(fields.get(b'data', b''), bytes) else fields.get('data', '')
-                
-                # Parse SCC data
-                import json
-                scc_data = json.loads(data_json) if data_json else {}
-                
-                # Extract individual alarms from SCC data
-                alarms = []
-                for scc_id, scc_info in scc_data.items():
-                    if isinstance(scc_info, dict) and 'alarm' in scc_info:
-                        alarm_obj = scc_info.get('alarm')
-                        if alarm_obj and isinstance(alarm_obj, dict):
-                            for alarm_type, alarm_status in alarm_obj.items():
-                                if alarm_status and alarm_status != 'normal':
-                                    alarms.append({
-                                        'scc_id': scc_id,
-                                        'alarm_type': alarm_type,
-                                        'alarm_status': alarm_status,
-                                        'battery_voltage': scc_info.get('battery_voltage', 0),
-                                        'battery_temperature': scc_info.get('battery_temperature', 0),
-                                        'device_temperature': scc_info.get('device_temperature', 0),
-                                        'load_status': scc_info.get('load_status', 'unknown')
-                                    })
-                
-                # Format record
-                record = {
-                    'stream_id': entry_id.decode('utf-8') if isinstance(entry_id, bytes) else str(entry_id),
-                    'timestamp': timestamp or entry_time.strftime("%Y-%m-%d %H:%M:%S"),
-                    'entry_time': entry_time.strftime("%Y-%m-%d %H:%M:%S"),
-                    'total_alarms': len(alarms),
-                    'alarms': alarms,
-                    'raw_scc_data': scc_data
-                }
-                
-                all_records.append(record)
-                
-            except Exception as e:
-                if debug_mode:
-                    if "parsing_errors" not in debug_info:
-                        debug_info["parsing_errors"] = []
-                    debug_info["parsing_errors"].append(f"Error parsing entry {entry_id}: {str(e)}")
-                continue
-
-        # Sort by timestamp (newest first) if not already sorted by XREVRANGE
-        if redis_start_ts or redis_end_ts:
-            all_records.sort(key=lambda x: x.get('entry_time', ''), reverse=True)
-
-        # Paginate results
-        paginated_data = paginate_data(all_records, limit, offset)
-
-        response_data = {
-            "status_code": 200,
-            "status": "success",
-            "data": {
-                "records": paginated_data['records'],
-                "total_records": paginated_data['total_records'],
-                "page_info": paginated_data['page_info'],
-                "stream_info": {
-                    "stream_name": "scc-logs:data",
-                    "total_entries_processed": len(all_records)
-                },
-                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-        }
-
-        # Add helpful message when no records found
-        if len(all_records) == 0:
-            if redis_start_ts or redis_end_ts:
-                response_data["message"] = "No SCC alarm logs found for the specified date range"
-            else:
-                response_data["message"] = "No SCC alarm logs available"
-
-        # Add debug info if requested
-        if debug_mode and debug_info:
-            response_data["debug_info"] = debug_info
-
-        return jsonify(response_data), 200
-
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to get SCC alarm history",
-            "error": str(e)
-        }
-        
-        if debug_mode and 'debug_info' in locals():
-            error_response["debug_info"] = debug_info
-            
-        return jsonify(error_response), 500
 
 
 @logger_bp.route('/scc-alarm', methods=['GET'])
@@ -1620,9 +1464,24 @@ def download_scc_alarms():
         all_logs = []
         for entry_id, fields in entries:
             try:
-                # Decode entry data
-                timestamp = fields.get(b'timestamp', b'').decode('utf-8') if isinstance(fields.get(b'timestamp', b''), bytes) else fields.get('timestamp', '')
-                data_json = fields.get(b'data', b'').decode('utf-8') if isinstance(fields.get(b'data', b''), bytes) else fields.get('data', '')
+                # Decode entry data (handle both bytes and string formats)
+                timestamp_field = fields.get('timestamp') or fields.get(b'timestamp', b'')
+                timestamp = timestamp_field.decode('utf-8') if isinstance(timestamp_field, bytes) else str(timestamp_field) if timestamp_field else ''
+                # using timestamp from entry ID for accuracy
+                if isinstance(entry_id, bytes):
+                    entry_id_str = entry_id.decode('utf-8')
+                else:
+                    entry_id_str = str(entry_id)
+                try:
+                    timestamp_ms = int(entry_id_str.split('-')[0])
+                    entry_time = datetime.fromtimestamp(timestamp_ms / 1000)
+                    human_readable_time = entry_time.strftime("%Y-%m-%d %H:%M:%S")
+                except (ValueError, IndexError):
+                    print('fallback timestamp')
+                    human_readable_time = timestamp  # Fallback to stored timestamp if parsing fails
+                
+                data_field = fields.get('data') or fields.get(b'data', b'')
+                data_json = data_field.decode('utf-8') if isinstance(data_field, bytes) else str(data_field) if data_field else ''
                 
                 # Parse SCC data
                 import json
@@ -1630,8 +1489,7 @@ def download_scc_alarms():
                 
                 # Format log entry
                 log_entry = {
-                    'stream_id': entry_id.decode('utf-8') if isinstance(entry_id, bytes) else str(entry_id),
-                    'timestamp': timestamp,
+                    'timestamp': human_readable_time,
                     'scc_data': scc_data
                 }
                 
@@ -1646,11 +1504,6 @@ def download_scc_alarms():
             "data": {
                 "logs": all_logs,
                 "total_logs": len(all_logs),
-                "download_info": {
-                    "requested_limit": limit,
-                    "actual_downloaded": len(all_logs),
-                    "stream_name": "scc-logs:data"
-                },
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }), 200
