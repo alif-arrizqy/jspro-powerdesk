@@ -97,94 +97,6 @@
     </div>
 </div>
 
-<!-- Alarm Data View -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
-            <div class="modern-card-header d-flex justify-content-between align-items-center">
-                <h5 class="modern-card-title">
-                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                    Alarm Log History
-                </h5>
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="alarm-filter" style="width: auto;">
-                        <option value="">All Alarms</option>
-                        {% if scc_type == 'scc-srne' %}
-                        <option value="batt-hi-temp-1">Battery High Temp 1</option>
-                        <option value="batt-hi-temp-2">Battery High Temp 2</option>
-                        <option value="batt-lo-temp-1">Battery Low Temp 1</option>
-                        <option value="batt-lo-temp-2">Battery Low Temp 2</option>
-                        <option value="batt-overdisc">Battery Over Discharge</option>
-                        <option value="batt-overvolt">Battery Overvoltage</option>
-                        <option value="batt-reversed">Battery Reversed</option>
-                        <option value="batt-undervolt">Battery Undervoltage</option>
-                        <option value="controller-temp-high">Controller High Temperature</option>
-                        <option value="load-over-current">Load Over Current</option>
-                        <option value="pv-overpower">PV Input Overpower</option>
-                        <option value="pv-overvolt">PV Input Overvoltage</option>
-                        {% elif scc_type == 'scc-epveper' %}
-                        <option value="standby">Standby</option>
-                        <option value="unrecognized">Unrecognized</option>
-                        <option value="fault">Fault</option>
-                        <option value="overvoltage">Overvoltage</option>
-                        <option value="short_circuit">Short Circuit</option>
-                        <option value="abnormal">Abnormal</option>
-                        <option value="unable">Unable</option>
-                        <option value="overload">Overload</option>
-                        <option value="low_voltage">Low Voltage</option>
-                        <option value="high_voltage">High Voltage</option>
-                        <option value="no_access">No Access</option>
-                        <option value="wrong">Wrong</option>
-                        <option value="overtemp">Over Temperature</option>
-                        <option value="lowtemp">Low Temperature</option>
-                        <option value="overdischarge">Over Discharge</option>
-                        <option value="undervoltage">Under Voltage</option>
-                        {% endif %}
-                    </select>
-                    <select class="form-select form-select-sm" id="scc-filter" style="width: auto;">
-                        <option value="">All SCC</option>
-                        {% for i in range(1, number_of_scc+1) %}
-                        <option value="scc{{i}}">SCC {{i}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="modern-card-body">
-                <div id="alarm-loading" class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-3 text-muted">Loading alarm data...</p>
-                </div>
-                <div id="alarm-no-data" class="text-center py-5" style="display: none;">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Alarm Data Found</h5>
-                    <p class="text-muted">There are currently no alarm logs to display.</p>
-                </div>
-                <div id="alarm-list" class="row g-3" style="display: none;">
-                    <!-- Alarm cards will be populated here -->
-                </div>
-                <div id="alarm-pagination" class="d-flex justify-content-between align-items-center mt-4" style="display: none;">
-                    <div>
-                        <span class="text-muted">Showing <span id="showing-from">1</span> to <span id="showing-to">10</span> of <span id="total-items">0</span> entries</span>
-                    </div>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0">
-                            <li class="page-item" id="prev-page">
-                                <a class="page-link" href="#" onclick="changePage('prev')">Previous</a>
-                            </li>
-                            <li class="page-item" id="next-page">
-                                <a class="page-link" href="#" onclick="changePage('next')">Next</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 {% endblock content %}
 
 {% block scripts %}
@@ -397,20 +309,28 @@
         'normal': { icon: 'fas fa-check-circle', color: 'success', label: 'Normal' }
     };
 
-    // Function to extract alarm data from JSON
+    // Function to extract alarm data from API response
     function extractAlarmData(data) {
         const alarms = [];
         
         data.forEach(entry => {
-            const time = entry.time;
+            const time = entry.timestamp || entry.entry_time;
             
-            // Process all SCCs dynamically
-            for (let i = 1; i <= numberOfScc; i++) {
-                const sccKey = `scc${i}`;
-                if (entry[sccKey] && entry[sccKey].alarm) {
-                    const sccAlarms = processAlarmObject(entry[sccKey].alarm, sccKey, time, entry[sccKey]);
-                    alarms.push(...sccAlarms);
-                }
+            // Process alarms from the new API format
+            if (entry.alarms && Array.isArray(entry.alarms)) {
+                entry.alarms.forEach(alarm => {
+                    alarms.push({
+                        scc: alarm.scc_id,
+                        category: 'System Alarm',
+                        type: alarm.alarm_type,
+                        status: alarm.alarm_status,
+                        time: time,
+                        batteryVoltage: alarm.battery_voltage || 0,
+                        batteryTemp: alarm.battery_temperature || 0,
+                        deviceTemp: alarm.device_temperature || 0,
+                        loadStatus: alarm.load_status || 'unknown'
+                    });
+                });
             }
         });
         
@@ -649,88 +569,6 @@
             });
     }
 
-    const handleLoggers = async (page = 1, pageSize = 50) => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        try {
-            const offset = (page - 1) * pageSize;
-            const response = await fetch(`${API_BASE_URL}/scc-alarm/history?limit=${pageSize}&offset=${offset}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.status_code == 500) {
-                console.log(`Error: ${data.message}`);
-                updateStatusIndicator('alarm-status', 'Error');
-                return;
-            }
-
-            // Clear existing data for fresh load
-            if (page === 1) {
-                arrLoggersData.length = 0;
-            }
-
-            // Process the historical data
-            if (data.data && data.data.records) {
-                arrLoggersData.push(...data.data.records);
-                
-                const alarmLengthElement = document.getElementById('scc-alarm-length');
-                if (alarmLengthElement) {
-                    alarmLengthElement.textContent = data.data.total_records.toLocaleString();
-                    
-                    // Update status based on alarm count
-                    if (data.data.total_records > 500) {
-                        alarmLengthElement.classList.add('text-danger');
-                        updateStatusIndicator('alarm-status', 'Critical');
-                    } else if (data.data.total_records > 100) {
-                        alarmLengthElement.classList.add('text-warning');
-                        updateStatusIndicator('alarm-status', 'Warning');
-                    } else if (data.data.total_records > 0) {
-                        alarmLengthElement.classList.add('text-info');
-                        updateStatusIndicator('alarm-status', 'Active');
-                    } else {
-                        alarmLengthElement.classList.add('text-success');
-                        updateStatusIndicator('alarm-status', 'Normal');
-                    }
-                }
-                
-                // Update last update time
-                updateLastUpdate();
-                
-                // Reset button states
-                resetButtonStates();
-                
-                // Update SCC status indicators
-                updateScctStatus();
-                
-                // Process and display alarm data
-                filteredAlarmData = extractAlarmData(arrLoggersData);
-                renderAlarmCards(filteredAlarmData);
-            }
-        } catch (error) {
-            console.error(`Failed to fetch SCC alarm data: ${error.message}`);
-            
-            // Update UI for error state
-            updateStatusIndicator('alarm-status', 'Error');
-            
-            // if status is 404, return No Data
-            if (error.message.includes('404')) {
-                disableButtonsNoData();
-            } else {
-                // Reset button states for other errors
-                resetButtonStates();
-            }
-        }
-    };
-
     // Function to update SCC status
     function updateScctStatus() {
         if (arrLoggersData.length > 0) {
@@ -793,7 +631,6 @@
         document.getElementById('alarm-pagination').style.display = 'none';
         
         showLoadingState();
-        handleLoggers();
     }
 
     const downloadSccLoggers = async () => {
@@ -824,8 +661,7 @@
 
             // Process the data here
             const downloadData = data.data.logs || [];
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filename = `${siteName}-scc-alarm-logs-${timestamp}.json`;
+            const filename = `${siteName}-scc-alarm-logs.json`;
             
             const blob = new Blob([JSON.stringify(downloadData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -958,7 +794,6 @@
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadAlarmOverview();
-        handleLoggers();
         
         // Add event listeners for filters
         const alarmFilter = document.getElementById('alarm-filter');
