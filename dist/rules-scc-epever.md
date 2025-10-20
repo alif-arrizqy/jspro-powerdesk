@@ -1,4 +1,4 @@
-# **Aturan Pengaturan Parameter Config SCC Epveper**
+# **Aturan Pengaturan Parameter Config SCC Epever**
 
 ## 1. Urutan Perubahan Nilai
 
