@@ -113,9 +113,9 @@ def update_auto_reboot_settings():
         
         # Password validation
         valid_passwords = {
-            'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-            'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-            'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+            'apt': os.getenv('APT_PASSWORD'),
+            'teknisi': os.getenv('TEKNISI_PASSWORD'),
+            'admin': os.getenv('ADMIN_PASSWORD')
         }
         
         if user not in valid_passwords or valid_passwords[user] != password:
@@ -156,9 +156,9 @@ def system_reboot():
         
         # Password validation
         valid_passwords = {
-            'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-            'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-            'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+            'apt': os.getenv('APT_PASSWORD'),
+            'teknisi': os.getenv('TEKNISI_PASSWORD'),
+            'admin': os.getenv('ADMIN_PASSWORD')
         }
         
         if user not in valid_passwords or valid_passwords[user] != password:
@@ -199,9 +199,9 @@ def system_shutdown():
         
         # Password validation
         valid_passwords = {
-            'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-            'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-            'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+            'apt': os.getenv('APT_PASSWORD'),
+            'teknisi': os.getenv('TEKNISI_PASSWORD'),
+            'admin': os.getenv('ADMIN_PASSWORD')
         }
         
         if user not in valid_passwords or valid_passwords[user] != password:
@@ -261,9 +261,9 @@ def update_i2c_settings():
         
         # Password validation
         valid_passwords = {
-            'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-            'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-            'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+            'apt': os.getenv('APT_PASSWORD'),
+            'teknisi': os.getenv('TEKNISI_PASSWORD'),
+            'admin': os.getenv('ADMIN_PASSWORD')
         }
         
         if user not in valid_passwords or valid_passwords[user] != password:
