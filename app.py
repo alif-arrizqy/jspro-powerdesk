@@ -315,9 +315,9 @@ def mqtt_service():
             'mqtt_config': data.get('mqtt_config', {}),
             # User passwords for service authentication
             'user_passwords': {
-                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
         
@@ -337,9 +337,9 @@ def mqtt_service():
             'mqtt_config': data.get('mqtt_config', {}),
             # User passwords for service authentication
             'user_passwords': {
-                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
     return render_template('mqtt-service.html', **context)
@@ -371,9 +371,9 @@ def systemd_service():
             # 'ip_address': '192.168.1.1',
             # User passwords for service authentication
             'user_passwords': {
-                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
         
@@ -392,9 +392,9 @@ def systemd_service():
             # 'ip_address': '192.168.1.1',
             # User passwords for service authentication
             'user_passwords': {
-                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
     return render_template('systemd-service.html', **context)
@@ -425,9 +425,9 @@ def snmp_service():
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
             'user_passwords': {
-                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
         
@@ -445,9 +445,9 @@ def snmp_service():
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
             'user_passwords': {
-                'apt': os.getenv('APT_PASSWORD', 'powerapt'),
-                'teknisi': os.getenv('TEKNISI_PASSWORD', 'Joulestore2020'),
-                'admin': os.getenv('ADMIN_PASSWORD', 'admin')
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
     return render_template('snmp-service.html', **context)
