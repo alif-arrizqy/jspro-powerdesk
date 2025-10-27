@@ -359,6 +359,105 @@ def get_scc_chart_data():
         }), 500
 
 
+@monitoring_bp.route('/rectifier', methods=['GET'])
+@auth.login_required
+def get_rectifier_monitoring():
+    """Get rectifier monitoring data from Redis"""
+    try:
+        # Get all rectifier data from Redis hash
+        rectifier_data = red.hgetall('rectifier')
+        
+        if not rectifier_data:
+            return jsonify({
+                'status_code': 200,
+                'status': 'success',
+                'message': 'No rectifier data available',
+                'data': {
+                    'rectifier_data': {},
+                    'last_update': None,
+                    'status': 'no_data'
+                }
+            })
+        
+        # Process and format rectifier data
+        formatted_data = {}
+        status_mapping = {
+            'hwAcInputStatus': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwRectifierStatus': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryDischarge': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryLowVoltage': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryUltraLowVoltage': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryDisconnect': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwFuseBroken': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwLoadFuseAlarmTraps': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwTcucDoorOpenAlarmTraps': { 0: 'Closed', 1: 'Open' },
+            'hwEsduDoorOpenAlarmTraps': { 0: 'Closed', 1: 'Open' }
+        }
+        
+        # Define units for each parameter
+        units = {
+            'hwRectACVoltage': 'V',
+            'hwBatteryVoltage': 'V', 
+            'hwRectifierTemperature': '°C'
+        }
+        
+        # Process each field from Redis
+        for key, value in rectifier_data.items():
+            if isinstance(key, bytes):
+                key = key.decode('utf-8')
+            if isinstance(value, bytes):
+                value = value.decode('utf-8')
+                
+            # Convert numeric values
+            try:
+                numeric_value = float(value)
+                
+                # Apply status mapping for status fields
+                if key in status_mapping:
+                    formatted_data[key] = {
+                        'value': numeric_value,
+                        'unit': units.get(key, ''),
+                    }
+                else:
+                    formatted_data[key] = {
+                        'value': numeric_value,
+                        'unit': units.get(key, ''),
+                    }
+            except (ValueError, TypeError):
+                # Handle non-numeric values
+                formatted_data[key] = {
+                    'value': value,
+                    'unit': '',
+                }
+        
+        # Get last update timestamp
+        last_update = red.hget('rectifier', 'last_update')
+        if last_update:
+            last_update = last_update.decode('utf-8') if isinstance(last_update, bytes) else last_update
+        
+        response_data = {
+            'rectifier_data': formatted_data,
+            'last_update': last_update or datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'total_parameters': len(formatted_data),
+        }
+        
+        return jsonify({
+            'status_code': 200,
+            'status': 'success',
+            'message': 'Rectifier monitoring data retrieved successfully',
+            'data': response_data
+        })
+
+    except Exception as e:
+        print(f"Error getting rectifier monitoring data: {e}")
+        return jsonify({
+            'status_code': 500,
+            'status': 'error',
+            'message': f'Failed to retrieve rectifier monitoring data: {str(e)}',
+            'data': None
+        }), 500
+
+
 @monitoring_bp.route('/battery', methods=['GET'])
 @auth.login_required
 def get_battery_monitoring():
