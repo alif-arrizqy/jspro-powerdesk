@@ -194,6 +194,71 @@ def battery():
     return render_template('battery.html', **context)
 
 
+@app.route('/rectifier', methods=['GET'])
+@login_required
+def rectifier():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'rectifier_monitoring'):
+        audit_access(username, 'rectifier_monitoring', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
+    try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
+        # Load configuration data
+        config_path = f'{PATH}/config_device.json'
+        config = {}
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Warning: Could not load config_device.json: {e}")
+            config = {
+                'rectifier_config': {
+                    'host': '127.0.0.1',
+                    'port': 161
+                }
+            }
+        
+        site_name = red.hget('device_config', 'site_name')
+        context = {
+            'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
+            'site_name': site_name,
+            'scc_type': scc_type,
+            'ip_address': get_ip_address('eth0'),
+            'config': config
+            # 'ip_address': '192.168.4.44'
+        }
+        # Audit page access
+        audit_access(username, 'rectifier_monitoring', 'view')
+    
+    except Exception as e:
+        print(f"rectifier() error: {e}")
+        context = {
+            'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
+            'site_name': 'Site Name',
+            'scc_type': scc_type,
+            'ip_address': get_ip_address('eth0'),
+            'config': {
+                'rectifier_config': {
+                    'host': '127.0.0.1',
+                    'port': 161
+                }
+            }
+            # 'ip_address': '
+        }
+    return render_template('rectifier.html', **context)
+
+
 @app.route('/datalog', methods=['GET'])
 @login_required
 def datalog():
@@ -1129,6 +1194,95 @@ def login():
             return redirect(url_for('login'))
             
     return render_template('login.html')
+
+
+@app.route('/update-rectifier-config', methods=['POST'])
+@login_required
+def update_rectifier_config():
+    """Update rectifier configuration"""
+    try:
+        # Check user permissions
+        username = current_user.id
+        if not can_access_page(username, 'rectifier'):
+            audit_access(username, 'rectifier', 'access_denied_config_update')
+            return jsonify({
+                'success': False,
+                'error': 'Access denied'
+            }), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        # Validate required fields
+        host = data.get('host')
+        port = data.get('port')
+        
+        if not host:
+            return jsonify({
+                'success': False,
+                'error': 'Host is required'
+            }), 400
+        
+        if not port or not isinstance(port, int) or port < 1 or port > 65535:
+            return jsonify({
+                'success': False,
+                'error': 'Valid port number (1-65535) is required'
+            }), 400
+        
+        # Load current configuration
+        config_path = f'{PATH}/config_device.json'
+        try:
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+        except FileNotFoundError:
+            return jsonify({
+                'success': False,
+                'error': 'Configuration file not found'
+            }), 500
+        except json.JSONDecodeError:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid configuration file format'
+            }), 500
+        
+        # Update rectifier configuration
+        if 'rectifier_config' not in config_data:
+            config_data['rectifier_config'] = {}
+        
+        config_data['rectifier_config']['host'] = host
+        config_data['rectifier_config']['port'] = port
+        
+        # Save updated configuration
+        try:
+            with open(config_path, 'w') as f:
+                json.dump(config_data, f, indent=4)
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to save configuration: {str(e)}'
+            }), 500
+        
+        # Audit the configuration change
+        audit_access(username, 'rectifier', 'update_rectifier_config', f'Host: {host}, Port: {port}')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Rectifier configuration updated successfully',
+            'data': {
+                'host': host,
+                'port': port
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Internal server error: {str(e)}'
+        }), 500
 
 
 @app.route('/logout')
