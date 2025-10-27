@@ -62,9 +62,9 @@
                     </li>
                     {% endif %}
                     
-                    <!-- Monitoring Menu - Based on role permissions -->
-                    {% if menu_access.monitoring %}
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['scc', 'battery'] }}">
+                    <!-- Monitoring Menu - Based on role permissions AND enabled services -->
+                    {% if menu_access.monitoring and (menu_access.monitoring.scc or menu_access.monitoring.battery or menu_access.monitoring.rectifier) %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['scc', 'battery', 'rectifier'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-chart-line"></i>
                             <span>Monitoring</span>
@@ -89,11 +89,20 @@
                                 </a>
                             </li>
                             {% endif %}
+                            {% if menu_access.monitoring.rectifier %}
+                            <li>
+                                <a href="/rectifier" class="nav-link {{ 'active' if request.endpoint == 'rectifier' }}">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Rectifier Monitor</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </li>
                     {% endif %}
                     
-                    <!-- Services Menu - Based on role permissions -->
+                    <!-- Services Menu - Based on role permissions AND enabled services -->
                     {% if menu_access.services and (menu_access.services.mqtt or menu_access.services.systemd or menu_access.services.snmp) %}
                     <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['mqtt_service', 'systemd_service', 'snmp_service'] }}">
                         <a href="#" class="nav-link submenu-toggle">
