@@ -3,157 +3,85 @@
 
 {% block content %}
 
-<!-- Site Information Overview -->
+<!-- Page Header -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-info-circle"></i>
-                    Site Information Overview
-                </h2>
+                <h3 class="modern-card-title">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    Site Information Dashboard
+                </h3>
             </div>
             <div class="modern-card-body">
-                <div class="row g-3">
-                    <!-- Site ID -->
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Site ID</h6>
-                                <div class="stats-card-icon bg-primary">
-                                    <i class="fas fa-id-card"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">{{site_information.site_id or 'N/A'}}</h3>
-                            <p class="stats-card-subtitle">Unique Identifier</p>
-                        </div>
-                    </div>
-                    <!-- SCC Type -->
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">SCC Type</h6>
-                                <div class="stats-card-icon bg-info">
-                                    <i class="fas fa-plug"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">{{device_version.scc_type or 'N/A'}}</h3>
-                            <p class="stats-card-subtitle">System Version</p>
-                        </div>
-                    </div>
-                    <!-- Battery Type -->
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">Battery Type</h6>
-                                <div class="stats-card-icon bg-success">
-                                    <i class="fas fa-battery-full"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">{{device_version.battery_type or 'N/A'}}</h3>
-                            <p class="stats-card-subtitle">Power Storage</p>
-                        </div>
-                    </div>
-                    <!-- USB Type -->
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-card-header">
-                                <h6 class="stats-card-title">USB Type</h6>
-                                <div class="stats-card-icon bg-warning">
-                                    <i class="fas fa-usb"></i>
-                                </div>
-                            </div>
-                            <h3 class="stats-card-value">{{device_version.usb_type or 'N/A'}}</h3>
-                            <p class="stats-card-subtitle">Connection Mode</p>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-muted mb-0">Ringkasan lengkap tentang lokasi, spesifikasi perangkat, dan status sistem.</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Site Location -->
+<!-- Site Location & Network Configuration -->
 <div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
+    <!-- Site Location -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-map-marker-alt text-success"></i>
+                <h5 class="modern-card-title">
+                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
                     Site Location
-                </h2>
+                </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
-                    <div class="col-md-6">
+                <div class="row g-3">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label for="site-id" class="form-label">
-                                <i class="fas fa-id-card me-2"></i>
-                                Site ID
-                            </label>
+                            <label for="site-id" class="form-label">Site ID</label>
                             <input type="text" class="form-control" id="site-id" value="{{site_information.site_id}}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label for="site-name" class="form-label">
-                                <i class="fas fa-building me-2"></i>
-                                Site Name
-                            </label>
+                            <label for="site-name" class="form-label">Site Name</label>
                             <input type="text" class="form-control" id="site-name" value="{{site_information.site_name}}" readonly>
                         </div>
                     </div>
                     <div class="col-12">
                         <div class="form-group">
-                            <label for="address" class="form-label">
-                                <i class="fas fa-map-marker-alt me-2"></i>
-                                Address
-                            </label>
-                            <textarea class="form-control" id="address" rows="3" readonly>{{site_information.address}}</textarea>
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="2" readonly>{{site_information.address}}</textarea>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Network Configuration -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
+    
+    <!-- Network Configuration -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-network-wired text-info"></i>
+                <h5 class="modern-card-title">
+                    <i class="fas fa-network-wired text-primary me-2"></i>
                     Network Configuration
-                </h2>
+                </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
-                    <div class="col-md-4">
+                <div class="row g-3">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label for="ip-address-primary" class="form-label">
-                                <i class="fas fa-network-wired me-2"></i>
-                                IP Address Primary
-                            </label>
-                            <input type="text" class="form-control" id="ip-address-primary" value="{{ip_address_primary}}" readonly>
+                            <label for="ip-address" class="form-label">IP Address</label>
+                            <input type="text" class="form-control" id="ip-address" value="{{ip_address}}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label for="net-mask" class="form-label">
-                                <i class="fas fa-mask me-2"></i>
-                                Net Mask
-                            </label>
+                            <label for="net-mask" class="form-label">Subnet Mask</label>
                             <input type="text" class="form-control" id="net-mask" value="{{subnet_mask}}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label for="gateway" class="form-label">
-                                <i class="fas fa-route me-2"></i>
-                                Gateway
-                            </label>
+                            <label for="gateway" class="form-label">Gateway</label>
                             <input type="text" class="form-control" id="gateway" value="{{gateway}}" readonly>
                         </div>
                     </div>
@@ -163,60 +91,46 @@
     </div>
 </div>
 
-<!-- Device Information -->
+<!-- Device Information & System Configuration -->
 <div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
+    <!-- Device Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-microchip text-primary"></i>
+                <h5 class="modern-card-title">
+                    <i class="fas fa-microchip text-primary me-2"></i>
                     Device Information
-                </h2>
+                </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
+                <div class="row g-3">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="model" class="form-label">
-                                <i class="fas fa-cube me-2"></i>
-                                Model
-                            </label>
+                            <label for="model" class="form-label">Model</label>
                             <input type="text" class="form-control" id="model" value="{{device_model.model}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="part-number" class="form-label">
-                                <i class="fas fa-barcode me-2"></i>
-                                Part Number
-                            </label>
+                            <label for="part-number" class="form-label">Part Number</label>
                             <input type="text" class="form-control" id="part-number" value="{{device_model.part_number}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="serial-number" class="form-label">
-                                <i class="fas fa-hashtag me-2"></i>
-                                Serial Number
-                            </label>
+                            <label for="serial-number" class="form-label">Serial Number</label>
                             <input type="text" class="form-control" id="serial-number" value="{{device_model.serial_number}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="software-version" class="form-label">
-                                <i class="fas fa-code me-2"></i>
-                                Software Version
-                            </label>
+                            <label for="software-version" class="form-label">Software Version</label>
                             <input type="text" class="form-control" id="software-version" value="{{device_model.software_version}}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label for="hardware-version" class="form-label">
-                                <i class="fas fa-cog me-2"></i>
-                                Hardware Version
-                            </label>
+                            <label for="hardware-version" class="form-label">Hardware Version</label>
                             <input type="text" class="form-control" id="hardware-version" value="{{device_model.hardware_version}}" readonly>
                         </div>
                     </div>
@@ -224,54 +138,46 @@
             </div>
         </div>
     </div>
-</div>
-
-<!-- System Configuration -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
+    
+    <!-- System Configuration -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-cogs text-warning"></i>
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cogs text-primary me-2"></i>
                     System Configuration
-                </h2>
+                </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
+                <div class="row g-3">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="panel2-type" class="form-label">
-                                <i class="fas fa-solar-panel me-2"></i>
-                                Panel2 Type
-                            </label>
+                            <label for="ehub-version" class="form-label">EHub Version</label>
+                            <input type="text" class="form-control" id="ehub-version" value="{{device_version.ehub_version}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="panel2-type" class="form-label">Panel Type</label>
                             <input type="text" class="form-control" id="panel2-type" value="{{device_version.panel2_type}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="site-type" class="form-label">
-                                <i class="fas fa-sitemap me-2"></i>
-                                Site Type
-                            </label>
+                            <label for="site-type" class="form-label">Site Type</label>
                             <input type="text" class="form-control" id="site-type" value="{{device_version.site_type}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="scc-type" class="form-label">
-                                <i class="fas fa-plug me-2"></i>
-                                SCC Type
-                            </label>
-                            <input type="text" class="form-control" id="scc-type" value="{{device_version.scc_type}}" readonly>
+                            <label for="battery-type" class="form-label">Battery Type</label>
+                            <input type="text" class="form-control" id="battery-type" value="{{device_version.battery_type}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="scc-source" class="form-label">
-                                <i class="fas fa-power-off me-2"></i>
-                                SCC Source
-                            </label>
-                            <input type="text" class="form-control" id="scc-source" value="{{device_version.scc_source}}" readonly>
+                            <label for="usb-type" class="form-label">USB Type</label>
+                            <input type="text" class="form-control" id="usb-type" value="{{device_version.usb_type}}" readonly>
                         </div>
                     </div>
                 </div>
@@ -280,4 +186,507 @@
     </div>
 </div>
 
+<!-- Hardware Components Configuration -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-microchip text-primary me-2"></i>
+                    Hardware Components
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4 justify-content-center">
+                    <!-- Battery Component -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="component-card text-center">
+                            <div class="component-icon bg-success mb-2">
+                                <i class="fas fa-battery-full"></i>
+                            </div>
+                            <h6 class="component-title">Battery Management</h6>
+                            <p class="component-value">{{device_version.battery_type or 'N/A'}}</p>
+                            <small class="component-subtitle text-muted">Connection: {{device_version.usb_type or 'N/A'}}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- SCC Component -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="component-card text-center">
+                            {% if enabled_services.scc_service %}
+                                <div class="component-icon bg-success mb-2">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                            {% else %}
+                                <div class="component-icon bg-secondary mb-2">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                            {% endif %}
+                            <h6 class="component-title">Solar Charge Controller</h6>
+                            <p class="component-value">{{device_version.scc_type or 'N/A'}}</p>
+                            <small class="component-subtitle text-muted">Source: {{device_version.scc_source or 'N/A'}}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Rectifier Component -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="component-card text-center">
+                            {% if enabled_services.rectifier_service %}
+                                <div class="component-icon bg-success mb-2">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                            {% else %}
+                                <div class="component-icon bg-secondary mb-2">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                            {% endif %}
+                            <h6 class="component-title">Rectifier System</h6>
+                            <p class="component-value">{{device_version.rectifier_type or 'N/A'}}</p>
+                            <small class="component-subtitle text-muted">AC/DC Converter</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Services Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-server text-primary me-2"></i>
+                    System Services Status
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <!-- SCC Service -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="service-status-card">
+                            <div class="d-flex align-items-center">
+                                <div class="service-icon bg-primary me-3">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">SCC Service</h6>
+                                    <span class="badge bg-{% if enabled_services.scc_service %}success{% else %}secondary{% endif %}">
+                                        {% if enabled_services.scc_service %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- SNMP Service -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="service-status-card">
+                            <div class="d-flex align-items-center">
+                                <div class="service-icon bg-primary me-3">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">SNMP Service</h6>
+                                    <span class="badge bg-{% if enabled_services.snmp_service %}success{% else %}secondary{% endif %}">
+                                        {% if enabled_services.snmp_service %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- MQTT Service -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="service-status-card">
+                            <div class="d-flex align-items-center">
+                                <div class="service-icon bg-primary me-3">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">MQTT Service</h6>
+                                    <span class="badge bg-{% if enabled_services.mqtt_service %}success{% else %}secondary{% endif %}">
+                                        {% if enabled_services.mqtt_service %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rectifier Service -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="service-status-card">
+                            <div class="d-flex align-items-center">
+                                <div class="service-icon bg-primary me-3">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Rectifier Service</h6>
+                                    <span class="badge bg-{% if enabled_services.rectifier_service %}success{% else %}secondary{% endif %}">
+                                        {% if enabled_services.rectifier_service %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Talis5 Service -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="service-status-card">
+                            <div class="d-flex align-items-center">
+                                <div class="service-icon bg-primary me-3">
+                                    <i class="fas fa-battery-three-quarters"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Talis5 Service</h6>
+                                    <span class="badge bg-{% if enabled_services.talis5_service %}success{% else %}secondary{% endif %}">
+                                        {% if enabled_services.talis5_service %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JSPro Service -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="service-status-card">
+                            <div class="d-flex align-items-center">
+                                <div class="service-icon bg-primary me-3">
+                                    <i class="fas fa-battery-full"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">JSPro Service</h6>
+                                    <span class="badge bg-{% if enabled_services.jspro_service %}success{% else %}secondary{% endif %}">
+                                        {% if enabled_services.jspro_service %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Configuration -->
+{% if enabled_services.mqtt_service %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-wifi text-primary"></i>
+                    MQTT Configuration
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mqtt-host" class="form-label">
+                                <i class="fas fa-server me-2"></i>
+                                MQTT Host
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-host" value="{{mqtt_config.host or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mqtt-port" class="form-label">
+                                <i class="fas fa-plug me-2"></i>
+                                MQTT Port
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-port" value="{{mqtt_config.port or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mqtt-username" class="form-label">
+                                <i class="fas fa-user me-2"></i>
+                                MQTT Username
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-username" value="{{mqtt_config.username or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mqtt-topic" class="form-label">
+                                <i class="fas fa-tag me-2"></i>
+                                MQTT Topic
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-topic" value="{{mqtt_config.topic or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mqtt-openvpn" class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                OpenVPN IP
+                            </label>
+                            <input type="text" class="form-control" id="mqtt-openvpn" value="{{mqtt_config.openvpn_ip or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Rectifier Configuration -->
+{% if enabled_services.rectifier_service %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-bolt text-primary"></i>
+                    Rectifier Configuration
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="rectifier-host" class="form-label">
+                                <i class="fas fa-server me-2"></i>
+                                Rectifier Host
+                            </label>
+                            <input type="text" class="form-control" id="rectifier-host" value="{{rectifier_config.host or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="rectifier-port" class="form-label">
+                                <i class="fas fa-plug me-2"></i>
+                                Rectifier Port
+                            </label>
+                            <input type="text" class="form-control" id="rectifier-port" value="{{rectifier_config.port or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Service Status Cards */
+.service-status-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.service-status-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    border-color: #dee2e6;
+}
+
+.service-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.service-icon i {
+    font-size: 1.3rem;
+}
+
+/* Component Cards */
+.component-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.component-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+}
+
+.component-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 0 auto;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.component-icon i {
+    font-size: 1.5rem;
+}
+
+.component-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.component-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.25rem;
+    min-height: 26px;
+}
+
+.component-subtitle {
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control[readonly]:focus {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+}
+
+/* Stats Cards */
+.stats-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stats-card:hover {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+}
+
+.stats-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stats-card-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin: 0;
+}
+
+.stats-card-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.stats-card-icon i {
+    font-size: 1.3rem;
+}
+
+.stats-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.stats-card-subtitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Badge Styling */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+/* Card Improvements */
+.modern-card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.modern-card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modern-card-title {
+    color: #495057;
+    font-weight: 600;
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .stats-card, .component-card, .service-status-card {
+        margin-bottom: 1rem;
+    }
+    
+    .stats-card-value {
+        font-size: 1.25rem;
+    }
+    
+    .component-value {
+        font-size: 1rem;
+    }
+}
+</style>
 {% endblock %}
