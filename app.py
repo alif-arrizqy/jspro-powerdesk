@@ -593,8 +593,10 @@ def site_information():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
+            'enabled_services': data.get('enabled_services'),
+            'mqtt_config': data.get('mqtt_config'),
+            'rectifier_config': data.get('rectifier_config'),
             'ip_address': get_ip_address('eth0'),
-            'ip_address_primary': get_ip_address('eth0'),
             'subnet_mask': f"/{get_subnet_mask('eth0')}",
             'gateway': get_gateway('eth0'),
             # 'ip_address': '192.168.1.1',
@@ -651,6 +653,7 @@ def setting_device():
     form_site_information = request.form.get('site-information-form')
     form_device_model = request.form.get('device-info-form')
     form_device_version = request.form.get('device-version-form')
+    form_enabled_services = request.form.get('enabled-services-form')
 
     if request.method == 'POST':
         data = request.form.to_dict()
@@ -680,9 +683,18 @@ def setting_device():
             if response:
                 flash('Device Version has been updated successfully', 'success')
                 audit_access(username, 'device_settings', 'update_device_version')
-                bash_command('sudo systemctl restart scc.service device_config_loader.service webapp.service')
+                bash_command('sudo systemctl restart device_config_loader.service webapp.service')
             else:
                 flash('Failed to update Device Version', 'danger')
+            return redirect(url_for('setting_device'))
+
+        if form_enabled_services:
+            response = update_enabled_services(path, data)
+            if response:
+                flash('Enabled Services has been updated successfully', 'success')
+                audit_access(username, 'device_settings', 'update_enabled_services')
+            else:
+                flash('Failed to update Enabled Services', 'danger')
             return redirect(url_for('setting_device'))
     
     try:
@@ -705,6 +717,7 @@ def setting_device():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
+            'enabled_services': data.get('enabled_services'),
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
         }
@@ -727,6 +740,7 @@ def setting_device():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
+            'enabled_services': data.get('enabled_services', {}),
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
         }
