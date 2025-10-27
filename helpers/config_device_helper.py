@@ -495,3 +495,71 @@ def update_setting_mqtt(path, data):
     with open(path, 'w') as f:
         json.dump(config_data, f, indent=4)
     return True
+
+
+def update_rectifier_configuration(path, form):
+    """
+    Update rectifier configuration in config_device.json
+    """
+    try:
+        # Parse form data
+        host = form.get('rectifier-host')
+        port = form.get('rectifier-port')
+        
+        # Validate inputs
+        if not host or not port:
+            logger.error("Missing required fields: host or port")
+            return False
+        
+        # Validate IP format (basic check)
+        import re
+        ip_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+        if not re.match(ip_pattern, host):
+            logger.error(f"Invalid IP format: {host}")
+            return False
+        
+        # Validate port range
+        try:
+            port_num = int(port)
+        except ValueError:
+            logger.error(f"Invalid port format: {port}")
+            return False
+        
+        # Read existing config file
+        if not os.path.exists(path):
+            logger.error(f"Config file does not exist: {path}")
+            return False
+            
+        try:
+            with open(path, 'r') as f:
+                config_data = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in config file: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error reading config file: {e}")
+            return False
+        
+        # Ensure rectifier_config section exists
+        if 'rectifier_config' not in config_data:
+            config_data['rectifier_config'] = {}
+        
+        # Update rectifier configuration
+        config_data['rectifier_config']['host'] = host
+        config_data['rectifier_config']['port'] = port_num
+        
+        # Write updated config back to file
+        try:
+            with open(path, 'w') as f:
+                json.dump(config_data, f, indent=4)
+            logger.info("Rectifier configuration updated successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error writing config file: {e}")
+            return False
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in rectifier configuration update: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return False
