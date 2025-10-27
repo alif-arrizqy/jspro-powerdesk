@@ -33,7 +33,7 @@
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Memory Usage</h6>
-                                <div class="stats-card-icon bg-info">
+                                <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-memory"></i>
                                 </div>
                             </div>
@@ -46,7 +46,7 @@
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Temperature</h6>
-                                <div class="stats-card-icon bg-warning">
+                                <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-thermometer-half"></i>
                                 </div>
                             </div>
@@ -59,7 +59,7 @@
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">Disk Usage</h6>
-                                <div class="stats-card-icon bg-success">
+                                <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-hdd"></i>
                                 </div>
                             </div>
@@ -97,6 +97,8 @@
                             <p class="stats-card-subtitle">Battery in Use</p>
                         </div>
                     </div>
+                    <!-- SCC Type - Only show if enabled -->
+                    {% if enabled_services.scc_service %}
                     <div class="col-md-3">
                         <div class="stats-card">
                             <div class="stats-card-header">
@@ -113,7 +115,7 @@
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">SCC IDs</h6>
-                                <div class="stats-card-icon bg-warning">
+                                <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-hashtag"></i>
                                 </div>
                             </div>
@@ -121,12 +123,28 @@
                             <p class="stats-card-subtitle">Controller IDs</p>
                         </div>
                     </div>
+                    {% endif %}
+                    <!-- Rectifier Type - Only show if enabled -->
+                    {% if enabled_services.rectifier_service %}
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Rectifier Type</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="rectifier-type">Loading...</h3>
+                            <p class="stats-card-subtitle">Rectifier Type</p>
+                        </div>
+                    </div>
+                    {% endif %}
                     <!-- System Uptime -->
                     <div class="col-md-3">
                         <div class="stats-card">
                             <div class="stats-card-header">
                                 <h6 class="stats-card-title">System Uptime</h6>
-                                <div class="stats-card-icon bg-info">
+                                <div class="stats-card-icon bg-primary">
                                     <i class="fas fa-clock"></i>
                                 </div>
                             </div>
@@ -213,7 +231,8 @@
     </div>
 </div>
 
-<!-- SCC Relay Configuration -->
+<!-- SCC Relay Configuration - Only show if SCC service is enabled -->
+{% if enabled_services.scc_service %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
@@ -290,8 +309,10 @@
         </div>
     </div>
 </div>
+{% endif %}
 
-<!-- SCC Overview -->
+<!-- SCC Overview - Only show if SCC service is enabled -->
+{% if enabled_services.scc_service %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
@@ -396,7 +417,7 @@
                                         <div class="stats-card">
                                             <div class="stats-card-header">
                                                 <h6 class="stats-card-title small">Load Power</h6>
-                                                <div class="stats-card-icon bg-warning">
+                                                <div class="stats-card-icon bg-primary">
                                                     <i class="fas fa-bolt"></i>
                                                 </div>
                                             </div>
@@ -414,6 +435,97 @@
         </div>
     </div>
 </div>
+{% endif %}
+
+<!-- Rectifier Overview - Only show if rectifier service is enabled -->
+{% if enabled_services.rectifier_service %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h2 class="modern-card-title">
+                    <i class="fas fa-plug"></i>
+                    Rectifier System Overview
+                </h2>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <!-- AC Voltage -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">AC Input Voltage</h6>
+                                <div class="stats-card-icon bg-warning">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="rectifier-ac-voltage">--</h3>
+                            <p class="stats-card-subtitle">Volts AC</p>
+                        </div>
+                    </div>
+                    <!-- Battery Voltage -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Battery Voltage</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-battery-half"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="rectifier-battery-voltage">--</h3>
+                            <p class="stats-card-subtitle">Volts DC</p>
+                        </div>
+                    </div>
+                    <!-- Temperature -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Temperature</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="rectifier-temperature">--</h3>
+                            <p class="stats-card-subtitle">Celsius</p>
+                        </div>
+                    </div>
+                    <!-- System Status -->
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">System Status</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-power-off"></i>
+                                </div>
+                            </div>
+                            <h3 class="stats-card-value" id="rectifier-status">--</h3>
+                            <p class="stats-card-subtitle">Operational State</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rectifier Alarms -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert-panel">
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-6">
+                                    <small class="text-muted">Last Update: <span id="rectifier-last-update">Never</span></small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <a href="/rectifier" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Quick Actions -->
 <div class="row mb-4">
@@ -443,6 +555,14 @@
                         </a>
                     </div>
                     {% endif %}
+                    {% if menu_access.monitoring.rectifier %}
+                    <div class="col-md-3">
+                        <a href="/rectifier" class="btn btn-modern btn-warning w-100">
+                            <i class="fas fa-plug"></i>
+                            Rectifier Monitor
+                        </a>
+                    </div>
+                    {% endif %}
                     {% if menu_access.historical.datalog %}
                     <div class="col-md-3">
                         <a href="/datalog" class="btn btn-modern btn-info w-100">
@@ -464,6 +584,55 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+/* Rectifier Overview Styles */
+.alert-panel {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border-left: 3px solid #dee2e6;
+}
+
+.alert-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.alert-status.badge {
+    font-size: 0.75em;
+    padding: 4px 8px;
+}
+
+/* Status color coding */
+.alert-item:has(.bg-success) {
+    border-left-color: #28a745;
+}
+
+.alert-item:has(.bg-danger) {
+    border-left-color: #dc3545;
+}
+
+.alert-item:has(.bg-warning) {
+    border-left-color: #ffc107;
+}
+
+.alert-item:has(.bg-secondary) {
+    border-left-color: #6c757d;
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -547,21 +716,44 @@ document.addEventListener('DOMContentLoaded', function() {
 // Main dashboard data initialization
 async function initializeDashboardData() {
     try {
-        // Fetch all dashboard data concurrently
-        const [systemResources, deviceInfo, systemdStatus, sccData, batteryData] = await Promise.all([
+        // Prepare promise array based on enabled services
+        const promises = [
             fetchAPIData('/api/v1/device/system-resources'),
             fetchAPIData('/api/v1/device/information'),
             fetchAPIData('/api/v1/service/systemd/list'),
-            fetchAPIData('/api/v1/monitoring/scc'),
             fetchBatteryActiveData(currentSection)
-        ]);
+        ];
+        
+        // Add SCC data if SCC service is enabled
+        {% if enabled_services.scc_service %}
+        promises.push(fetchAPIData('/api/v1/monitoring/scc'));
+        {% else %}
+        promises.push(null);
+        {% endif %}
+        
+        // Add rectifier data if rectifier service is enabled
+        {% if enabled_services.rectifier_service %}
+        promises.push(fetchAPIData('/api/v1/monitoring/rectifier'));
+        {% else %}
+        promises.push(null);
+        {% endif %}
+
+        // Fetch all dashboard data concurrently
+        const [systemResources, deviceInfo, systemdStatus, batteryData, sccData, rectifierData] = await Promise.all(promises);
 
         // Update UI with fetched data
         if (systemResources) updateSystemResources(systemResources);
         if (deviceInfo) updateDeviceInformation(deviceInfo);
         if (systemdStatus) updateServiceStatus(systemdStatus);
         if (batteryData) updateBatteryOverview(batteryData);
+        
+        {% if enabled_services.scc_service %}
         if (sccData) updateSCCOverview(sccData);
+        {% endif %}
+        
+        {% if enabled_services.rectifier_service %}
+        if (rectifierData) updateRectifierOverview(rectifierData);
+        {% endif %}
 
     } catch (error) {
         console.error('Error initializing dashboard data:', error);
@@ -805,6 +997,12 @@ function updateDeviceInformation(data) {
         } else {
             sccIdsElement.textContent = deviceData.scc_id.toString();
         }
+    }
+
+    // Rectifier Type
+    const rectifierTypeElement = document.getElementById('rectifier-type');
+    if (rectifierTypeElement && deviceData.rectifier_type) {
+        rectifierTypeElement.textContent = deviceData.rectifier_type.toUpperCase();
     }
     
     // Datalog length
@@ -1059,6 +1257,130 @@ function updateSCCOverview(data) {
     
     {% endfor %}
     {% endif %}
+}
+
+// Rectifier Overview Update
+function updateRectifierOverview(data) {
+    if (!data || data.status_code !== 200) {
+        console.warn('Invalid rectifier data received');
+        return;
+    }
+
+    const rectifierData = data.data.rectifier_data;
+
+    // AC Voltage
+    const acVoltageElement = document.getElementById('rectifier-ac-voltage');
+    if (acVoltageElement && rectifierData.hwRectACVoltage) {
+        const acVoltage = rectifierData.hwRectACVoltage;
+        acVoltageElement.textContent = `${acVoltage.value} ${acVoltage.unit || 'V'}`;
+    }
+
+    // Battery Voltage
+    const batteryVoltageElement = document.getElementById('rectifier-battery-voltage');
+    if (batteryVoltageElement && rectifierData.hwBatteryVoltage) {
+        const batteryVoltage = rectifierData.hwBatteryVoltage;
+        batteryVoltageElement.textContent = `${batteryVoltage.value} ${batteryVoltage.unit || 'V'}`;
+    }
+
+    // Temperature
+    const temperatureElement = document.getElementById('rectifier-temperature');
+    if (temperatureElement && rectifierData.hwRectifierTemperature) {
+        const temperature = rectifierData.hwRectifierTemperature;
+        temperatureElement.textContent = `${temperature.value} ${temperature.unit || '°C'}`;
+    }
+
+    // System Status
+    const statusElement = document.getElementById('rectifier-status');
+    if (statusElement && rectifierData.hwRectifierStatus) {
+        const status = rectifierData.hwRectifierStatus;
+        const statusText = interpretStatusValue(status.value, 'hwRectifierStatus');
+        statusElement.textContent = statusText;
+        
+        // Apply color coding based on status
+        statusElement.className = 'stats-card-value';
+        if (statusText === 'Alarm') {
+            statusElement.classList.add('text-danger');
+        } else {
+            statusElement.classList.add('text-white');
+        }
+    }
+
+    // Alert Status Updates
+    const acInputStatusElement = document.getElementById('ac-input-status');
+    if (acInputStatusElement && rectifierData.hwAcInputStatus) {
+        const acInputStatus = rectifierData.hwAcInputStatus;
+        const statusText = interpretStatusValue(acInputStatus.value, 'hwAcInputStatus');
+        acInputStatusElement.textContent = statusText;
+        
+        // Apply badge styling based on status
+        acInputStatusElement.className = 'alert-status badge';
+        if (statusText === 'Alarm') {
+            statusElement.classList.add('text-danger');
+        } else {
+            statusElement.classList.add('text-white');
+        }
+    }
+
+    const batteryConnectionElement = document.getElementById('battery-connection-status');
+    if (batteryConnectionElement && rectifierData.hwBatteryDisconnect) {
+        const batteryConnection = rectifierData.hwBatteryDisconnect;
+        const statusText = interpretStatusValue(batteryConnection.value, 'hwBatteryDisconnect');
+        batteryConnectionElement.textContent = statusText;
+        
+        // Apply badge styling based on status
+        batteryConnectionElement.className = 'alert-status badge';
+        if (statusText === 'Alarm') {
+            statusElement.classList.add('text-danger');
+        } else {
+            statusElement.classList.add('text-white');
+        }
+    }
+
+    const fuseStatusElement = document.getElementById('fuse-status');
+    if (fuseStatusElement && rectifierData.hwFuseBroken) {
+        const fuseStatus = rectifierData.hwFuseBroken;
+        const statusText = interpretStatusValue(fuseStatus.value, 'hwFuseBroken');
+        fuseStatusElement.textContent = statusText;
+        
+        // Apply badge styling based on status
+        fuseStatusElement.className = 'alert-status badge';
+        if (statusText === 'Alarm') {
+            statusElement.classList.add('text-danger');
+        } else {
+            statusElement.classList.add('text-white');
+        }
+    }
+
+    // Last Update
+    const lastUpdateElement = document.getElementById('rectifier-last-update');
+    if (lastUpdateElement && data.data.last_update) {
+        lastUpdateElement.textContent = data.data.last_update;
+    }
+}
+
+// Status interpretation function for rectifier monitoring
+function interpretStatusValue(value, param) {
+    // Convert numeric status values to meaningful text
+    const numericValue = parseInt(value);
+    
+    const statusMappings = {
+        'hwAcInputStatus': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwRectifierStatus': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwBatteryDischarge': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwBatteryLowVoltage': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwBatteryUltraLowVoltage': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwBatteryDisconnect': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwFuseBroken': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwLoadFuseAlarmTraps': { 0: 'No Alarm', 1: 'Alarm' },
+        'hwTcucDoorOpenAlarmTraps': { 0: 'Closed', 1: 'Open' },
+        'hwEsduDoorOpenAlarmTraps': { 0: 'Closed', 1: 'Open' }
+    };
+    
+    if (statusMappings[param] && statusMappings[param][numericValue] !== undefined) {
+        return statusMappings[param][numericValue];
+    }
+    
+    return value.toString();
 }
 
 // Error handling for authentication failures
