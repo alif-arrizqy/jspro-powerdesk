@@ -3,370 +3,203 @@
 {% block title %}Rectifier Monitoring - JSPro PowerDesk{% endblock %}
 
 {% block breadcrumbs %}
-<i class="fas fa-battery-three-quarters"></i>
+<i class="fas fa-plug"></i>
 Rectifier Monitoring
 {% endblock %}
 
 {% block content %}
 <div class="content-area">
-    <div class="rectifier-monitor-container">
-        <!-- Page Header dengan card -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <h4 class="modern-card-title mb-1">
-                            <i class="fas fa-battery-three-quarters text-primary me-2"></i>
-                            Rectifier System Monitoring
-                        </h4>
-                        <p class="text-muted mb-0">
-                            Real-time monitoring of Huawei rectifier sistem via SNMP
-                        </p>
-                    </div>
-                    <div class="modern-card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted" id="lastUpdate">
-                                Last update: Never
-                            </small>
-                        </div>
-                    </div>
+    <!-- Rectifier System Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h4 class="modern-card-title mb-1">
+                        <i class="fas fa-plug me-2"></i>
+                        Rectifier System Status
+                    </h4>
+                    <p class="text-muted mb-0">Real-time power system monitoring and alerts</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Statistics Overview - menggunakan style yang konsisten -->
-        <div class="monitor-stats">
-            <div class="stat-item">
-                <div class="stat-value text-success" id="successCount">0</div>
-                <div class="stat-label">Successful</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value text-danger" id="errorCount">0</div>
-                <div class="stat-label">Failed</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value text-info" id="totalCount">13</div>
-                <div class="stat-label">Total OIDs</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value text-warning" id="deviceStatus">Unknown</div>
-                <div class="stat-label">Device Status</div>
-            </div>
-        </div>
-
-        <!-- Control Panel Card - menggunakan modern-card -->
-        <div class="modern-card mb-4">
-            <div class="modern-card-header">
-                <h6 class="modern-card-title mb-0">
-                    <i class="fas fa-cogs me-2"></i>
-                    Rectifier Configuration
-                </h6>
-            </div>
-            <div class="modern-card-body">
-                <div class="monitor-controls">
-                    <div class="ip-config">
-                        <div class="d-flex align-items-center gap-2 mb-2 mb-md-0">
-                            <label for="targetIp" class="form-label">Target IP:</label>
-                            <input type="text" id="targetIp" class="form-control form-control-sm" 
-                                   value="{{ config.rectifier_config.host }}" 
-                                   placeholder="Enter device IP" style="width: 160px;">
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mb-2 mb-md-0">
-                            <label for="targetPort" class="form-label">Port:</label>
-                            <input type="number" id="targetPort" class="form-control form-control-sm" 
-                                   value="{{ config.rectifier_config.port}}" 
-                                   placeholder="161" style="width: 100px;">
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <label for="community" class="form-label">Community:</label>
-                            <input type="text" id="community" class="form-control form-control-sm" 
-                                   value="public" placeholder="public" style="width: 120px;">
-                        </div>
-                    </div>
-                    <div class="refresh-controls">
-                        <div class="d-flex align-items-center gap-2">
-                            <label for="refreshInterval" class="form-label">Refresh:</label>
-                            <select id="refreshInterval" class="form-select form-select-sm" style="width: auto;">
-                                <option value="5">5s</option>
-                                <option value="10" selected>10s</option>
-                                <option value="30">30s</option>
-                                <option value="60">60s</option>
-                            </select>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
-                            <label class="form-check-label" for="autoRefresh">
-                                Auto Refresh
-                                <span class="auto-refresh-indicator ms-1"></span>
-                            </label>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-primary btn-sm" id="refreshNow">
-                                <i class="fas fa-sync-alt me-1"></i> Refresh
-                            </button>
-                            <button type="button" class="btn btn-success btn-sm" id="saveConfig">
-                                <i class="fas fa-save me-1"></i> Save
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
-                                <i class="fas fa-download me-1"></i> Export
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Rectifier Monitoring Grid -->
-        <div class="monitor-grid" id="rectifierGrid">
-            <!-- Grid akan dibuat oleh JavaScript -->
-        </div>
-
-        <!-- Loading Indicator -->
-        <div class="text-center py-5" id="loadingIndicator" style="display: none;">
-            <div class="spinner-border text-primary me-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <span>Loading rectifier data...</span>
-        </div>
-    </div>
-</div>
-
-<!-- Rectifier Data Export Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Export Rectifier Data</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="exportFormat" class="form-label">Export Format</label>
-                    <select class="form-select" id="exportFormat">
-                        <option value="json">JSON</option>
-                        <option value="csv">CSV</option>
-                        <option value="txt">Text</option>
-                    </select>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="includeTimestamp" checked>
-                    <label class="form-check-label" for="includeTimestamp">
-                        Include timestamp
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="downloadExport">Download</button>
             </div>
         </div>
     </div>
+
+    <!-- Rectifier System Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h2 class="modern-card-title">
+                        <i class="fas fa-plug"></i>
+                        Rectifier System Overview
+                    </h2>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3">
+                        <!-- AC Voltage -->
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">AC Input Voltage</h6>
+                                    <div class="stats-card-icon bg-warning">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="ac-voltage">--</h3>
+                                <p class="stats-card-subtitle">Volts AC</p>
+                            </div>
+                        </div>
+                        <!-- Battery Voltage -->
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Battery Voltage</h6>
+                                    <div class="stats-card-icon bg-success">
+                                        <i class="fas fa-battery-half"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="battery-voltage">--</h3>
+                                <p class="stats-card-subtitle">Volts DC</p>
+                            </div>
+                        </div>
+                        <!-- Temperature -->
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">Temperature</h6>
+                                    <div class="stats-card-icon bg-info">
+                                        <i class="fas fa-thermometer-half"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="temperature">--</h3>
+                                <p class="stats-card-subtitle">Celsius</p>
+                            </div>
+                        </div>
+                        <!-- System Status -->
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-card-header">
+                                    <h6 class="stats-card-title">System Status</h6>
+                                    <div class="stats-card-icon bg-primary">
+                                        <i class="fas fa-power-off"></i>
+                                    </div>
+                                </div>
+                                <h3 class="stats-card-value" id="system-status">--</h3>
+                                <p class="stats-card-subtitle">Operational State</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Controls Section -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert-panel">
+                                <div class="row g-2 mt-2">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Last Update: <span id="lastUpdate">Never</span></small>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <button type="button" class="btn btn-outline-primary btn-sm me-2" id="refreshData">
+                                            <i class="fas fa-sync-alt"></i> Refresh
+                                        </button>
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                                            <label class="form-check-label" for="autoRefresh">Auto</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status & Alarm Parameters Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card">
+                <div class="modern-card-header">
+                    <h2 class="modern-card-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Status & Alarms
+                    </h2>
+                </div>
+                <div class="modern-card-body">
+                    <div class="row g-3" id="statusParameters">
+                        <!-- Status parameter cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="text-center py-5" id="loadingIndicator" style="display: none;">
+        <div class="spinner-border text-primary me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <span>Loading rectifier data...</span>
+    </div>
 </div>
+
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-// API Configuration
-const API_BASE_URL = '/api/v1/service';
-const RECTIFIER_API_URL = '/api/v1/service/snmp-rectifier';
+// API Configuration for new monitoring endpoint
+const RECTIFIER_API_URL = '/api/v1/monitoring/rectifier';
+const USER_TOKEN = '{{ session.get("auth_token", "") }}';
 
 class RectifierMonitor {
     constructor() {
-        this.rectifierOids = [
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.3.2.2.1.6',
-                name: 'hwRectACVoltage',
-                label: 'AC Voltage',
-                unit: 'V',
-                description: 'AC input voltage measurement'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.4.2.12',
-                name: 'hwBatteryVoltage',
-                label: 'Battery Voltage',
-                unit: 'V',
-                description: 'Battery voltage measurement'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.1',
-                name: 'hwAcInputStatus',
-                label: 'AC Input Status',
-                unit: '',
-                description: 'AC input status indicator'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.2',
-                name: 'hwRectifierStatus',
-                label: 'Rectifier Status',
-                unit: '',
-                description: 'Overall rectifier status'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.3',
-                name: 'hwBatteryDischarge',
-                label: 'Battery Discharge',
-                unit: '',
-                description: 'Battery discharge status'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.4',
-                name: 'hwBatteryLowVoltage',
-                label: 'Battery Low Voltage',
-                unit: '',
-                description: 'Battery low voltage alarm'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.5',
-                name: 'hwBatteryUltraLowVoltage',
-                label: 'Battery Ultra Low Voltage',
-                unit: '',
-                description: 'Battery ultra low voltage alarm'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.6',
-                name: 'hwBatteryDisconnect',
-                label: 'Battery Disconnect',
-                unit: '',
-                description: 'Battery disconnect status'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.1.3.7',
-                name: 'hwFuseBroken',
-                label: 'Fuse Broken',
-                unit: '',
-                description: 'Fuse broken alarm status'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.1.3.2.2.1.8',
-                name: 'hwRectifierTemperature',
-                label: 'Temperature',
-                unit: '°C',
-                description: 'Rectifier temperature'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.2.1.0.23',
-                name: 'hwLoadFuseAlarmTraps',
-                label: 'Load Fuse Alarm',
-                unit: '',
-                description: 'Load fuse alarm traps'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.2.1.0.139',
-                name: 'hwTcucDoorOpenAlarmTraps',
-                label: 'TCUC Door Alarm',
-                unit: '',
-                description: 'TCUC door open alarm'
-            },
-            {
-                oid: '.1.3.6.1.4.1.2011.6.164.2.1.0.149',
-                name: 'hwEsduDoorOpenAlarmTraps',
-                label: 'ESDU Door Alarm',
-                unit: '',
-                description: 'ESDU door open alarm'
-            }
-        ];
-        
         this.refreshInterval = null;
+        this.autoRefreshEnabled = true;
         this.lastUpdateTime = null;
         this.rectifierData = {};
+        
+        this.powerParams = ['hwRectACVoltage', 'hwBatteryVoltage', 'hwRectifierTemperature'];
+        this.statusParams = [
+            'hwAcInputStatus', 'hwRectifierStatus', 'hwBatteryDischarge',
+            'hwBatteryLowVoltage', 'hwBatteryUltraLowVoltage', 'hwBatteryDisconnect',
+            'hwFuseBroken', 'hwLoadFuseAlarmTraps', 'hwTcucDoorOpenAlarmTraps'
+        ];
         
         this.init();
     }
     
     init() {
-        this.createGrid();
         this.bindEvents();
         this.startAutoRefresh();
-        this.refreshData();
-    }
-    
-    createGrid() {
-        const grid = document.getElementById('rectifierGrid');
-        grid.innerHTML = '';
-        
-        this.rectifierOids.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'snmp-item';
-            card.id = `rectifier-${item.name}`;
-            card.innerHTML = `
-                <div class="snmp-label">${item.label}</div>
-                <div class="snmp-oid">OID: ${item.oid}</div>
-                <div class="snmp-value" id="value-${item.name}">--</div>
-                <div class="snmp-status" id="status-${item.name}">
-                    <span class="snmp-status-indicator loading"></span>
-                    <span>${item.description}</span>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
+        this.loadData();
     }
     
     bindEvents() {
         // Refresh button
-        document.getElementById('refreshNow').addEventListener('click', () => {
-            this.refreshData();
-        });
-        
-        // Save config button
-        document.getElementById('saveConfig').addEventListener('click', () => {
-            this.saveConfiguration();
+        document.getElementById('refreshData').addEventListener('click', () => {
+            this.loadData();
         });
         
         // Auto refresh toggle
         document.getElementById('autoRefresh').addEventListener('change', (e) => {
-            if (e.target.checked) {
+            this.autoRefreshEnabled = e.target.checked;
+            if (this.autoRefreshEnabled) {
                 this.startAutoRefresh();
             } else {
                 this.stopAutoRefresh();
             }
         });
-        
-        // Refresh interval change
-        document.getElementById('refreshInterval').addEventListener('change', () => {
-            if (document.getElementById('autoRefresh').checked) {
-                this.startAutoRefresh();
-            }
-        });
-        
-        // IP address change
-        document.getElementById('targetIp').addEventListener('change', () => {
-            this.refreshData();
-        });
-        
-        // Port change
-        document.getElementById('targetPort').addEventListener('change', () => {
-            this.refreshData();
-        });
-        
-        // Community change
-        document.getElementById('community').addEventListener('change', () => {
-            this.refreshData();
-        });
-        
-        // Export functionality
-        const exportButton = document.getElementById('exportData');
-        if (exportButton) {
-            exportButton.addEventListener('click', () => {
-                const modal = new bootstrap.Modal(document.getElementById('exportModal'));
-                modal.show();
-            });
-        }
-        
-        document.getElementById('downloadExport').addEventListener('click', () => {
-            this.exportData();
-        });
     }
     
     startAutoRefresh() {
         this.stopAutoRefresh();
-        const interval = parseInt(document.getElementById('refreshInterval').value) * 1000;
-        
-        this.refreshInterval = setInterval(() => {
-            this.refreshData();
-        }, interval);
-        
-        // Update auto refresh indicator
-        this.updateAutoRefreshIndicator();
+        if (this.autoRefreshEnabled) {
+            this.refreshInterval = setInterval(() => {
+                this.loadData();
+            }, 10000); // 10 seconds
+        }
     }
     
     stopAutoRefresh() {
@@ -376,261 +209,249 @@ class RectifierMonitor {
         }
     }
     
-    updateAutoRefreshIndicator() {
-        const indicator = document.querySelector('.auto-refresh-indicator');
-        if (!indicator) return;
-        
-        if (this.refreshInterval) {
-            const interval = parseInt(document.getElementById('refreshInterval').value);
-            indicator.innerHTML = `<span class="badge bg-success"><i class="fas fa-sync-alt fa-spin"></i> ${interval}s</span>`;
-        } else {
-            indicator.innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+    async loadData() {
+        try {
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            
+            const response = await fetch(RECTIFIER_API_URL, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${USER_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.status_code === 200) {
+                this.updateUI(data.data);
+                this.updateConnectionStatus('Connected', 'success');
+            } else {
+                throw new Error(data.message || 'Failed to fetch data');
+            }
+            
+        } catch (error) {
+            console.error('Error loading rectifier data:', error);
+            this.updateConnectionStatus('Disconnected', 'error');
+            this.showError('Failed to load rectifier data: ' + error.message);
+        } finally {
+            // Hide loading indicator
+            document.getElementById('loadingIndicator').style.display = 'none';
         }
     }
     
-    async refreshData() {
-        const targetIp = document.getElementById('targetIp').value;
-        const targetPort = parseInt(document.getElementById('targetPort').value) || 161;
-        const community = document.getElementById('community').value;
-        const userToken = '{{ session.get("auth_token", "") }}';
+    updateUI(data) {
+        const rectifierData = data.rectifier_data;
         
-        if (!targetIp || !community) {
-            this.showError('Please provide IP address and community string');
-            return;
-        }
+        // Update main overview cards
+        this.updateOverviewCards(rectifierData);
         
-        // Show loading indicator
-        document.getElementById('loadingIndicator').style.display = 'block';
+        // Update status parameters
+        this.updateStatusParameters(rectifierData);
         
-        let successCount = 0;
-        let errorCount = 0;
-        
-        // Process each OID
-        for (const item of this.rectifierOids) {
-            try {
-                const response = await fetch(`${RECTIFIER_API_URL}/get`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        ip: targetIp,
-                        port: targetPort,
-                        community: community,
-                        oid: item.oid,
-                        version: '1',
-                        timeout: 10
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success && data.value !== null) {
-                    this.updateCard(item, data.value, true);
-                    successCount++;
-                } else {
-                    this.updateCard(item, null, false, data.error || 'Unknown error');
-                    errorCount++;
-                }
-            } catch (error) {
-                console.error(`Error fetching ${item.name}:`, error);
-                this.updateCard(item, null, false, error.message);
-                errorCount++;
-            }
-        }
-        
-        // Update statistics
-        this.updateStatistics(successCount, errorCount);
-        
-        // Hide loading indicator
-        document.getElementById('loadingIndicator').style.display = 'none';
+        // Update last update time
+        document.getElementById('lastUpdate').textContent = data.last_update || 'Never';
         
         this.lastUpdateTime = new Date();
     }
     
-    updateCard(item, value, success, error = null) {
-        const card = document.getElementById(`rectifier-${item.name}`);
-        const valueElement = document.getElementById(`value-${item.name}`);
-        const statusElement = document.getElementById(`status-${item.name}`);
+    updateOverviewCards(rectifierData) {
+        // AC Voltage
+        const acVoltage = rectifierData.hwRectACVoltage;
+        if (acVoltage) {
+            document.getElementById('ac-voltage').textContent = `${acVoltage.value} ${acVoltage.unit}`;
+        }
         
-        // Remove loading class
-        card.classList.remove('loading');
+        // Battery Voltage
+        const batteryVoltage = rectifierData.hwBatteryVoltage;
+        if (batteryVoltage) {
+            document.getElementById('battery-voltage').textContent = `${batteryVoltage.value} ${batteryVoltage.unit}`;
+        }
         
-        if (success && value !== null) {
-            statusElement.innerHTML = `
-                <span class="snmp-status-indicator success"></span>
-                <span>Connected</span>
-            `;
-            card.classList.remove('error');
-            card.classList.add('success');
-            
-            // Format nilai berdasarkan tipe data
-            if (item.unit === 'V' || item.unit === '°C') {
-                valueElement.innerHTML = `${parseFloat(value).toFixed(2)} ${item.unit}`;
-            } else {
-                valueElement.textContent = this.interpretStatusValue(value, item.name);
-            }
-            
-            // Store data
-            this.rectifierData[item.name] = {
-                value: value,
-                timestamp: new Date().toISOString(),
-                oid: item.oid,
-                unit: item.unit
-            };
-        } else {
-            statusElement.innerHTML = `
-                <span class="snmp-status-indicator error"></span>
-                <span>Error</span>
-            `;
-            valueElement.textContent = 'Error';
-            card.classList.remove('success');
-            card.classList.add('error');
-            card.title = error || 'Unknown error';
+        // Temperature
+        const temperature = rectifierData.hwRectifierTemperature;
+        if (temperature) {
+            document.getElementById('temperature').textContent = `${temperature.value} ${temperature.unit}`;
+        }
+        
+        // System Status - determine overall status from rectifier status
+        const rectifierStatus = rectifierData.hwRectifierStatus;
+        if (rectifierStatus) {
+            const statusText = this.interpretStatusValue(rectifierStatus.value, 'hwRectifierStatus');
+            document.getElementById('system-status').textContent = statusText;
         }
     }
     
-    interpretStatusValue(value, name) {
-        // Interpretasi nilai status untuk berbagai parameter
-        const statusMappings = {
-            'hwAcInputStatus': { '1': 'Normal', '2': 'Abnormal', '0': 'Unknown' },
-            'hwRectifierStatus': { '1': 'Normal', '2': 'Fault', '0': 'Unknown' },
-            'hwBatteryDischarge': { '1': 'Discharging', '2': 'Not Discharging', '0': 'Unknown' },
-            'hwBatteryLowVoltage': { '1': 'Normal', '2': 'Low Voltage', '0': 'Unknown' },
-            'hwBatteryUltraLowVoltage': { '1': 'Normal', '2': 'Ultra Low', '0': 'Unknown' },
-            'hwBatteryDisconnect': { '1': 'Connected', '2': 'Disconnected', '0': 'Unknown' },
-            'hwFuseBroken': { '1': 'Normal', '2': 'Broken', '0': 'Unknown' }
+    updateStatusParameters(rectifierData) {
+        const container = document.getElementById('statusParameters');
+        container.innerHTML = '';
+        
+        this.statusParams.forEach(param => {
+            const data = rectifierData[param];
+            if (data) {
+                const card = this.createParameterCard(param, data, true);
+                // Update column size for status parameters to fit more per row
+                card.className = 'col-md-4 col-lg-3';
+                container.appendChild(card);
+            }
+        });
+    }
+    
+    createParameterCard(param, data, isStatus = false) {
+        // Create the column wrapper - using same sizing as index.html
+        const colDiv = document.createElement('div');
+        colDiv.className = 'col-md-3';
+        
+        // Create the stats card
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'stats-card';
+        
+        // Get parameter details
+        const friendlyName = this.getParameterFriendlyName(param);
+        let displayValue = '';
+        let subtitle = '';
+        let iconClass = '';
+        let iconColor = 'bg-primary';
+        
+        if (isStatus) {
+            const statusText = this.interpretStatusValue(data.value, param);
+            displayValue = statusText;
+            subtitle = 'Status';
+            
+            // Set icon and color based on parameter type and status
+            if (param.includes('Input') || param.includes('Rectifier')) {
+                iconClass = 'fas fa-power-off';
+                iconColor = statusText === 'Normal' ? 'bg-success' : 'bg-danger';
+            } else if (param.includes('Battery')) {
+                iconClass = 'fas fa-battery-half';
+                iconColor = (statusText === 'Normal' || statusText === 'Connected' || statusText === 'Not Discharging') ? 'bg-success' : 'bg-warning';
+            } else if (param.includes('Fuse')) {
+                iconClass = 'fas fa-shield-alt';
+                iconColor = statusText === 'Normal' ? 'bg-success' : 'bg-danger';
+            } else if (param.includes('Door')) {
+                iconClass = 'fas fa-door-open';
+                iconColor = statusText === 'Closed' ? 'bg-success' : 'bg-warning';
+            } else {
+                iconClass = 'fas fa-exclamation-triangle';
+                iconColor = statusText === 'Normal' ? 'bg-success' : 'bg-warning';
+            }
+        } else {
+            displayValue = `${data.value} ${data.unit || ''}`;
+            
+            // Set icon and subtitle based on parameter type  
+            if (param === 'hwRectACVoltage') {
+                iconClass = 'fas fa-bolt';
+                iconColor = 'bg-warning';
+                subtitle = 'Volts AC';
+            } else if (param === 'hwBatteryVoltage') {
+                iconClass = 'fas fa-battery-half';
+                iconColor = 'bg-success';
+                subtitle = 'Volts DC';
+            } else if (param === 'hwRectifierTemperature') {
+                iconClass = 'fas fa-thermometer-half';
+                iconColor = 'bg-info';
+                subtitle = 'Celsius';
+            } else {
+                iconClass = 'fas fa-tachometer-alt';
+                iconColor = 'bg-primary';
+                subtitle = 'Value';
+            }
+        }
+        
+        cardDiv.innerHTML = `
+            <div class="stats-card-header">
+                <h6 class="stats-card-title">${friendlyName}</h6>
+                <div class="stats-card-icon ${iconColor}">
+                    <i class="${iconClass}"></i>
+                </div>
+            </div>
+            <h3 class="stats-card-value">${displayValue}</h3>
+            <p class="stats-card-subtitle">${subtitle}</p>
+        `;
+        
+        colDiv.appendChild(cardDiv);
+        return colDiv;
+    }
+    
+    getParameterFriendlyName(param) {
+        const names = {
+            'hwRectACVoltage': 'AC Input Voltage',
+            'hwBatteryVoltage': 'Battery Voltage',
+            'hwRectifierTemperature': 'Temperature',
+            'hwAcInputStatus': 'AC Input Status',
+            'hwRectifierStatus': 'Rectifier Status',
+            'hwBatteryDischarge': 'Battery Discharge',
+            'hwBatteryLowVoltage': 'Low Voltage Alarm',
+            'hwBatteryUltraLowVoltage': 'Ultra Low Voltage',
+            'hwBatteryDisconnect': 'Battery Connection',
+            'hwFuseBroken': 'Fuse Status',
+            'hwLoadFuseAlarmTraps': 'Load Fuse Alarm',
+            'hwTcucDoorOpenAlarmTraps': 'Door Status',
+            'hwEsduDoorOpenAlarmTraps': 'ESDU Door Status'
         };
         
-        if (statusMappings[name] && statusMappings[name][value.toString()]) {
-            return statusMappings[name][value.toString()];
+        return names[param] || param;
+    }
+    
+    interpretStatusValue(value, param) {
+        // Convert numeric status values to meaningful text
+        const numericValue = parseInt(value);
+        
+        const statusMappings = {
+            'hwAcInputStatus': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwRectifierStatus': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryDischarge': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryLowVoltage': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryUltraLowVoltage': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwBatteryDisconnect': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwFuseBroken': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwLoadFuseAlarmTraps': { 0: 'No Alarm', 1: 'Alarm' },
+            'hwTcucDoorOpenAlarmTraps': { 0: 'Closed', 1: 'Open' },
+            'hwEsduDoorOpenAlarmTraps': { 0: 'Closed', 1: 'Open' }
+        };
+        
+        if (statusMappings[param] && statusMappings[param][numericValue] !== undefined) {
+            return statusMappings[param][numericValue];
         }
         
         return value.toString();
     }
     
-    updateStatistics(successCount, errorCount) {
-        document.getElementById('successCount').textContent = successCount;
-        document.getElementById('errorCount').textContent = errorCount;
-        document.getElementById('totalCount').textContent = this.rectifierOids.length;
+    getStatusClass(statusText) {
+        // Determine CSS class based on status text
+        const normalStatuses = ['Normal', 'Connected', 'Not Discharging', 'Closed'];
+        const warningStatuses = ['Discharging', 'Unknown'];
+        const errorStatuses = ['Fault', 'Broken', 'Disconnected', 'Low Voltage', 'Ultra Low Voltage', 'Alarm', 'Open', 'Abnormal'];
         
-        if (this.lastUpdateTime) {
-            const lastUpdateElement = document.getElementById('lastUpdate');
-            if (lastUpdateElement) {
-                lastUpdateElement.textContent = `Last update: ${this.lastUpdateTime.toLocaleTimeString()}`;
-            }
-        }  
+        if (normalStatuses.includes(statusText)) {
+            return 'normal';
+        } else if (warningStatuses.includes(statusText)) {
+            return 'warning';
+        } else if (errorStatuses.includes(statusText)) {
+            return 'error';
+        }
+        
+        return 'normal';
     }
     
-    async saveConfiguration() {
-        const config = {
-            host: document.getElementById('targetIp').value,
-            port: parseInt(document.getElementById('targetPort').value) || 161
-        };
-        
-        try {
-            const response = await fetch('/update-rectifier-config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer {{ session.get("auth_token", "") }}`
-                },
-                body: JSON.stringify(config)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showSuccess('Rectifier configuration saved successfully');
-            } else {
-                this.showError('Failed to save configuration: ' + result.error);
-            }
-        } catch (error) {
-            this.showError('Error saving configuration: ' + error.message);
-        }
-    }
-    
-    exportData() {
-        const format = document.getElementById('exportFormat').value;
-        const includeTimestamp = document.getElementById('includeTimestamp').checked;
-        
-        let exportData = { ...this.rectifierData };
-        
-        if (!includeTimestamp) {
-            Object.keys(exportData).forEach(key => {
-                delete exportData[key].timestamp;
-            });
-        }
-        
-        let content, filename, mimeType;
-        
-        switch (format) {
-            case 'json':
-                content = JSON.stringify(exportData, null, 2);
-                filename = `rectifier_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
-                mimeType = 'application/json';
-                break;
-            case 'csv':
-                const headers = ['Parameter', 'Value', 'Unit', 'OID'];
-                if (includeTimestamp) headers.push('Timestamp');
-                
-                const rows = [headers.join(',')];
-                Object.entries(exportData).forEach(([key, data]) => {
-                    const row = [key, data.value, data.unit, data.oid];
-                    if (includeTimestamp) row.push(data.timestamp);
-                    rows.push(row.join(','));
-                });
-                
-                content = rows.join('\n');
-                filename = `rectifier_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
-                mimeType = 'text/csv';
-                break;
-            case 'txt':
-                const lines = ['RECTIFIER MONITORING DATA', '='.repeat(30), ''];
-                Object.entries(exportData).forEach(([key, data]) => {
-                    lines.push(`${key}: ${data.value} ${data.unit}`);
-                    lines.push(`OID: ${data.oid}`);
-                    if (includeTimestamp) lines.push(`Timestamp: ${data.timestamp}`);
-                    lines.push('');
-                });
-                
-                content = lines.join('\n');
-                filename = `rectifier_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
-                mimeType = 'text/plain';
-                break;
-        }
-        
-        // Download file
-        const blob = new Blob([content], { type: mimeType });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
-        modal.hide();
+    updateConnectionStatus(status, type) {
+        // Connection status can be shown in console or as a toast notification
+        console.log(`Connection Status: ${status}`);
     }
     
     showError(message) {
-        // Implementasi toast notification bisa ditambahkan di sini
         console.error('Rectifier Monitor Error:', message);
-        alert('Error: ' + message);
-    }
-    
-    showSuccess(message) {
-        // Implementasi toast notification bisa ditambahkan di sini
-        console.log('Rectifier Monitor Success:', message);
-        alert('Success: ' + message);
+        // You can implement toast notifications here if needed
     }
 }
 
-// Initialize Rectifier Monitor when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     new RectifierMonitor();
 });
