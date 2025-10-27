@@ -1,9 +1,11 @@
 import os
 import hashlib
 import secrets
+import json
 from datetime import datetime, timedelta
 from flask_httpauth import HTTPTokenAuth, HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from config import PATH
 
 # Load environment variables from .env file
 try:
@@ -117,6 +119,7 @@ ROLE_PERMISSIONS = {
             'dashboard',
             'scc_monitoring',
             'battery_monitoring',
+            'rectifier_monitoring',
             'mqtt_service',
             'systemd_service',
             'snmp_service',
@@ -134,6 +137,7 @@ ROLE_PERMISSIONS = {
             'view_dashboard',
             'view_scc_data',
             'view_battery_data',
+            'view_rectifier_data',
             'manage_mqtt_service',
             'manage_systemd_services',
             'view_historical_data',
@@ -208,7 +212,8 @@ MENU_ACCESS = {
         'dashboard': True,
         'monitoring': {
             'scc': True,
-            'battery': True
+            'battery': True,
+            'rectifier': True
         },
         'services': {
             'mqtt': True,
@@ -229,6 +234,35 @@ MENU_ACCESS = {
         'power_operations': True
     }
 }
+
+def get_enabled_services():
+    try:
+        with open(f'{PATH}/config_device.json', 'r') as f:
+            config = json.load(f)
+            return config.get('enabled_services', {})
+    except Exception as e:
+        print(f"[ERROR] Unable to load enabled services: {e}")
+        return {}
+
+def has_any_monitoring_service_enabled():
+    """Check if any monitoring-related service is enabled"""
+    enabled_services = get_enabled_services()
+    return (
+        enabled_services.get('scc_service', False) or
+        enabled_services.get('talis5_service', False) or
+        enabled_services.get('jspro_service', False) or
+        enabled_services.get('mix_service', False) or
+        enabled_services.get('rectifier_service', False)
+    )
+
+def has_any_service_menu_enabled():
+    """Check if any service menu item should be shown"""
+    enabled_services = get_enabled_services()
+    return (
+        enabled_services.get('mqtt_service', False) or
+        enabled_services.get('snmp_service', False)
+        # systemd is always available for service management
+    )
 
 # Active sessions storage (in production, use Redis or database)
 ACTIVE_SESSIONS = {}
@@ -467,9 +501,79 @@ def can_access_api(username, endpoint):
     return has_permission(username, 'api_endpoints', endpoint)
 
 def get_menu_access(username):
-    """Get menu access configuration for user"""
+    """Get menu access configuration for user based on role AND enabled services"""
     user_role = get_user_role(username)
-    return MENU_ACCESS.get(user_role, {})
+    base_menu_access = MENU_ACCESS.get(user_role, {})
+    enabled_services = get_enabled_services()
+    
+    # Clone the base menu access to avoid modifying the original
+    import copy
+    dynamic_menu_access = copy.deepcopy(base_menu_access)
+    
+    # Apply service-based filtering
+    if 'monitoring' in dynamic_menu_access:
+        # SCC monitoring visibility based on scc_service
+        if 'scc' in dynamic_menu_access['monitoring']:
+            dynamic_menu_access['monitoring']['scc'] = (
+                dynamic_menu_access['monitoring']['scc'] and 
+                enabled_services.get('scc_service', False)
+            )
+        
+        # Battery monitoring visibility based on talis5_service OR jspro_service OR mix_service
+        if 'battery' in dynamic_menu_access['monitoring']:
+            battery_services_enabled = (
+                enabled_services.get('talis5_service', False) or
+                enabled_services.get('jspro_service', False) or
+                enabled_services.get('mix_service', False)
+            )
+            dynamic_menu_access['monitoring']['battery'] = (
+                dynamic_menu_access['monitoring']['battery'] and 
+                battery_services_enabled
+            )
+        
+        # Rectifier monitoring visibility based on rectifier_service
+        if 'rectifier' in dynamic_menu_access['monitoring']:
+            dynamic_menu_access['monitoring']['rectifier'] = (
+                dynamic_menu_access['monitoring']['rectifier'] and 
+                enabled_services.get('rectifier_service', False)
+            )
+    
+    # Apply service-based filtering for services menu
+    if 'services' in dynamic_menu_access:
+        # MQTT service visibility
+        if 'mqtt' in dynamic_menu_access['services']:
+            dynamic_menu_access['services']['mqtt'] = (
+                dynamic_menu_access['services']['mqtt'] and 
+                enabled_services.get('mqtt_service', False)
+            )
+        
+        # SNMP service visibility
+        if 'snmp' in dynamic_menu_access['services']:
+            dynamic_menu_access['services']['snmp'] = (
+                dynamic_menu_access['services']['snmp'] and 
+                enabled_services.get('snmp_service', False)
+            )
+        
+        # Systemd service visibility (always show if user has permission)
+        # This doesn't depend on enabled_services as it's for managing services
+    
+    # Apply service-based filtering for settings menu
+    if 'settings' in dynamic_menu_access:
+        # SCC settings visibility based on scc_service
+        if 'scc_settings' in dynamic_menu_access['settings']:
+            dynamic_menu_access['settings']['scc_settings'] = (
+                dynamic_menu_access['settings']['scc_settings'] and 
+                enabled_services.get('scc_service', False)
+            )
+        
+        # MQTT settings visibility based on mqtt_service
+        if 'mqtt_settings' in dynamic_menu_access['settings']:
+            dynamic_menu_access['settings']['mqtt_settings'] = (
+                dynamic_menu_access['settings']['mqtt_settings'] and 
+                enabled_services.get('mqtt_service', False)
+            )
+    
+    return dynamic_menu_access
 
 def is_menu_visible(username, menu_path):
     """Check if specific menu item should be visible for user"""
