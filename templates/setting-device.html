@@ -19,7 +19,312 @@
     </div>
 </div>
 
-<!-- Configuration Forms -->
+<!-- Configuration Forms Row 1: Service Settings & Site Information -->
+<div class="row">
+    <!-- Enable Services -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cogs text-primary me-2"></i>
+                    Enable Services
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <form method="POST">
+                    <input type="hidden" name="enabled-services-form" value="enabled-services-form">
+                    
+                    <!-- Communication Services -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-wifi me-2"></i>Communication Services
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="snmp-service" id="snmp-service" 
+                                                   {% if enabled_services.snmp_service %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="snmp-service">
+                                                <i class="fas fa-network-wired me-2 text-primary"></i>
+                                                SNMP Service
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Network monitoring protocol</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="mqtt-service" id="mqtt-service" 
+                                                   {% if enabled_services.mqtt_service %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="mqtt-service">
+                                                <i class="fas fa-wifi me-2 text-success"></i>
+                                                MQTT Service
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">IoT messaging protocol</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Device Services -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-cogs me-2"></i>Device Control Services
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="scc-service" id="scc-service" 
+                                                   {% if enabled_services.scc_service %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="scc-service">
+                                                <i class="fas fa-plug me-2 text-warning"></i>
+                                                SCC Service
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Solar Charge Controller</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="rectifier-service" id="rectifier-service" 
+                                                   {% if enabled_services.rectifier_service %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="rectifier-service">
+                                                <i class="fas fa-bolt me-2 text-danger"></i>
+                                                Rectifier Service
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">AC/DC Power Rectifier</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Battery Services -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-battery-full me-2"></i>Battery Management Services
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="talis5-service" id="talis5-service" 
+                                                   {% if enabled_services.talis5_service %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="talis5-service">
+                                                <i class="fas fa-battery-three-quarters me-2 text-info"></i>
+                                                Talis5 Service
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Talis5 Battery Management</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body p-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="jspro-service" id="jspro-service" 
+                                                   {% if enabled_services.jspro_service %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="jspro-service">
+                                                <i class="fas fa-battery-full me-2 text-primary"></i>
+                                                JSPro Service
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">JSPro Battery Management</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info d-flex align-items-start" role="alert">
+                        <i class="fas fa-info-circle me-3 mt-1"></i>
+                        <div>
+                            <strong>Informasi Penting:</strong><br>
+                            <small>• Pilih service yang sesuai dengan perangkat yang terpasang</small><br>
+                            <small>• Service akan dijalankan otomatis setelah konfigurasi disimpan</small><br>
+                            <small>• Pastikan konfigurasi perangkat sudah benar sebelum mengaktifkan service</small><br>
+                            <small>• <b>Setelah mengubah enable service, ganti juga di form Device Version</b></small><br>
+                            <small>• Pastikan sesuai dengan versi perangkat yang terpasang</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-modern btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Save Service Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+        <!-- Device Version -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-code-branch text-info me-2"></i>
+                    Device Version
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <form method="POST">
+                    <input type="hidden" name="device-version-form" value="device-version-form">
+
+                    <!-- Basic Device Information -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-server me-2"></i>Basic Device Information
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="ehub-version" class="form-label">Ehub Version</label>
+                                    <input type="text" class="form-control" name="ehub-version" id="ehub-version" placeholder="e.g. v2.1.0" value="{{device_version.ehub_version}}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="panel2-type" class="form-label">Panel 2 Type</label>
+                                    <input type="text" class="form-control" name="panel2-type" id="panel2-type" placeholder="e.g. Monocrystalline 100W" value="{{device_version.panel2_type}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="site-type" class="form-label">Site Type</label>
+                            <select class="form-control" name="site-type" id="site-type">
+                                <option value="" disabled {% if not device_version.site_type %}selected{% endif %}>Select Site Type</option>
+                                <option value="teresterial" {% if device_version.site_type == 'teresterial' %}selected{% endif %}>Teresterial (Land-based)</option>
+                                <option value="non-teresterial" {% if device_version.site_type == 'non-teresterial' %}selected{% endif %}>Non-Teresterial (Maritime/Remote)</option>
+                                <option value="ehub-recti" {% if device_version.site_type == 'ehub-recti' %}selected{% endif %}>Ehub Rectifier System</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- SCC Configuration Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-plug me-2"></i>Solar Charge Controller Configuration
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="scc-type" class="form-label">SCC Type</label>
+                                    <select class="form-control" name="scc-type" id="scc-type">
+                                        <option value="" disabled {% if not device_version.scc_type %}selected{% endif %}>Select SCC Type</option>
+                                        <option value="scc-srne" {% if device_version.scc_type == 'scc-srne' %}selected{% endif %}>SCC SRNE</option>
+                                        <option value="scc-epever" {% if device_version.scc_type == 'scc-epever' %}selected{% endif %}>SCC EPEVER</option>
+                                        <option value="N/A" {% if device_version.scc_type == '' or device_version.scc_type == 'N/A' %}selected{% endif %}>Tanpa SCC</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="scc-source" class="form-label">SCC Source</label>
+                                    <select class="form-control" name="scc-source" id="scc-source">
+                                        <option value="" disabled {% if not device_version.scc_source %}selected{% endif %}>Select SCC Source</option>
+                                        <option value="serial" {% if device_version.scc_source == 'serial' %}selected{% endif %}>Serial</option>
+                                        <option value="usb" {% if device_version.scc_source == 'usb' %}selected{% endif %}>USB</option>
+                                        <option value="N/A" {% if device_version.scc_source == '' or device_version.scc_source == 'N/A' %}selected{% endif %}>Tanpa SCC</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Battery Configuration Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-battery-full me-2"></i>Battery Management System Configuration
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="battery-type" class="form-label">Battery Type</label>
+                                    <select class="form-control" name="battery-type" id="battery-type">
+                                        <option value="" disabled {% if not device_version.battery_type %}selected{% endif %}>Select Battery Type</option>
+                                        <option value="talis5" {% if device_version.battery_type == 'talis5' %}selected{% endif %}>Talis5</option>
+                                        <option value="jspro" {% if device_version.battery_type == 'jspro' %}selected{% endif %}>JSPro</option>
+                                        <option value="mix" {% if device_version.battery_type == 'mix' %}selected{% endif %}>Mix (Talis5 + JSPro)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="usb-type" class="form-label">Talis USB Connection</label>
+                                    <select class="form-control" name="usb-type" id="usb-type">
+                                        <option value="" disabled {% if not device_version.usb_type %}selected{% endif %}>Select USB Type</option>
+                                        <option value="seri" {% if device_version.usb_type == 'seri' %}selected{% endif %}>Serial Connection</option>
+                                        <option value="paralel" {% if device_version.usb_type == 'paralel' %}selected{% endif %}>Parallel Connection</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rectifier Configuration Section -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-bolt me-2"></i>Rectifier System Configuration
+                        </h6>
+                        <div class="mb-3">
+                            <label for="rectifier-type" class="form-label">Rectifier Type</label>
+                            <div class="input-group">
+                                <select class="form-control" id="rectifier-type-select" onchange="handleRectifierTypeChange()">
+                                    <option value="" disabled>Select or Type Rectifier Type</option>
+                                    <option value="Huawei" {% if device_version.rectifier_type == 'Huawei' %}selected{% endif %}>Huawei</option>
+                                    <option value="Emerson" {% if device_version.rectifier_type == 'Emerson' %}selected{% endif %}>Emerson</option>
+                                    <option value="Delta" {% if device_version.rectifier_type == 'Delta' %}selected{% endif %}>Delta</option>
+                                    <option value="custom">Type Custom...</option>
+                                    <option value="N/A" {% if device_version.rectifier_type == '' or device_version.rectifier_type == 'N/A' %}selected{% endif %}>Tanpa Rectifier</option>
+                                </select>
+                                <input type="text" class="form-control" name="rectifier-type" id="rectifier-type-input" 
+                                       placeholder="Enter rectifier type" 
+                                       value="{% if device_version.rectifier_type and device_version.rectifier_type != 'N/A' %}{{ device_version.rectifier_type }}{% endif %}"
+                                       style="{% if device_version.rectifier_type == 'N/A' or not device_version.rectifier_type %}display: none;{% endif %}">
+                            </div>
+                            <small class="text-muted">Pilih dari daftar atau ketik tipe rectifier yang digunakan</small>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle me-3"></i>
+                        <div>
+                            <strong>Perhatian:</strong><br>
+                            <small>Konfigurasi ini memerlukan <strong>restart sistem</strong> untuk menerapkan perubahan</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-modern btn-warning">
+                            <i class="fas fa-save me-2"></i>
+                            Save Device Version Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Configuration Forms Row 2: Device Version & Device Information -->
 <div class="row">
     <!-- Site Information -->
     <div class="col-lg-6 mb-4">
@@ -54,7 +359,12 @@
                             <i class="fas fa-map-marker-alt me-2"></i>
                             Address
                         </label>
-                        <textarea class="form-control" name="address" id="address" rows="3" placeholder="Enter Site Address">{{site_information.address}}</textarea>
+                        <textarea class="form-control" name="address" id="address" rows="4" placeholder="Enter Site Address">{{site_information.address}}</textarea>
+                    </div>
+                    
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <small>Konfigurasi identitas dan lokasi site untuk identifikasi perangkat</small>
                     </div>
                     
                     <div class="d-grid">
@@ -68,117 +378,8 @@
         </div>
     </div>
 
-    <!-- Device Version -->
+    <!-- Device Information -->
     <div class="col-lg-6 mb-4">
-        <div class="modern-card">
-            <div class="modern-card-header">
-                <h5 class="modern-card-title">
-                    <i class="fas fa-code-branch text-info me-2"></i>
-                    Device Version
-                </h5>
-            </div>
-            <div class="modern-card-body">
-                <form method="POST">
-                    <input type="hidden" name="device-version-form" value="device-version-form">
-
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="ehub-version" class="form-label">
-                                    <i class="fas fa-server me-2"></i>
-                                    Ehub Version
-                                </label>
-                                <input type="text" class="form-control" name="ehub-version" id="ehub-version" placeholder="Enter Ehub Version" value="{{device_version.ehub_version}}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="panel2-type" class="form-label">
-                                    <i class="fas fa-solar-panel me-2"></i>
-                                    Panel 2 Type
-                                </label>
-                                <input type="text" class="form-control" name="panel2-type" id="panel2-type" placeholder="Enter Panel 2 Type" value="{{device_version.panel2_type}}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="site-type" class="form-label">
-                                    <i class="fas fa-sitemap me-2"></i>
-                                    Site Type
-                                </label>
-                                <select class="form-control" name="site-type" id="site-type">
-                                    <option value="" disabled {% if not device_version.site_type %}selected{% endif %}>Select Site Type</option>
-                                    <option value="teresterial" {% if device_version.site_type == 'teresterial' %}selected{% endif %}>Teresterial</option>
-                                    <option value="non-teresterial" {% if device_version.site_type == 'non-teresterial' %}selected{% endif %}>Non-Teresterial</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="scc-type" class="form-label">
-                                    <i class="fas fa-plug me-2"></i>
-                                    SCC Type
-                                </label>
-                                <select class="form-control" name="scc-type" id="scc-type">
-                                    <option value="" disabled {% if not device_version.scc_type %}selected{% endif %}>Select SCC Type</option>
-                                    <option value="scc-srne" {% if device_version.scc_type == 'scc-srne' %}selected{% endif %}>SCC SRNE</option>
-                                    <option value="scc-epever" {% if device_version.scc_type == 'scc-epever' %}selected{% endif %}>SCC EPEVER</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="scc-source" class="form-label">
-                                    <i class="fas fa-power-off me-2"></i>
-                                    SCC Source
-                                </label>
-                                <select class="form-control" name="scc-source" id="scc-source">
-                                    <option value="" disabled {% if not device_version.scc_source %}selected{% endif %}>Select SCC Source</option>
-                                    <option value="serial" {% if device_version.scc_source == 'serial' %}selected{% endif %}>Serial</option>
-                                    <option value="usb" {% if device_version.scc_source == 'usb' %}selected{% endif %}>USB</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="battery-type" class="form-label">
-                                    <i class="fas fa-battery-full me-2"></i>
-                                    Battery Type
-                                </label>
-                                <select class="form-control" name="battery-type" id="battery-type">
-                                    <option value="" disabled {% if not device_version.battery_type %}selected{% endif %}>Select Battery Type</option>
-                                    <option value="talis5" {% if device_version.battery_type == 'talis5' %}selected{% endif %}>Talis5</option>
-                                    <option value="jspro" {% if device_version.battery_type == 'jspro' %}selected{% endif %}>JSPro</option>
-                                    <option value="mix" {% if device_version.battery_type == 'mix' %}selected{% endif %}>Mix</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="usb-type" class="form-label">
-                                    <i class="fas fa-usb-full me-2"></i>
-                                    USB Type
-                                </label>
-                                <select class="form-control" name="usb-type" id="usb-type">
-                                    <option value="" disabled {% if not device_version.usb_type %}selected{% endif %}>Select USB Type</option>
-                                    <option value="seri" {% if device_version.usb_type == 'seri' %}selected{% endif %}>Seri</option>
-                                    <option value="paralel" {% if device_version.usb_type == 'paralel' %}selected{% endif %}>Paralel</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="d-grid">
-                            <div class="alert alert-warning" role="alert">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <small>Device Version requires system <b>restart</b> to apply changes.</small>
-                            </div>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-modern btn-warning">
-                                <i class="fas fa-save me-2"></i>
-                                Save Device Version Settings
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% if username == 'teknisi' %}
-<!-- Device Information -->
-<div class="row">
-    <div class="col-lg-12 mb-4">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
@@ -190,34 +391,32 @@
                 <form method="POST">
                     <input type="hidden" name="device-info-form" value="device-info-form">
                     
+                    <div class="mb-3">
+                        <label for="model" class="form-label">
+                            <i class="fas fa-tag me-2"></i>
+                            Model
+                        </label>
+                        <input type="text" class="form-control" name="model" id="model" placeholder="Enter Device Model" value="{{device_model.model}}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="part-number" class="form-label">
+                            <i class="fas fa-barcode me-2"></i>
+                            Part Number
+                        </label>
+                        <input type="text" class="form-control" name="part-number" id="part-number" placeholder="Enter Part Number" value="{{device_model.part_number}}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="serial-number" class="form-label">
+                            <i class="fas fa-qrcode me-2"></i>
+                            Serial Number
+                        </label>
+                        <input type="text" class="form-control" name="serial-number" id="serial-number" placeholder="Enter Serial Number" value="{{device_model.serial_number}}">
+                    </div>
+                    
                     <div class="row">
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="model" class="form-label">
-                                    <i class="fas fa-tag me-2"></i>
-                                    Model
-                                </label>
-                                <input type="text" class="form-control" name="model" id="model" placeholder="Enter Device Model" value="{{device_model.model}}">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="part-number" class="form-label">
-                                    <i class="fas fa-barcode me-2"></i>
-                                    Part Number
-                                </label>
-                                <input type="text" class="form-control" name="part-number" id="part-number" placeholder="Enter Part Number" value="{{device_model.part_number}}">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="serial-number" class="form-label">
-                                    <i class="fas fa-qrcode me-2"></i>
-                                    Serial Number
-                                </label>
-                                <input type="text" class="form-control" name="serial-number" id="serial-number" placeholder="Enter Serial Number" value="{{device_model.serial_number}}">
-                            </div>
-                        </div>
-                        
-                        <div class="col-lg-6">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="software-version" class="form-label">
                                     <i class="fas fa-code me-2"></i>
@@ -225,7 +424,8 @@
                                 </label>
                                 <input type="text" class="form-control" name="software-version" id="software-version" placeholder="Enter Software Version" value="{{device_model.software_version}}">
                             </div>
-                            
+                        </div>
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="hardware-version" class="form-label">
                                     <i class="fas fa-microchip me-2"></i>
@@ -233,14 +433,12 @@
                                 </label>
                                 <input type="text" class="form-control" name="hardware-version" id="hardware-version" placeholder="Enter Hardware Version" value="{{device_model.hardware_version}}">
                             </div>
-                            
-                            <div class="mb-3">
-                                <div class="alert alert-warning" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <small>Device information requires system <b>restart</b> to apply changes.</small>
-                                </div>
-                            </div>
                         </div>
+                    </div>
+                    
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="fas fa-microchip me-2"></i>
+                        <small>Informasi identifikasi hardware dan software versi perangkat</small>
                     </div>
                     
                     <div class="d-grid">
@@ -254,8 +452,6 @@
         </div>
     </div>
 </div>
-
-{% endif %}
 {% endblock content %}
 
 {% block scripts %}
@@ -363,6 +559,37 @@
             });
         }
         
+        // Device Services Toggle Enhancement
+        const serviceToggles = document.querySelectorAll('[id$="-service"]');
+        serviceToggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const label = this.nextElementSibling;
+                if (this.checked) {
+                    label.style.color = '#28a745';
+                    label.style.fontWeight = 'bold';
+                } else {
+                    label.style.color = '#6c757d';
+                    label.style.fontWeight = 'normal';
+                }
+                
+                // Add visual feedback
+                this.style.boxShadow = '0 0 5px ' + (this.checked ? '#28a745' : '#dc3545');
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 1000);
+            });
+            
+            // Initialize state
+            const label = toggle.nextElementSibling;
+            if (toggle.checked) {
+                label.style.color = '#28a745';
+                label.style.fontWeight = 'bold';
+            } else {
+                label.style.color = '#6c757d';
+                label.style.fontWeight = 'normal';
+            }
+        });
+        
         // Show success message on form submission
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('success')) {
@@ -392,6 +619,8 @@
                         originalText = 'Save Device Settings';
                     } else if (submitBtn.textContent.includes('Version')) {
                         originalText = 'Save Version Settings';
+                    } else if (submitBtn.textContent.includes('Service')) {
+                        originalText = 'Save Service Settings';
                     }
                     
                     submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${loadingText}`;
@@ -404,6 +633,64 @@
                 }
             });
         });
+    });
+    
+    // Rectifier type selection handler
+    function handleRectifierTypeChange() {
+        const selectElement = document.getElementById('rectifier-type-select');
+        const inputElement = document.getElementById('rectifier-type-input');
+        const selectedValue = selectElement.value;
+        
+        if (selectedValue === 'custom') {
+            // Show input field for custom type
+            inputElement.style.display = 'block';
+            inputElement.focus();
+            inputElement.value = '';
+            inputElement.placeholder = 'Enter custom rectifier type';
+        } else if (selectedValue === 'N/A') {
+            // Hide input field and set N/A value
+            inputElement.style.display = 'none';
+            inputElement.value = 'N/A';
+        } else if (selectedValue === '') {
+            // Show input field but keep it empty
+            inputElement.style.display = 'block';
+            inputElement.value = '';
+            inputElement.placeholder = 'Enter rectifier type';
+        } else {
+            // Set predefined value and show input field
+            inputElement.style.display = 'block';
+            inputElement.value = selectedValue;
+        }
+    }
+    
+    // Initialize rectifier type field on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectElement = document.getElementById('rectifier-type-select');
+        const inputElement = document.getElementById('rectifier-type-input');
+        
+        // Set initial state based on current value
+        if (inputElement.value && inputElement.value !== 'N/A') {
+            // Check if current value matches any predefined options
+            const options = selectElement.querySelectorAll('option');
+            let matched = false;
+            
+            for (let option of options) {
+                if (option.value === inputElement.value) {
+                    selectElement.value = option.value;
+                    matched = true;
+                    break;
+                }
+            }
+            
+            if (!matched && inputElement.value !== '') {
+                // Custom value, show it in input
+                selectElement.value = 'custom';
+                inputElement.style.display = 'block';
+            }
+        } else if (inputElement.value === 'N/A') {
+            selectElement.value = 'N/A';
+            inputElement.style.display = 'none';
+        }
     });
 </script>
 {% endblock scripts %}
