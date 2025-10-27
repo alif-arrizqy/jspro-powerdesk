@@ -3,6 +3,7 @@ import logging
 import os
 import traceback
 from config import *
+from utils import bash_command
 
 # Configure logging for production use with file output
 log_file = f"/var/lib/sundaya/jspro-powerdesk/logs/handle_relay_config_update.log"
@@ -81,6 +82,7 @@ def update_device_version(path, form):
     scc_source = data.get('scc-source')
     battery_type = data.get('battery-type')
     usb_type = data.get('usb-type')
+    rectifier_type = data.get('rectifier-type')
 
     # open json file
     with open(path, 'r') as f:
@@ -93,11 +95,82 @@ def update_device_version(path, form):
     json_data['device_version']['scc_source'] = scc_source
     json_data['device_version']['battery_type'] = battery_type
     json_data['device_version']['usb_type'] = usb_type
+    json_data['device_version']['rectifier_type'] = rectifier_type
 
     # write to json file
     with open(path, 'w') as f:
         json.dump(json_data, f, indent=4)
     return True
+
+
+def update_enabled_services(path, form):
+    """
+    Update enabled services configuration in config_device.json
+    """
+    try:
+        # Parse form data - checkboxes only send data when checked
+        enabled_services = {
+            'scc_service': 'scc-service' in form,
+            'snmp_service': 'snmp-service' in form,
+            'mqtt_service': 'mqtt-service' in form,
+            'rectifier_service': 'rectifier-service' in form,
+            'talis5_service': 'talis5-service' in form,
+            'jspro_service': 'jspro-service' in form
+        }
+        
+        # Read existing config file
+        if not os.path.exists(path):
+            logger.error(f"Config file does not exist: {path}")
+            return False
+            
+        with open(path, 'r') as f:
+            json_data = json.load(f)
+        
+        # Ensure enabled_services section exists
+        if 'enabled_services' not in json_data:
+            json_data['enabled_services'] = {}
+        
+        # Update enabled services
+        json_data['enabled_services'].update(enabled_services)
+        
+        # Write updated config back to file
+        with open(path, 'w') as f:
+            json.dump(json_data, f, indent=4)
+        
+        # Service mapping dictionary
+        service_mapping = {
+            'scc_service': 'scc.service',
+            'snmp_service': 'snmp_handler.service', 
+            'mqtt_service': 'mqtt_publish.service',
+            'rectifier_service': 'snmp_rectifier.service',
+            'talis5_service': 'thread_bms.service',
+            'jspro_service': ['handle_canbus.service', 'handle_mosfet.service', 'handle_mosfet.timer', 'keep_alive_dock.timer']
+        }
+        
+        # Manage systemd services
+        for service, enabled in enabled_services.items():
+            if service not in service_mapping:
+                continue
+                
+            services = service_mapping[service]
+            if not isinstance(services, list):
+                services = [services]
+            
+            action = ('enable', 'restart') if enabled else ('stop', 'disable')
+            for service_name in services:
+                for cmd in action:
+                    # logger.info(f"Executing: systemctl {cmd} {service_name}")
+                    bash_command(f'systemctl {cmd} {service_name}')
+        
+        return True
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in config file: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Error updating enabled services: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return False
 
 
 def update_scc_type(path, form):
