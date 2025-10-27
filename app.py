@@ -63,6 +63,24 @@ def index():
         user_role = get_user_role(username)
         menu_access = get_menu_access(username)
         
+        # Load enabled services configuration
+        config_path = f'{PATH}/config_device.json'
+        enabled_services = {}
+        try:
+            with open(config_path, 'r') as file:
+                config_data = json.load(file)
+                enabled_services = config_data.get('enabled_services', {})
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Error loading enabled services: {e}")
+            enabled_services = {
+                'scc_service': False,
+                'rectifier_service': False,
+                'mqtt_service': False,
+                'snmp_service': False,
+                'talis5_service': False,
+                'jspro_service': False
+            }
+        
         context = {
             'username': username,
             'user_role': user_role,
@@ -74,6 +92,7 @@ def index():
             # 'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc,
             'number_of_battery': number_of_batt,
+            'enabled_services': enabled_services,
         }
         
         # Audit page access
@@ -81,6 +100,15 @@ def index():
         
     except Exception as e:
         print(f"index() error: {e}")
+        # Fallback enabled services
+        enabled_services = {
+            'scc_service': False,
+            'rectifier_service': False,
+            'mqtt_service': False,
+            'snmp_service': False,
+            'talis5_service': False,
+            'jspro_service': False
+        }
         context = {
             'username': username,
             'user_role': get_user_role(username),
@@ -92,6 +120,7 @@ def index():
             # 'ip_address': '192.168.1.1',
             'number_of_scc': number_of_scc,
             'number_of_battery': number_of_batt,
+            'enabled_services': enabled_services,
         }
     return render_template('index.html', **context)
 
