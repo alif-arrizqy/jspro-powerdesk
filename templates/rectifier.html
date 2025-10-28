@@ -96,16 +96,10 @@ Rectifier Monitoring
                             <div class="alert-panel">
                                 <div class="row g-2 mt-2">
                                     <div class="col-md-6">
-                                        <small class="text-muted">Last Update: <span id="lastUpdate">Never</span></small>
+                                        <small class="text-muted">Last Update: <span id="lastUpdate">Loading..</span></small>
                                     </div>
                                     <div class="col-md-6 text-end">
-                                        <button type="button" class="btn btn-outline-primary btn-sm me-2" id="refreshData">
-                                            <i class="fas fa-sync-alt"></i> Refresh
-                                        </button>
-                                        <div class="form-check form-switch d-inline-block">
-                                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
-                                            <label class="form-check-label" for="autoRefresh">Auto</label>
-                                        </div>
+                                        <small class="text-muted">Interval refresh: <span id="refreshInterval">5 detik</span></small>
                                     </div>
                                 </div>
                             </div>
@@ -245,20 +239,26 @@ class RectifierMonitor {
     }
     
     bindEvents() {
-        // Refresh button
-        document.getElementById('refreshData').addEventListener('click', () => {
-            this.loadData();
-        });
+        // Check if refresh button exists before binding
+        const refreshBtn = document.getElementById('refreshData');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.loadData();
+            });
+        }
         
-        // Auto refresh toggle
-        document.getElementById('autoRefresh').addEventListener('change', (e) => {
-            this.autoRefreshEnabled = e.target.checked;
-            if (this.autoRefreshEnabled) {
-                this.startAutoRefresh();
-            } else {
-                this.stopAutoRefresh();
-            }
-        });
+        // Check if auto refresh toggle exists before binding
+        const autoRefreshToggle = document.getElementById('autoRefresh');
+        if (autoRefreshToggle) {
+            autoRefreshToggle.addEventListener('change', (e) => {
+                this.autoRefreshEnabled = e.target.checked;
+                if (this.autoRefreshEnabled) {
+                    this.startAutoRefresh();
+                } else {
+                    this.stopAutoRefresh();
+                }
+            });
+        }
     }
     
     startAutoRefresh() {
@@ -266,7 +266,7 @@ class RectifierMonitor {
         if (this.autoRefreshEnabled) {
             this.refreshInterval = setInterval(() => {
                 this.loadData();
-            }, 10000); // 10 seconds
+            }, 5000); // 5 seconds
         }
     }
     
