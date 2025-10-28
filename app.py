@@ -849,22 +849,17 @@ def setting_ip():
         # get site name
         site_name = red.hget('device_config', 'site_name')
         
-        # Initialize default values
-        ip_address = ""
-        subnet_mask = ""
-        gateway = ""
+        # Read IP configuration directly from eth0 interface
+        ip_address = get_ip_address('eth0')
+        subnet_mask = get_subnet_mask('eth0')
+        gateway = get_gateway('eth0')
         
-        # open data site
-        with open(f'./data_site.json', 'r') as f:
-            data_ip = json.load(f)
-        
-        ipaddr = get_ip_address('eth0')
-        for i in data_ip:
-            if i['ip'] == ipaddr:
-                ip_address = i['ip']
-                subnet_mask = i['subnet_mask']
-                gateway = i['gateway']
-                break
+        # Load data_site.json for fallback/reference (optional)
+        try:
+            with open(f'./data_site.json', 'r') as f:
+                data_ip = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data_ip = []
         
         context = {
             'username': username,
@@ -873,9 +868,9 @@ def setting_ip():
             'site_name': site_name,
             'data_ip': data_ip,
             'scc_type': scc_type,
-            'ip_address': ip_address,
-            'subnet_mask': subnet_mask,
-            'gateway': gateway
+            'ip_address': ip_address or "",
+            'subnet_mask': subnet_mask or "",
+            'gateway': gateway or ""
         }
         
         # Audit page access
@@ -884,10 +879,15 @@ def setting_ip():
     except Exception as e:
         print(f"setting_ip() error: {e}")
         
-        # Initialize default values
-        ip_address = ""
-        subnet_mask = ""
-        gateway = ""
+        # Fallback: try to read directly from eth0
+        try:
+            ip_address = get_ip_address('eth0') or ""
+            subnet_mask = get_subnet_mask('eth0') or ""
+            gateway = get_gateway('eth0') or ""
+        except:
+            ip_address = ""
+            subnet_mask = ""
+            gateway = ""
         
         # Fallback to default data_ip
         try:
@@ -895,14 +895,6 @@ def setting_ip():
                 data_ip = json.load(f)
         except:
             data_ip = []
-            
-        ipaddr = get_ip_address('eth0')
-        for i in data_ip:
-            if i['ip'] == ipaddr:
-                ip_address = i['ip']
-                subnet_mask = i['subnet_mask']
-                gateway = i['gateway']
-                break
         
         context = {
             'username': username,
@@ -1246,24 +1238,38 @@ def update_rectifier_config():
     try:
         # Check user permissions
         username = current_user.id
-        if not can_access_page(username, 'rectifier'):
-            audit_access(username, 'rectifier', 'access_denied_config_update')
-            return jsonify({
-                'success': False,
-                'error': 'Access denied'
-            }), 403
+        if not can_access_page(username, 'rectifier_monitoring'):
+            audit_access(username, 'rectifier_monitoring', 'access_denied_config_update')
+            flash('You do not have permission to update rectifier configuration.', 'error')
+            return redirect(url_for('rectifier'))
         
-        data = request.get_json()
-        if not data:
-            return jsonify({
-                'success': False,
-                'error': 'No data provided'
-            }), 400
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            host = data.get('host')
+            port = data.get('port')
+        else:
+            # Handle form data
+            if 'rectifier-config-form' in request.form:
+                from helpers.config_device_helper import update_rectifier_configuration
+                
+                config_path = f'{PATH}/config_device.json'
+                success = update_rectifier_configuration(config_path, request.form)
+                
+                if success:
+                    # Audit the configuration change
+                    host = request.form.get('rectifier-host')
+                    port = request.form.get('rectifier-port')
+                    audit_access(username, 'rectifier_monitoring', 'update_rectifier_config')
+                    flash('Rectifier configuration updated successfully!', 'success')
+                else:
+                    flash('Failed to update rectifier configuration.', 'error')
+                    
+                return redirect(url_for('rectifier'))
+            
+            return redirect(url_for('rectifier'))
         
-        # Validate required fields
-        host = data.get('host')
-        port = data.get('port')
-        
+        # JSON handling (for API calls)
         if not host:
             return jsonify({
                 'success': False,
@@ -1310,7 +1316,7 @@ def update_rectifier_config():
             }), 500
         
         # Audit the configuration change
-        audit_access(username, 'rectifier', 'update_rectifier_config', f'Host: {host}, Port: {port}')
+        audit_access(username, 'rectifier_monitoring', 'update_rectifier_config')
         
         return jsonify({
             'success': True,
