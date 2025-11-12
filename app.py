@@ -1261,6 +1261,7 @@ def update_rectifier_config():
                     host = request.form.get('rectifier-host')
                     port = request.form.get('rectifier-port')
                     audit_access(username, 'rectifier_monitoring', 'update_rectifier_config')
+                    bash_command('sudo systemctl restart snmp_rectifier.service device_config_loader.service')
                     flash('Rectifier configuration updated successfully!', 'success')
                 else:
                     flash('Failed to update rectifier configuration.', 'error')
