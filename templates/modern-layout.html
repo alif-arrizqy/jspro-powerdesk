@@ -103,19 +103,31 @@
                     {% endif %}
                     
                     <!-- Services Menu - Based on role permissions AND enabled services -->
-                    {% if menu_access.services and (menu_access.services.mqtt or menu_access.services.systemd or menu_access.services.snmp) %}
-                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['mqtt_service', 'systemd_service', 'snmp_service'] }}">
+                    {% set has_mqtt_bakti = (menu_access.services.mqtt is mapping and menu_access.services.mqtt.bakti) if menu_access.services.mqtt else false %}
+                    {% set has_mqtt_sundaya = (menu_access.services.mqtt is mapping and menu_access.services.mqtt.sundaya) if menu_access.services.mqtt else false %}
+                    {% set has_mqtt_access = has_mqtt_bakti or has_mqtt_sundaya or (menu_access.services.mqtt and menu_access.services.mqtt is not mapping) %}
+                    {% if menu_access.services and (has_mqtt_access or menu_access.services.systemd or menu_access.services.snmp) %}
+                    <li class="nav-item has-submenu {{ 'open' if request.endpoint in ['mqtt_bakti', 'mqtt_sundaya', 'systemd_service', 'snmp_service'] }}">
                         <a href="#" class="nav-link submenu-toggle">
                             <i class="fas fa-cogs"></i>
                             <span>Services</span>
                             <i class="fas fa-chevron-down chevron"></i>
                         </a>
                         <ul class="submenu">
-                            {% if menu_access.services.mqtt %}
+                            {% if menu_access.services.mqtt is mapping and menu_access.services.mqtt.bakti %}
                             <li>
-                                <a href="/mqtt-service" class="nav-link {{ 'active' if request.endpoint == 'mqtt_service' }}">
-                                    <i class="fas fa-exchange"></i>
-                                    <span>MQTT</span>
+                                <a href="/mqtt-bakti" class="nav-link {{ 'active' if request.endpoint == 'mqtt_bakti' }}">
+                                    <i class="fas fa-satellite-dish"></i>
+                                    <span>MQTT Bakti</span>
+                                    <div class="nav-indicator"></div>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if menu_access.services.mqtt is mapping and menu_access.services.mqtt.sundaya %}
+                            <li>
+                                <a href="/mqtt-sundaya" class="nav-link {{ 'active' if request.endpoint == 'mqtt_sundaya' }}">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>MQTT Sundaya</span>
                                     <div class="nav-indicator"></div>
                                 </a>
                             </li>
