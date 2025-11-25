@@ -1,6 +1,6 @@
 """
-Logger API Blueprint for JSPro PowerDesk
-Handles historical data logs from Redis and SQLite storage
+Logger API for JSPro PowerDesk
+Handles historical data logs
 """
 
 from flask import Blueprint, request, jsonify
@@ -18,12 +18,6 @@ from config import PATH, scc_type
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-# Import battery configuration for section filtering
-try:
-    from config import battery_type as default_battery_type
-except ImportError:
-    default_battery_type = 'talis5'
-
 try:
     from security_middleware import api_session_required
 except ImportError:
@@ -37,60 +31,196 @@ except ImportError:
 # Create blueprint
 logger_bp = Blueprint('logger', __name__)
 
-# ============== Section Filtering Helper Functions ===========================
+# ============== Configuration & Helper Functions ===========================
 
-def get_streams_for_section(section=None):
-    """
-    Get appropriate Redis streams based on section parameter
-    
-    Args:
-        section: Battery section (talis5, jspro, scc) or None for default
-        
-    Returns:
-        list: List of stream names to process
-    """
-    if section is None:
-        section = default_battery_type
-    
-    if section == 'talis5':
-        # Talis5: BMS stream only
-        return ['stream:bms']
-    elif section == 'jspro':
-        # JSPro: Only JSPro battery stream
-        return ['stream:jspro_battery']
-    elif section == 'scc':
-        # SCC/Energy: Only Energy/SCC stream
-        return ['stream:energy']
-    else:
-        # Default fallback to talis5 stream
-        return ['stream:bms']
+# Log type mapping configuration
+LOG_TYPE_CONFIG = {
+    'battery': {
+        'redis_stream': 'stream:battery',
+        'sqlite_table': 'loggers_battery',
+        'description': 'Battery monitoring logs'
+    },
+    'energy': {
+        'redis_stream': 'stream:energy',
+        'sqlite_table': 'loggers_energy',
+        'description': 'Energy/SCC monitoring logs'
+    },
+    'bakti_mqtt': {
+        'redis_stream': None,  # No Redis stream for bakti_mqtt
+        'sqlite_table': 'loggers_bakti_mqtt',
+        'description': 'Bakti MQTT publisher logs'
+    }
+}
 
-def get_tables_for_section(section=None, default_table='bms_data'):
-    """
-    Get appropriate SQLite table names based on section parameter
-    
-    Args:
-        section: Battery section (talis5, jspro, scc) or None for default
-        default_table: Default table name if not specified
+def get_site_info():
+    """Get site information from Redis"""
+    try:
+        # Get raw data from Redis
+        site_information_raw = red.hget('device_config', 'site_information')
+        ip_configuration_raw = red.hget('device_config', 'ip_configuration')
         
-    Returns:
-        list: List of table names to query
-    """
-    if section is None:
-        section = default_battery_type
+        # Default values
+        site_id = 'UNKNOWN'
+        site_name = 'UNKNOWN SITE'
+        ip_address = '0.0.0.0'
+        
+        # Parse site information
+        if site_information_raw:
+            try:
+                if isinstance(site_information_raw, bytes):
+                    site_information_raw = site_information_raw.decode('utf-8')
+                site_information = json.loads(site_information_raw)
+                site_id = site_information.get('site_id', 'UNKNOWN')
+                site_name = site_information.get('site_name', 'UNKNOWN SITE')
+            except (json.JSONDecodeError, AttributeError) as e:
+                pass  # Keep default values
+        
+        # Parse IP configuration
+        if ip_configuration_raw:
+            try:
+                if isinstance(ip_configuration_raw, bytes):
+                    ip_configuration_raw = ip_configuration_raw.decode('utf-8')
+                ip_configuration = json.loads(ip_configuration_raw)
+                ip_address = ip_configuration.get('ip_address', '0.0.0.0')
+            except (json.JSONDecodeError, AttributeError) as e:
+                pass  # Keep default value
+        
+        return {
+            'site_id': site_id,
+            'site_name': site_name,
+            'ip_address': ip_address
+        }
+    except Exception as e:
+        # Fallback jika Redis tidak tersedia atau error lainnya
+        return {
+            'site_id': 'UNKNOWN',
+            'site_name': 'UNKNOWN SITE',
+            'ip_address': '0.0.0.0'
+        }
+
+def validate_log_type(log_type):
+    """Validate if log_type is supported"""
+    return log_type in LOG_TYPE_CONFIG
+
+def get_stream_name(log_type):
+    """Get Redis stream name for log type"""
+    if not validate_log_type(log_type):
+        return None
+    return LOG_TYPE_CONFIG[log_type]['redis_stream']
+
+def get_table_name(log_type):
+    """Get SQLite table name for log type"""
+    if not validate_log_type(log_type):
+        return None
+    return LOG_TYPE_CONFIG[log_type]['sqlite_table']
+
+def get_redis_stream_size(stream_name):
+    """Get Redis stream size in KB"""
+    try:
+        # Get memory usage of the key
+        memory_bytes = red.memory_usage(stream_name)
+        if memory_bytes:
+            return round(memory_bytes / 1024, 2)  # Convert to KB
+        return 0
+    except Exception:
+        return 0
+
+def get_redis_stream_stats(stream_name):
+    """Get Redis stream statistics"""
+    try:
+        # Get stream info
+        stream_info = red.xinfo_stream(stream_name)
+        total_records = stream_info['length']
+        
+        # Get first and last timestamps
+        first_timestamp = None
+        last_timestamp = None
+        
+        if total_records > 0:
+            # Get first entry
+            first_entry = red.xrange(stream_name, count=1)
+            if first_entry:
+                first_fields = dict(first_entry[0][1])
+                ts_field = first_fields.get(b'timestamp') or first_fields.get('timestamp', '')
+                if isinstance(ts_field, bytes):
+                    ts_field = ts_field.decode('utf-8')
+                first_timestamp = ts_field
+            
+            # Get last entry
+            last_entry = red.xrevrange(stream_name, count=1)
+            if last_entry:
+                last_fields = dict(last_entry[0][1])
+                ts_field = last_fields.get(b'timestamp') or last_fields.get('timestamp', '')
+                if isinstance(ts_field, bytes):
+                    ts_field = ts_field.decode('utf-8')
+                last_timestamp = ts_field
+        
+        return {
+            'total_records': total_records,
+            'key_size': get_redis_stream_size(stream_name),
+            'key_size_unit': 'KB',
+            'first_timestamp': first_timestamp,
+            'last_timestamp': last_timestamp
+        }
+    except Exception:
+        return {
+            'total_records': 0,
+            'key_size': 0,
+            'key_size_unit': 'KB',
+            'first_timestamp': None,
+            'last_timestamp': None
+        }
+
+def get_sqlite_table_stats(table_name, db_path=None):
+    """Get SQLite table statistics
     
-    if section == 'talis5':
-        # Talis5: BMS data table only
-        return ['bms_data']
-    elif section == 'jspro':
-        # JSPro: JSPro battery data table only
-        return ['jspro_battery_data']
-    elif section == 'scc':
-        # SCC/Energy: Energy data table only
-        return ['energy_data']
-    else:
-        # Default fallback based on specified table or default
-        return [default_table]
+    Parameters:
+    - table_name: Name of the table
+    - db_path: Optional database path. If None, uses default SQLITE_DB_PATH
+    """
+    try:
+        conn = get_sqlite_connection(db_path)
+        if not conn:
+            return {
+                'total_records': 0,
+                'first_timestamp': None,
+                'last_timestamp': None
+            }
+        
+        # Get total records
+        cursor = conn.execute(f"SELECT COUNT(*) as total FROM {table_name}")
+        total_records = cursor.fetchone()['total']
+        
+        # Get first and last timestamps
+        first_timestamp = None
+        last_timestamp = None
+        
+        if total_records > 0:
+            # Get first timestamp
+            cursor = conn.execute(f"SELECT timestamp FROM {table_name} ORDER BY timestamp ASC LIMIT 1")
+            first_row = cursor.fetchone()
+            if first_row:
+                first_timestamp = first_row['timestamp']
+            
+            # Get last timestamp
+            cursor = conn.execute(f"SELECT timestamp FROM {table_name} ORDER BY timestamp DESC LIMIT 1")
+            last_row = cursor.fetchone()
+            if last_row:
+                last_timestamp = last_row['timestamp']
+        
+        conn.close()
+        
+        return {
+            'total_records': total_records,
+            'first_timestamp': first_timestamp,
+            'last_timestamp': last_timestamp
+        }
+    except Exception:
+        return {
+            'total_records': 0,
+            'first_timestamp': None,
+            'last_timestamp': None
+        }
 
 def format_response_data(data):
     """
@@ -162,1122 +292,673 @@ def format_response_data(data):
     else:
         return data
 
-# ============== Redis Data Endpoints ===========================
-
-@logger_bp.route('/data/redis', methods=['GET'])
-@api_session_required
-def get_redis_data():
-    """
-    Get historical data from Redis with filtering options
-    Query parameters:
-    - start_date: Start date (ISO 8601 format)
-    - end_date: End date (ISO 8601 format)  
-    - limit: Maximum records (default: 55)
-    - offset: Records to skip (default: 0)
-    - section: Battery section for filtering data:
-        * 'talis5': BMS (stream:bms)
-        * 'jspro': JSPro Battery (stream:jspro_battery)
-        * 'scc': Energy/SCC (stream:energy)
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "Redis service unavailable",
-                "error": "Cannot connect to Redis database"
-            }), 503
-
-        # Parse query parameters with smart defaults
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        section = request.args.get('section')  # New section parameter
-        
-        # Smart limit handling: smaller default when no date filter to prevent memory issues
-        default_limit = 55 if (start_date or end_date) else 22
-        limit = min(int(request.args.get('limit', default_limit)), 11000)  # Max 11000 records
-        offset = int(request.args.get('offset', 0))
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-
-        # Validate dates first
-        start_dt = validate_date_format(start_date) if start_date else None
-        end_dt = validate_date_format(end_date) if end_date else None
-        
-        if start_date and start_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid start_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-            
-        if end_date and end_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error", 
-                "message": "Invalid end_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-
-        # Convert datetime to Redis timestamp format for comparison
-        redis_start_ts = convert_to_redis_timestamp_format(start_dt) if start_dt else None
-        redis_end_ts = convert_to_redis_timestamp_format(end_dt) if end_dt else None
-
-        # Minimal debug info collection (only when needed)
-        debug_info = {
-            "redis_connection": "OK",
-            "processing_steps": [] if debug_mode else None,
-            "raw_data_found": {},
-            "filter_results": {}
-        }
-
-        # Only collect detailed debug info if debug mode is enabled
-        if debug_mode:
-            filtering_method = "redis_level_xrange_filtering" if (start_dt or end_dt) else "recent_data_limit_1000"
-            debug_info.update({
-                "streams_checked": [],
-                "final_counts": {},
-                "redis_query_params": {
-                    "original_start_date": start_date,
-                    "original_end_date": end_date,
-                    "parsed_start_dt": str(start_dt) if start_dt else None,
-                    "parsed_end_dt": str(end_dt) if end_dt else None,
-                    "redis_start_ts": redis_start_ts,
-                    "redis_end_ts": redis_end_ts,
-                    "filtering_method": filtering_method,
-                    "optimization": "Redis XRANGE with time-based Stream IDs for maximum performance"
-                }
-            })
-
-        # Get appropriate streams based on section parameter
-        target_streams = get_streams_for_section(section)
-        
-        # Get data from Redis Streams using highly optimized processing
-        if debug_mode:
-            debug_info["streams_checked"] = target_streams
-            debug_info["processing_steps"].append("Using Redis-level filtering for optimal performance")
-            debug_info["section"] = section or default_battery_type
-        
-        # Process streams efficiently with Redis-level filtering
-        all_records = []
-        stream_results = {}
-        
-        for stream_name in target_streams:
-            stream_result = process_redis_stream(stream_name, start_dt, end_dt, redis_start_ts, redis_end_ts, debug_mode, debug_info)
-            stream_results[stream_name] = stream_result
-            all_records.extend(stream_result['records'])
-        
-        # Update debug info efficiently
-        debug_info["raw_data_found"] = {}
-        debug_info["filter_results"] = {}
-        
-        for stream_name, result in stream_results.items():
-            debug_info["raw_data_found"][stream_name] = result['raw_count']
-            debug_info["filter_results"][stream_name] = {
-                "raw_count": result['raw_count'],
-                "processed_count": result['processed_count'],
-                "filtered_count": result['filtered_count']
-            }
-
-        # Efficient sorting and pagination
-        if all_records:
-            # Sort by timestamp (newest first) - only if we have records
-            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        
-        # Update final counts only if debug mode
-        if debug_mode:
-            debug_info["final_counts"] = {
-                "total_records_before_pagination": len(all_records),
-                "pagination": {"limit": limit, "offset": offset}
-            }
-
-        # Paginate results efficiently
-        paginated_data = paginate_data(all_records, limit, offset)
-
-        # Format response data to ensure proper types
-        formatted_records = [format_response_data(record) for record in paginated_data['records']]
-
-        response_data = {
-            "status_code": 200,
-            "status": "success",
-            "data": {
-                "records": formatted_records,
-                "total_records": paginated_data['total_records'],
-                "page_info": paginated_data['page_info'],
-                "section": section or default_battery_type,
-                "target_streams": target_streams,
-                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-        }
-        
-        # Add helpful message when no records found but filtering was applied
-        if len(all_records) == 0 and (start_dt or end_dt):
-            message_parts = []
-            total_raw_count = sum(debug_info["raw_data_found"].values())
-            
-            if total_raw_count == 0:
-                message_parts.append("No data found in the specified date range.")
-            else:
-                message_parts.append(f"No records match the date filter. Redis returned {total_raw_count} entries but none passed validation.")
-            
-            response_data["message"] = " ".join(message_parts)
-            
-            # Add data range info in debug mode - optimized to only run when needed
-            if debug_mode:
-                range_info = {}
-                
-                # Only get range info if no records were found
-                for stream_name in target_streams:
-                    try:
-                        # Get first and last efficiently
-                        first_entry = red.xrange(stream_name, count=1)
-                        if first_entry:
-                            last_entry = red.xrevrange(stream_name, count=1)
-                            if last_entry:
-                                first_ts = dict(first_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(first_entry[0][1]).get(b'timestamp', b''), bytes) else dict(first_entry[0][1]).get('timestamp', '')
-                                last_ts = dict(last_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(last_entry[0][1]).get(b'timestamp', b''), bytes) else dict(last_entry[0][1]).get('timestamp', '')
-                                range_info[f"{stream_name}_data_range"] = {
-                                    "first_timestamp": first_ts,
-                                    "last_timestamp": last_ts
-                                }
-                    except Exception:
-                        continue
-                
-                if range_info:
-                    response_data["data"]["available_data_ranges"] = range_info
-        
-        # Add debug info only if requested (reduces response size)
-        if debug_mode and debug_info:
-            response_data["debug_info"] = debug_info
-
-        return jsonify(response_data), 200
-
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to retrieve Redis data",
-            "error": str(e)
-        }
-        
-        # Only add debug info in debug mode and if it exists
-        if debug_mode and 'debug_info' in locals():
-            error_response["debug_info"] = debug_info
-            
-        return jsonify(error_response), 500
-
-
-@logger_bp.route('/data/redis/<timestamp>', methods=['DELETE'])
-@api_session_required
-def delete_redis_by_ts(timestamp):
-    """
-    Delete Redis stream data by timestamp with validation
-    Supports both exact timestamp match and prefix match
-    
-    Parameters:
-    - timestamp: Timestamp to delete (exact match or prefix)
-    
-    Query parameters:
-    - match_type: 'exact' (default) or 'prefix'
-    - section: Battery section (talis5, jspro, scc) for targeting specific streams
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error", 
-                "message": "Redis service unavailable"
-            }), 503
-
-        # Get query parameters
-        match_type = request.args.get('match_type', 'exact').lower()
-        section = request.args.get('section')  # New section parameter
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-        
-        # Validate match_type
-        if match_type not in ['exact', 'prefix']:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid match_type. Must be 'exact' or 'prefix'"
-            }), 400
-
-        # Validate timestamp format (basic validation)
-        if not timestamp or len(timestamp) < 8:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid timestamp format. Timestamp too short."
-            }), 400
-
-        # Get appropriate streams based on section parameter
-        target_streams = get_streams_for_section(section)
-        
-        # Delete from target streams using optimized helper function
-        result = delete_entries_by_timestamp_section(red, timestamp, match_type, target_streams, debug_mode)
-        
-        # Check if there was an error
-        if "error" in result:
-            return jsonify({
-                "status_code": 500,
-                "status": "error",
-                "message": "Failed to delete Redis stream data by timestamp",
-                "error": result["error"]
-            }), 500
-        
-        # Check if timestamp exists - return error if not found
-        if not result.get("timestamp_exists", False):
-            stream_names = ', '.join(target_streams)
-            return jsonify({
-                "status_code": 404,
-                "status": "error",
-                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in Redis streams ({stream_names})",
-                "data": {
-                    "streams_deleted": result.get("streams_deleted", {}),
-                    "total_deleted": 0,
-                    "timestamp_exists": False,
-                    "section": section or default_battery_type,
-                    "target_streams": target_streams
-                }
-            }), 404
-        
-        # Success response when timestamp found and deleted
-        stream_names = ', '.join(target_streams)
-        return jsonify({
-            "status_code": 200,
-            "status": "success", 
-            "message": f"Successfully deleted {result['total_deleted']} entries with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}' from streams ({stream_names})",
-            "data": {
-                "streams_deleted": result.get("streams_deleted", {}),
-                "total_deleted": result["total_deleted"],
-                "timestamp_exists": result["timestamp_exists"],
-                "section": section or default_battery_type,
-                "target_streams": target_streams,
-                "debug_info": result.get("debug_info") if debug_mode else None
-            }
-        }), 200
-
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to delete Redis stream data by timestamp",
-            "error": str(e)
-        }
-        
-        return jsonify(error_response), 500
-
-
-@logger_bp.route('/data/redis', methods=['DELETE'])
-@api_session_required
-def delete_all_redis_data():
-    """
-    Delete all Redis stream data based on section
-    
-    Query parameters:
-    - confirm: Must be 'yes' to confirm deletion (required)
-    - section: Battery section (talis5, jspro, scc) for targeting specific streams
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "Redis service unavailable"
-            }), 503
-
-        # Get query parameters
-        confirm = request.args.get('confirm', '').lower()
-        section = request.args.get('section')  # New section parameter
-        
-        # Require confirmation for safety
-        if confirm != 'yes':
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all Redis data."
-            }), 400
-
-        # Get appropriate streams based on section parameter
-        target_streams = get_streams_for_section(section)
-        
-        # Delete entire streams using DEL command
-        streams_deleted = {}
-        total_deleted = 0
-        
-        # Delete each target stream
-        for stream_name in target_streams:
-            try:
-                # Check if stream exists and get its length before deletion
-                stream_info = red.xinfo_stream(stream_name)
-                stream_length = stream_info['length']
-                deleted = red.delete(stream_name)
-                if deleted:
-                    streams_deleted[stream_name] = stream_length
-                    total_deleted += stream_length
-                else:
-                    streams_deleted[stream_name] = 0
-            except Exception:
-                streams_deleted[stream_name] = 0  # Stream doesn't exist or error
-        
-        stream_names = ', '.join(target_streams)
-        return jsonify({
-            "status_code": 200,
-            "status": "success",
-            "message": f"Redis stream data deleted successfully from section '{section or default_battery_type}' ({stream_names})",
-            "data": {
-                "streams_deleted": streams_deleted,
-                "total_deleted": total_deleted,
-                "section": section or default_battery_type,
-                "target_streams": target_streams
-            }
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to delete Redis stream data",
-            "error": str(e)
-        }), 500
-
-
-# ============== SQLite Data Endpoints ===========================
-
-@logger_bp.route('/data/sqlite', methods=['GET'])
-@api_session_required
-def get_sqlite_data():
-    """
-    Get historical data from SQLite with optimized filtering options
-    Query parameters:
-    - start_date: Start date (ISO 8601 format)
-    - end_date: End date (ISO 8601 format)
-    - limit: Maximum records (default: 100, max: 1000)
-    - offset: Records to skip (default: 0)
-    - table: Specific table name (default: 'bms_data')
-    - section: Battery section for filtering data:
-        * 'talis5': BMS data (bms_data)
-        * 'jspro': JSPro Battery data (jspro_battery_data)
-        * 'scc': Energy/SCC data (energy_data)
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        conn = get_sqlite_connection()
-        if not conn:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "SQLite database unavailable"
-            }), 503
-
-        # Parse query parameters with validation
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        section = request.args.get('section')  # New section parameter
-        limit = min(int(request.args.get('limit', 100)), 1000)
-        offset = int(request.args.get('offset', 0))
-        table_name = request.args.get('table', 'bms_data')
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-
-        # Validate dates first
-        start_dt = validate_date_format(start_date) if start_date else None
-        end_dt = validate_date_format(end_date) if end_date else None
-        
-        if start_date and start_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid start_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-            
-        if end_date and end_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid end_date format", 
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-
-        # Determine target tables based on section parameter
-        if section:
-            target_tables = get_tables_for_section(section)
-        else:
-            target_tables = [table_name]  # Use specified table or default
-
-        # Validate table names (basic SQL injection prevention)
-        for table in target_tables:
-            if not table.replace('_', '').replace('-', '').isalnum():
-                return jsonify({
-                    "status_code": 400,
-                    "status": "error",
-                    "message": f"Invalid table name format: {table}"
-                }), 400
-
-        # Process SQLite data using optimized helper function for multiple tables
-        all_records = []
-        total_records = 0
-        combined_debug_info = {
-            "section": section or default_battery_type,
-            "target_tables": target_tables,
-            "table_results": {}
-        } if debug_mode else None
-        
-        for table in target_tables:
-            try:
-                result = process_sqlite_data(conn, start_dt, end_dt, table, limit, offset, debug_mode)
-                
-                # Check for errors
-                if "error" in result:
-                    conn.close()
-                    return jsonify({
-                        "status_code": 500,
-                        "status": "error", 
-                        "message": f"Failed to retrieve SQLite data from {table}",
-                        "error": result["error"]
-                    }), 500
-                
-                all_records.extend(result["records"])
-                total_records += result["total_records"]
-                
-                if debug_mode:
-                    combined_debug_info["table_results"][table] = {
-                        "records_found": len(result["records"]),
-                        "total_records": result["total_records"],
-                        "processed_count": result["processed_count"]
-                    }
-                    
-            except Exception as e:
-                # If table doesn't exist, skip it (for backwards compatibility)
-                if debug_mode:
-                    combined_debug_info["table_results"][table] = {
-                        "error": f"Table {table} not accessible: {str(e)}",
-                        "records_found": 0
-                    }
-                continue
-        
-        conn.close()
-
-        # Sort combined records by timestamp if we have multiple tables
-        if len(target_tables) > 1 and all_records:
-            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        
-        # Apply pagination to combined results
-        paginated_data = paginate_data(all_records, limit, offset)
-
-        # Format response data to ensure proper types
-        formatted_records = [format_response_data(record) for record in paginated_data['records']]
-
-        # Build successful response with dynamic pagination
-        response_data = {
-            "status_code": 200,
-            "status": "success",
-            "data": {
-                "records": formatted_records,
-                "total_records": paginated_data['total_records'],
-                "page_info": paginated_data['page_info'],
-                "processed_count": len(all_records),
-                "section": section or default_battery_type,
-                "tables_queried": target_tables,
-                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-        }
-
-        # Add debug info if requested
-        if debug_mode and combined_debug_info:
-            response_data["debug_info"] = combined_debug_info
-
-        # Add helpful message when no records found
-        if len(all_records) == 0:
-            if start_dt or end_dt:
-                response_data["message"] = "No records found in the specified date range."
-            else:
-                response_data["message"] = "No records found in the tables."
-
-        return jsonify(response_data), 200
-    except sqlite3.Error as e:
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": "SQLite database error",
-            "error": str(e)
-        }), 500
-    except ValueError as e:
-        return jsonify({
-            "status_code": 400,
-            "status": "error",
-            "message": "Invalid parameter value",
-            "error": str(e)
-        }), 400
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to retrieve SQLite data",
-            "error": str(e)
-        }
-        
-        return jsonify(error_response), 500
-
-
-@logger_bp.route('/data/sqlite/<timestamp>', methods=['DELETE'])
-@api_session_required
-def delete_sqlite_data_by_timestamp(timestamp):
-    """
-    Delete SQLite data by timestamp with validation
-    Supports both exact timestamp match and prefix match
-    
-    Parameters:
-    - timestamp: Timestamp to delete (exact match or prefix)
-    
-    Query parameters:
-    - match_type: 'exact' (default) or 'prefix'
-    - table: Target table name (default: 'bms_data')
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        conn = get_sqlite_connection()
-        if not conn:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "SQLite database unavailable"
-            }), 503
-
-        # Get query parameters
-        match_type = request.args.get('match_type', 'exact').lower()
-        table_name = request.args.get('table', 'bms_data')
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-        
-        # Validate match_type
-        if match_type not in ['exact', 'prefix']:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid match_type. Must be 'exact' or 'prefix'"
-            }), 400
-
-        # Validate table name (SQL injection prevention)
-        if not table_name.replace('_', '').replace('-', '').isalnum():
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid table name format"
-            }), 400
-
-        # Validate timestamp format (basic validation)
-        if not timestamp or len(timestamp) < 8:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid timestamp format. Timestamp too short."
-            }), 400
-
-        # Delete data using optimized helper function
-        result = delete_sqlite_by_timestamp(conn, timestamp, table_name, match_type, debug_mode)
-        
-        conn.close()
-
-        # Check for errors
-        if "error" in result:
-            return jsonify({
-                "status_code": 500,
-                "status": "error",
-                "message": "Failed to delete SQLite data by timestamp",
-                "error": result["error"]
-            }), 500
-
-        # Check if timestamp exists - return error if not found
-        if not result.get("timestamp_exists", False):
-            return jsonify({
-                "status_code": 404,
-                "status": "error",
-                "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in table '{table_name}'",
-                "data": {
-                    "deleted_count": 0,
-                    "timestamp_exists": False,
-                    "table_name": table_name
-                }
-            }), 404
-
-        # Success response when timestamp found and deleted
-        return jsonify({
-            "status_code": 200,
-            "status": "success",
-            "message": f"Successfully deleted {result['deleted_count']} records with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}' from table '{table_name}'",
-            "data": {
-                "deleted_count": result["deleted_count"],
-                "timestamp_exists": result["timestamp_exists"],
-                "table_name": table_name,
-                "debug_info": result.get("debug_info") if debug_mode else None
-            }
-        }), 200
-
-    except sqlite3.Error as e:
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": "SQLite database error",
-            "error": str(e)
-        }), 500
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to delete SQLite data by timestamp",
-            "error": str(e)
-        }
-        
-        return jsonify(error_response), 500
-
-
-@logger_bp.route('/data/sqlite', methods=['DELETE'])
-@api_session_required
-def delete_all_sqlite_data():
-    """
-    Delete all SQLite data from specified table
-    
-    Query parameters:
-    - table: Target table name (default: 'bms_data')
-    - confirm: Must be 'yes' to confirm deletion (required)
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        conn = get_sqlite_connection()
-        if not conn:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "SQLite database unavailable"
-            }), 503
-
-        table_name = request.args.get('table', 'bms_data')
-        confirm = request.args.get('confirm', '').lower()
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-        
-        # Validate table name (SQL injection prevention)
-        if not table_name.replace('_', '').replace('-', '').isalnum():
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid table name format"
-            }), 400
-
-        # Require confirmation for safety
-        if confirm != 'yes':
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all data."
-            }), 400
-
-        # Get count before deletion
-        count_query = f"SELECT COUNT(*) as total FROM {table_name}"
-        cursor = conn.execute(count_query)
-        total_before = cursor.fetchone()['total']
-
-        if total_before == 0:
-            conn.close()
-            return jsonify({
-                "status_code": 200,
-                "status": "success",
-                "message": f"Table '{table_name}' is already empty",
-                "data": {
-                    "deleted_count": 0,
-                    "table_name": table_name
-                }
-            }), 200
-
-        # Delete all records
-        delete_query = f"DELETE FROM {table_name}"
-        cursor = conn.execute(delete_query)
-        conn.commit()
-        
-        deleted_count = cursor.rowcount
-        conn.close()
-
-        # Build response
-        response_data = {
-            "status_code": 200,
-            "status": "success",
-            "message": f"Successfully deleted all {deleted_count} records from table '{table_name}'",
-            "data": {
-                "deleted_count": deleted_count,
-                "table_name": table_name,
-                "records_before_deletion": total_before
-            }
-        }
-
-        if debug_mode:
-            response_data["debug_info"] = {
-                "table_name": table_name,
-                "records_before": total_before,
-                "records_deleted": deleted_count,
-                "confirmation_required": True
-            }
-
-        return jsonify(response_data), 200
-
-    except sqlite3.Error as e:
-        return jsonify({
-            "status_code": 500,
-            "status": "error",
-            "message": "SQLite database error",
-            "error": str(e)
-        }), 500
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to delete all SQLite data",
-            "error": str(e)
-        }
-        
-        return jsonify(error_response), 500
-
-
-# ============== SCC/Energy Data Endpoints ===========================
-
-@logger_bp.route('/scc', methods=['GET'])
-@api_session_required
-def get_scc_data():
-    """
-    Get SCC/Energy data from Redis stream:energy with filtering options
-    This is a dedicated endpoint for SCC/Energy data
-    
-    Query parameters:
-    - start_date: Start date (ISO 8601 format)
-    - end_date: End date (ISO 8601 format)  
-    - limit: Maximum records (default: 55)
-    - offset: Records to skip (default: 0)
-    - debug: Enable debug mode (true/false)
-    """
-    try:
-        if not red:
-            return jsonify({
-                "status_code": 503,
-                "status": "error",
-                "message": "Redis service unavailable",
-                "error": "Cannot connect to Redis database"
-            }), 503
-
-        # Parse query parameters with smart defaults
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        
-        # Smart limit handling: smaller default when no date filter to prevent memory issues
-        default_limit = 55 if (start_date or end_date) else 22
-        limit = min(int(request.args.get('limit', default_limit)), 11000)  # Max 11000 records
-        offset = int(request.args.get('offset', 0))
-        debug_mode = request.args.get('debug', 'false').lower() == 'true'
-
-        # Validate dates first
-        start_dt = validate_date_format(start_date) if start_date else None
-        end_dt = validate_date_format(end_date) if end_date else None
-        
-        if start_date and start_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error",
-                "message": "Invalid start_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-            
-        if end_date and end_dt is False:
-            return jsonify({
-                "status_code": 400,
-                "status": "error", 
-                "message": "Invalid end_date format",
-                "error": "Date must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss)"
-            }), 400
-
-        # Convert datetime to Redis timestamp format for comparison
-        redis_start_ts = convert_to_redis_timestamp_format(start_dt) if start_dt else None
-        redis_end_ts = convert_to_redis_timestamp_format(end_dt) if end_dt else None
-
-        # Minimal debug info collection (only when needed)
-        debug_info = {
-            "redis_connection": "OK",
-            "processing_steps": [] if debug_mode else None,
-            "raw_data_found": {},
-            "filter_results": {}
-        }
-
-        # Only collect detailed debug info if debug mode is enabled
-        if debug_mode:
-            filtering_method = "redis_level_xrange_filtering" if (start_dt or end_dt) else "recent_data_limit_1000"
-            debug_info.update({
-                "streams_checked": ["stream:energy"],
-                "final_counts": {},
-                "redis_query_params": {
-                    "original_start_date": start_date,
-                    "original_end_date": end_date,
-                    "parsed_start_dt": str(start_dt) if start_dt else None,
-                    "parsed_end_dt": str(end_dt) if end_dt else None,
-                    "redis_start_ts": redis_start_ts,
-                    "redis_end_ts": redis_end_ts,
-                    "filtering_method": filtering_method,
-                    "optimization": "Redis XRANGE with time-based Stream IDs for maximum performance"
-                }
-            })
-
-        # Get data from stream:energy only
-        target_streams = ['stream:energy']
-        
-        # Get data from Redis Streams using highly optimized processing
-        if debug_mode:
-            debug_info["processing_steps"].append("Using Redis-level filtering for SCC/Energy stream")
-            debug_info["section"] = "scc"
-        
-        # Process stream efficiently with Redis-level filtering
-        all_records = []
-        stream_results = {}
-        
-        for stream_name in target_streams:
-            stream_result = process_redis_stream(stream_name, start_dt, end_dt, redis_start_ts, redis_end_ts, debug_mode, debug_info)
-            stream_results[stream_name] = stream_result
-            all_records.extend(stream_result['records'])
-        
-        # Update debug info efficiently
-        debug_info["raw_data_found"] = {}
-        debug_info["filter_results"] = {}
-        
-        for stream_name, result in stream_results.items():
-            debug_info["raw_data_found"][stream_name] = result['raw_count']
-            debug_info["filter_results"][stream_name] = {
-                "raw_count": result['raw_count'],
-                "processed_count": result['processed_count'],
-                "filtered_count": result['filtered_count']
-            }
-
-        # Efficient sorting and pagination
-        if all_records:
-            # Sort by timestamp (newest first) - only if we have records
-            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        
-        # Update final counts only if debug mode
-        if debug_mode:
-            debug_info["final_counts"] = {
-                "total_records_before_pagination": len(all_records),
-                "pagination": {"limit": limit, "offset": offset}
-            }
-
-        # Paginate results efficiently
-        paginated_data = paginate_data(all_records, limit, offset)
-
-        # Format response data to ensure proper types
-        formatted_records = [format_response_data(record) for record in paginated_data['records']]
-
-        response_data = {
-            "status_code": 200,
-            "status": "success",
-            "data": {
-                "records": formatted_records,
-                "total_records": paginated_data['total_records'],
-                "page_info": paginated_data['page_info'],
-                "section": "scc",
-                "target_streams": target_streams,
-                "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-        }
-        
-        # Add helpful message when no records found but filtering was applied
-        if len(all_records) == 0 and (start_dt or end_dt):
-            message_parts = []
-            total_raw_count = sum(debug_info["raw_data_found"].values())
-            
-            if total_raw_count == 0:
-                message_parts.append("No SCC/Energy data found in the specified date range.")
-            else:
-                message_parts.append(f"No records match the date filter. Redis returned {total_raw_count} entries but none passed validation.")
-            
-            response_data["message"] = " ".join(message_parts)
-            
-            # Add data range info in debug mode - optimized to only run when needed
-            if debug_mode:
-                range_info = {}
-                
-                # Only get range info if no records were found
-                for stream_name in target_streams:
-                    try:
-                        # Get first and last efficiently
-                        first_entry = red.xrange(stream_name, count=1)
-                        if first_entry:
-                            last_entry = red.xrevrange(stream_name, count=1)
-                            if last_entry:
-                                first_ts = dict(first_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(first_entry[0][1]).get(b'timestamp', b''), bytes) else dict(first_entry[0][1]).get('timestamp', '')
-                                last_ts = dict(last_entry[0][1]).get(b'timestamp', b'').decode('utf-8') if isinstance(dict(last_entry[0][1]).get(b'timestamp', b''), bytes) else dict(last_entry[0][1]).get('timestamp', '')
-                                range_info[f"{stream_name}_data_range"] = {
-                                    "first_timestamp": first_ts,
-                                    "last_timestamp": last_ts
-                                }
-                    except Exception:
-                        continue
-                
-                if range_info:
-                    response_data["data"]["available_data_ranges"] = range_info
-        
-        # Add debug info only if requested (reduces response size)
-        if debug_mode and debug_info:
-            response_data["debug_info"] = debug_info
-
-        return jsonify(response_data), 200
-
-    except Exception as e:
-        error_response = {
-            "status_code": 500,
-            "status": "error",
-            "message": "Failed to retrieve SCC/Energy data",
-            "error": str(e)
-        }
-        
-        # Only add debug info in debug mode and if it exists
-        if debug_mode and 'debug_info' in locals():
-            error_response["debug_info"] = debug_info
-            
-        return jsonify(error_response), 500
-
 # ============== Storage Overview Endpoint ===========================
 
 @logger_bp.route('/data/overview', methods=['GET'])
 @api_session_required
 def get_storage_overview():
-    """Get storage overview and statistics"""
+    """
+    Get comprehensive storage overview and statistics
+    Returns detailed statistics for Redis streams and SQLite tables
+    """
     try:
         overview_data = {
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "storage_overview": {
-                "redis_storage": 0.0,  # in MB
-                "unit": "MB",
-                "sqlite_storage": 0.0,  # in MB  
-                "unit": "MB",
                 "disk_usage": {
+                    "used": 0.0,
                     "free": 0.0,
-                    "total": 0.0
+                    "total": 0.0,
+                    "unit": "GB",
+                    "usage_percentage": 0.0
+                },
+                "redis": {
+                    "size": 0.0,
+                    "unit": "MB"
+                },
+                "sqlite": {
+                    "size": 0.0,
+                    "unit": "MB"
                 }
             },
             "data_statistics": {
-                "logger_records": 0,
-                "bms_records": 0,
-                "energy_records": 0,
-                "jspro_records": 0,
-                "sqlite_records": 0
-            },
-            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "redis": {},
+                "sqlite": {}
+            }
         }
 
-        # Get Redis statistics and memory usage
-        if red:
-            try:
-                # Get Redis memory usage for all keys
-                redis_info = red.info('memory')
-                redis_used_memory = redis_info.get('used_memory', 0)
-                # Convert bytes to MB
-                redis_storage_mb = round(redis_used_memory / (1024 * 1024), 2)
-                overview_data["storage_overview"]["redis_storage"] = redis_storage_mb
-                
-                # Get stream info for all streams (record counts)
-                bms_count = 0
-                energy_count = 0
-                jspro_count = 0
-                
-                try:
-                    bms_info = red.xinfo_stream('stream:bms')
-                    bms_count = bms_info['length']
-                except Exception:
-                    pass
-                    
-                try:
-                    energy_info = red.xinfo_stream('stream:energy')
-                    energy_count = energy_info['length']
-                except Exception:
-                    pass
-                
-                try:
-                    jspro_info = red.xinfo_stream('stream:jspro_battery')
-                    jspro_count = jspro_info['length']
-                except Exception:
-                    pass
-                
-                total_redis_entries = bms_count + energy_count + jspro_count
-                overview_data["data_statistics"]["logger_records"] = total_redis_entries
-                overview_data["data_statistics"]["bms_records"] = bms_count
-                overview_data["data_statistics"]["energy_records"] = energy_count
-                overview_data["data_statistics"]["jspro_records"] = jspro_count
-            except Exception:
-                pass
-
-        # Get SQLite statistics and file size
+        # Get disk usage
         try:
-            # Get SQLite database file size
-            sqlite_db_path = f'{PATH}/database/data_storage.db'
-            if os.path.exists(sqlite_db_path):
-                sqlite_file_size = os.path.getsize(sqlite_db_path)
-                # Convert bytes to MB
-                sqlite_storage_mb = round(sqlite_file_size / (1024 * 1024), 2)
-                overview_data["storage_overview"]["sqlite_storage"] = sqlite_storage_mb
+            disk = get_disk_detail()
+            used_gb = round(disk.used / (1024**3), 1)
+            free_gb = round(disk.free / (1024**3), 1)
+            total_gb = round(disk.total / (1024**3), 1)
+            usage_percentage = round((disk.used / disk.total) * 100, 2) if disk.total > 0 else 0
             
-            # Get record counts from SQLite
-            conn = get_sqlite_connection()
-            if conn:
-                total_sqlite_records = 0
-                
-                # Count bms_data records
-                try:
-                    cursor = conn.execute("SELECT COUNT(*) as total FROM bms_data")
-                    result = cursor.fetchone()
-                    if result:
-                        total_sqlite_records += result['total']
-                except Exception:
-                    pass
-                
-                # Count energy_data records
-                try:
-                    cursor = conn.execute("SELECT COUNT(*) as total FROM energy_data")
-                    result = cursor.fetchone()
-                    if result:
-                        total_sqlite_records += result['total']
-                except Exception:
-                    pass
-                
-                # Count jspro_battery_data records
-                try:
-                    cursor = conn.execute("SELECT COUNT(*) as total FROM jspro_battery_data")
-                    result = cursor.fetchone()
-                    if result:
-                        total_sqlite_records += result['total']
-                except Exception:
-                    pass
-                
-                overview_data["data_statistics"]["sqlite_records"] = total_sqlite_records
-                conn.close()
+            overview_data["storage_overview"]["disk_usage"] = {
+                "used": used_gb,
+                "free": free_gb,
+                "total": total_gb,
+                "unit": "GB",
+                "usage_percentage": usage_percentage
+            }
         except Exception:
             pass
 
-        # Get disk usage (simplified)
+        # Get Redis statistics
+        if red:
+            try:
+                # Get Redis total memory usage
+                redis_info = red.info('memory')
+                redis_used_memory = redis_info.get('used_memory', 0)
+                redis_storage_mb = round(redis_used_memory / (1024 * 1024), 2)
+                overview_data["storage_overview"]["redis"]["size"] = redis_storage_mb
+                
+                # Get statistics for each Redis stream
+                redis_stats = {}
+                for log_type, config in LOG_TYPE_CONFIG.items():
+                    stream_name = config['redis_stream']
+                    if stream_name:  # Only if Redis stream exists
+                        try:
+                            redis_stats[stream_name] = get_redis_stream_stats(stream_name)
+                        except Exception:
+                            pass
+                
+                overview_data["data_statistics"]["redis"] = redis_stats
+            except Exception:
+                pass
+
+        # Get SQLite statistics
         try:
-            disk = get_disk_detail()
-            disk_usage = {
-                "free": round(disk.free / (1024**3), 1),  # Convert to GB
-                "used": round(disk.used / (1024**3), 1),  # Convert to GB
-                "total": round(disk.total / (1024**3), 1),  # Convert to GB
-                "unit": "GB"
-            }
-            overview_data["storage_overview"]["disk_usage"] = disk_usage
-        except:
+            # Get SQLite database file size (sum of all databases)
+            sqlite_db_path = f'{PATH}/database/data_storage.db'
+            sqlite_total_size = 0
+            if os.path.exists(sqlite_db_path):
+                sqlite_total_size += os.path.getsize(sqlite_db_path)
+            
+            # Add bakti_mqtt.db size if it exists
+            if os.path.exists(SQLITE_DB_PATH_BAKTI_MQTT):
+                sqlite_total_size += os.path.getsize(SQLITE_DB_PATH_BAKTI_MQTT)
+            
+            sqlite_storage_mb = round(sqlite_total_size / (1024 * 1024), 2)
+            overview_data["storage_overview"]["sqlite"]["size"] = sqlite_storage_mb
+            
+            # Get statistics for each SQLite table
+            sqlite_stats = {}
+            for log_type, config in LOG_TYPE_CONFIG.items():
+                table_name = config['sqlite_table']
+                if table_name:
+                    try:
+                        # Use bakti_mqtt.db for bakti_mqtt log type
+                        db_path = SQLITE_DB_PATH_BAKTI_MQTT if log_type == 'bakti_mqtt' else None
+                        sqlite_stats[table_name] = get_sqlite_table_stats(table_name, db_path)
+                    except Exception:
+                        pass
+            
+            overview_data["data_statistics"]["sqlite"] = sqlite_stats
+        except Exception:
             pass
 
         return jsonify({
-            "status_code": 200,
             "status": "success",
+            "status_code": 200,
             "data": overview_data
         }), 200
 
     except Exception as e:
         return jsonify({
-            "status_code": 500,
             "status": "error",
+            "status_code": 500,
             "message": "Failed to get storage overview",
+            "error": str(e)
+        }), 500
+
+
+# ============== Unified Logs Endpoints ===========================
+
+def get_redis_logs_handler(log_type, limit, offset, start_date, end_date):
+    """
+    Handler function for getting logs from Redis stream
+    Returns formatted response with site_info, page_info, and data
+    """
+    try:
+        stream_name = get_stream_name(log_type)
+        if not stream_name:
+            return {
+                'status': 'error',
+                'status_code': 400,
+                'message': f'Redis stream not available for log_type: {log_type}'
+            }
+        
+        # Validate dates
+        start_dt = validate_date_format(start_date) if start_date else None
+        end_dt = validate_date_format(end_date) if end_date else None
+        
+        if start_date and start_dt is False:
+            return {
+                'status': 'error',
+                'status_code': 400,
+                'message': 'Invalid start_date format'
+            }
+        
+        if end_date and end_dt is False:
+            return {
+                'status': 'error',
+                'status_code': 400,
+                'message': 'Invalid end_date format'
+            }
+        
+        # Convert datetime to Redis timestamp format
+        redis_start_ts = convert_to_redis_timestamp_format(start_dt) if start_dt else None
+        redis_end_ts = convert_to_redis_timestamp_format(end_dt) if end_dt else None
+        
+        # Process Redis stream
+        stream_result = process_redis_stream(stream_name, start_dt, end_dt, redis_start_ts, redis_end_ts, False, {})
+        all_records = stream_result['records']
+        
+        # Sort by timestamp (newest first)
+        if all_records:
+            all_records.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # Paginate results
+        paginated_data = paginate_data(all_records, limit, offset)
+        
+        # Format response data
+        formatted_records = [format_response_data(record) for record in paginated_data['records']]
+        
+        # Get stream statistics
+        stream_stats = get_redis_stream_stats(stream_name)
+        
+        return {
+            'status': 'success',
+            'status_code': 200,
+            'site_info': get_site_info(),
+            'page_info': paginated_data['page_info'],
+            'data': {
+                'statistics': stream_stats,
+                'logs': formatted_records
+            },
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'status_code': 500,
+            'message': f'Failed to retrieve Redis logs: {str(e)}'
+        }
+
+
+def get_sqlite_logs_handler(log_type, limit, offset, start_date, end_date):
+    """
+    Handler function for getting logs from SQLite table
+    Returns formatted response with site_info, page_info, and data
+    """
+    try:
+        table_name = get_table_name(log_type)
+        if not table_name:
+            return {
+                'status': 'error',
+                'status_code': 400,
+                'message': f'SQLite table not available for log_type: {log_type}'
+            }
+        
+        # Use bakti_mqtt.db for bakti_mqtt log type
+        db_path = SQLITE_DB_PATH_BAKTI_MQTT if log_type == 'bakti_mqtt' else None
+        conn = get_sqlite_connection(db_path)
+        if not conn:
+            return {
+                'status': 'error',
+                'status_code': 503,
+                'message': 'SQLite database unavailable'
+            }
+        
+        # Validate dates
+        start_dt = validate_date_format(start_date) if start_date else None
+        end_dt = validate_date_format(end_date) if end_date else None
+        
+        if start_date and start_dt is False:
+            conn.close()
+            return {
+                'status': 'error',
+                'status_code': 400,
+                'message': 'Invalid start_date format'
+            }
+        
+        if end_date and end_dt is False:
+            conn.close()
+            return {
+                'status': 'error',
+                'status_code': 400,
+                'message': 'Invalid end_date format'
+            }
+        
+        # Process SQLite data
+        result = process_sqlite_data(conn, start_dt, end_dt, table_name, limit, offset, False)
+        
+        conn.close()
+        
+        if "error" in result:
+            return {
+                'status': 'error',
+                'status_code': 500,
+                'message': f'Failed to retrieve SQLite logs: {result["error"]}'
+            }
+        
+        # Format response data
+        formatted_records = [format_response_data(record) for record in result["records"]]
+        
+        # Paginate results
+        paginated_data = paginate_data(result["records"], limit, offset)
+        
+        # Get table statistics (use same db_path)
+        table_stats = get_sqlite_table_stats(table_name, db_path)
+        
+        return {
+            'status': 'success',
+            'status_code': 200,
+            'site_info': get_site_info(),
+            'page_info': paginated_data['page_info'],
+            'data': {
+                'statistics': table_stats,
+                'logs': formatted_records
+            },
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'status_code': 500,
+            'message': f'Failed to retrieve SQLite logs: {str(e)}'
+        }
+
+
+@logger_bp.route('/data/logs/<log_type>', methods=['GET'])
+@api_session_required
+def get_unified_logs(log_type):
+    """
+    Unified endpoint for getting logs from Redis or SQLite
+    
+    Path parameters:
+    - log_type: 'battery' | 'energy' | 'bakti_mqtt'
+    
+    Query parameters:
+    - source: 'redis' | 'sqlite' (default: 'redis' for battery/energy, 'sqlite' for bakti_mqtt)
+    - limit: Maximum records (default: 1000, max: 10000)
+    - offset: Records to skip (default: 0)
+    - start_date: Start date (ISO 8601 format)
+    - end_date: End date (ISO 8601 format)
+    """
+    try:
+        # Validate log_type
+        if not validate_log_type(log_type):
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": f"Invalid log_type. Valid types: {', '.join(LOG_TYPE_CONFIG.keys())}"
+            }), 400
+        
+        # Parse query parameters
+        source = request.args.get('source', 'redis' if log_type != 'bakti_mqtt' else 'sqlite')
+        limit = min(int(request.args.get('limit', 1000)), 10000)
+        offset = int(request.args.get('offset', 0))
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # Route to appropriate handler
+        if source == 'redis':
+            result = get_redis_logs_handler(log_type, limit, offset, start_date, end_date)
+        elif source == 'sqlite':
+            result = get_sqlite_logs_handler(log_type, limit, offset, start_date, end_date)
+        else:
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": "Invalid source. Must be 'redis' or 'sqlite'"
+            }), 400
+        
+        status_code = result.pop('status_code', 200)
+        return jsonify(result), status_code
+        
+    except ValueError as e:
+        return jsonify({
+            "status": "error",
+            "status_code": 400,
+            "message": "Invalid parameter value",
+            "error": str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "status_code": 500,
+            "message": "Failed to retrieve logs",
+            "error": str(e)
+        }), 500
+
+
+@logger_bp.route('/data/logs/<log_type>/<timestamp>', methods=['DELETE'])
+@api_session_required
+def delete_logs_by_timestamp(log_type, timestamp):
+    """
+    Delete logs by timestamp from Redis or SQLite
+    
+    Path parameters:
+    - log_type: 'battery' | 'energy' | 'bakti_mqtt'
+    - timestamp: Timestamp to delete
+    
+    Query parameters:
+    - source: 'redis' | 'sqlite' (required)
+    - match_type: 'exact' | 'prefix' (default: 'exact')
+    """
+    try:
+        # Validate log_type
+        if not validate_log_type(log_type):
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": f"Invalid log_type. Valid types: {', '.join(LOG_TYPE_CONFIG.keys())}"
+            }), 400
+        
+        # Get query parameters
+        source = request.args.get('source')
+        match_type = request.args.get('match_type', 'exact').lower()
+        
+        # Validate source
+        if not source or source not in ['redis', 'sqlite']:
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": "Parameter 'source' is required. Must be 'redis' or 'sqlite'"
+            }), 400
+        
+        # Validate match_type
+        if match_type not in ['exact', 'prefix']:
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": "Invalid match_type. Must be 'exact' or 'prefix'"
+            }), 400
+        
+        # Validate timestamp format
+        if not timestamp or len(timestamp) < 8:
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": "Invalid timestamp format. Timestamp too short."
+            }), 400
+        
+        # Handle Redis deletion
+        if source == 'redis':
+            stream_name = get_stream_name(log_type)
+            if not stream_name:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 400,
+                    "message": f"Redis stream not available for log_type: {log_type}"
+                }), 400
+            
+            if not red:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 503,
+                    "message": "Redis service unavailable"
+                }), 503
+            
+            # Delete from Redis stream
+            result = delete_entries_by_timestamp_section(red, timestamp, match_type, [stream_name], False)
+            
+            if "error" in result:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 500,
+                    "message": "Failed to delete Redis stream data by timestamp",
+                    "error": result["error"]
+                }), 500
+            
+            if not result.get("timestamp_exists", False):
+                return jsonify({
+                    "status": "error",
+                    "status_code": 404,
+                    "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in Redis stream ({stream_name})",
+                    "data": {
+                        "streams_deleted": result.get("streams_deleted", {}),
+                        "total_deleted": 0,
+                        "timestamp_exists": False
+                    }
+                }), 404
+            
+            return jsonify({
+                "status": "success",
+                "status_code": 200,
+                "message": f"Successfully deleted {result['total_deleted']} entries with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}' from stream ({stream_name})",
+                "data": {
+                    "streams_deleted": result.get("streams_deleted", {}),
+                    "total_deleted": result["total_deleted"],
+                    "timestamp_exists": result["timestamp_exists"]
+                }
+            }), 200
+        
+        # Handle SQLite deletion
+        elif source == 'sqlite':
+            table_name = get_table_name(log_type)
+            if not table_name:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 400,
+                    "message": f"SQLite table not available for log_type: {log_type}"
+                }), 400
+            
+            # Use bakti_mqtt.db for bakti_mqtt log type
+            db_path = SQLITE_DB_PATH_BAKTI_MQTT if log_type == 'bakti_mqtt' else None
+            conn = get_sqlite_connection(db_path)
+            if not conn:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 503,
+                    "message": "SQLite database unavailable"
+                }), 503
+            
+            # Delete from SQLite
+            result = delete_sqlite_by_timestamp(conn, timestamp, table_name, match_type, False)
+            conn.close()
+            
+            if "error" in result:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 500,
+                    "message": "Failed to delete SQLite data by timestamp",
+                    "error": result["error"]
+                }), 500
+            
+            if not result.get("timestamp_exists", False):
+                return jsonify({
+                    "status": "error",
+                    "status_code": 404,
+                    "message": f"Timestamp {'prefix' if match_type == 'prefix' else 'exact match'} '{timestamp}' not found in table '{table_name}'",
+                    "data": {
+                        "deleted_count": 0,
+                        "timestamp_exists": False,
+                        "table_name": table_name
+                    }
+                }), 404
+            
+            return jsonify({
+                "status": "success",
+                "status_code": 200,
+                "message": f"Successfully deleted {result['deleted_count']} records with timestamp {'matching prefix' if match_type == 'prefix' else 'exactly matching'} '{timestamp}' from table '{table_name}'",
+                "data": {
+                    "deleted_count": result["deleted_count"],
+                    "timestamp_exists": result["timestamp_exists"],
+                    "table_name": table_name
+                }
+            }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "status_code": 500,
+            "message": "Failed to delete logs by timestamp",
+            "error": str(e)
+        }), 500
+
+
+@logger_bp.route('/data/logs/<log_type>', methods=['DELETE'])
+@api_session_required
+def delete_all_logs(log_type):
+    """
+    Bulk delete all logs from Redis or SQLite
+    
+    Path parameters:
+    - log_type: 'battery' | 'energy' | 'bakti_mqtt'
+    
+    Query parameters:
+    - source: 'redis' | 'sqlite' (required)
+    - confirm: Must be 'yes' to confirm deletion (required)
+    """
+    try:
+        # Validate log_type
+        if not validate_log_type(log_type):
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": f"Invalid log_type. Valid types: {', '.join(LOG_TYPE_CONFIG.keys())}"
+            }), 400
+        
+        # Get query parameters
+        source = request.args.get('source')
+        confirm = request.args.get('confirm', '').lower()
+        
+        # Validate source
+        if not source or source not in ['redis', 'sqlite']:
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": "Parameter 'source' is required. Must be 'redis' or 'sqlite'"
+            }), 400
+        
+        # Require confirmation
+        if confirm != 'yes':
+            return jsonify({
+                "status": "error",
+                "status_code": 400,
+                "message": "Confirmation required. Add '?confirm=yes' to confirm deletion of all data."
+            }), 400
+        
+        # Handle Redis bulk deletion
+        if source == 'redis':
+            stream_name = get_stream_name(log_type)
+            if not stream_name:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 400,
+                    "message": f"Redis stream not available for log_type: {log_type}"
+                }), 400
+            
+            if not red:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 503,
+                    "message": "Redis service unavailable"
+                }), 503
+            
+            try:
+                # Check if stream exists and get its length
+                stream_info = red.xinfo_stream(stream_name)
+                stream_length = stream_info['length']
+                
+                # Delete the entire stream
+                deleted = red.delete(stream_name)
+                total_deleted = stream_length if deleted else 0
+                
+                return jsonify({
+                    "status": "success",
+                    "status_code": 200,
+                    "message": f"Successfully deleted {total_deleted} entries from Redis stream ({stream_name})",
+                    "data": {
+                        "stream_name": stream_name,
+                        "total_deleted": total_deleted
+                    }
+                }), 200
+            except Exception as e:
+                # Stream doesn't exist or error
+                return jsonify({
+                    "status": "success",
+                    "status_code": 200,
+                    "message": f"Redis stream ({stream_name}) is already empty or doesn't exist",
+                    "data": {
+                        "stream_name": stream_name,
+                        "total_deleted": 0
+                    }
+                }), 200
+        
+        # Handle SQLite bulk deletion
+        elif source == 'sqlite':
+            table_name = get_table_name(log_type)
+            if not table_name:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 400,
+                    "message": f"SQLite table not available for log_type: {log_type}"
+                }), 400
+            
+            # Use bakti_mqtt.db for bakti_mqtt log type
+            db_path = SQLITE_DB_PATH_BAKTI_MQTT if log_type == 'bakti_mqtt' else None
+            conn = get_sqlite_connection(db_path)
+            if not conn:
+                return jsonify({
+                    "status": "error",
+                    "status_code": 503,
+                    "message": "SQLite database unavailable"
+                }), 503
+            
+            try:
+                # Get count before deletion
+                cursor = conn.execute(f"SELECT COUNT(*) as total FROM {table_name}")
+                total_before = cursor.fetchone()['total']
+                
+                if total_before == 0:
+                    conn.close()
+                    return jsonify({
+                        "status": "success",
+                        "status_code": 200,
+                        "message": f"Table '{table_name}' is already empty",
+                        "data": {
+                            "table_name": table_name,
+                            "deleted_count": 0
+                        }
+                    }), 200
+                
+                # Delete all records
+                cursor = conn.execute(f"DELETE FROM {table_name}")
+                conn.commit()
+                deleted_count = cursor.rowcount
+                conn.close()
+                
+                return jsonify({
+                    "status": "success",
+                    "status_code": 200,
+                    "message": f"Successfully deleted all {deleted_count} records from table '{table_name}'",
+                    "data": {
+                        "table_name": table_name,
+                        "deleted_count": deleted_count,
+                        "records_before_deletion": total_before
+                    }
+                }), 200
+            except Exception as e:
+                conn.close()
+                return jsonify({
+                    "status": "error",
+                    "status_code": 500,
+                    "message": f"Failed to delete all data from table '{table_name}'",
+                    "error": str(e)
+                }), 500
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "status_code": 500,
+            "message": "Failed to delete all logs",
             "error": str(e)
         }), 500
 
@@ -1303,11 +984,11 @@ def get_scc_alarm_overview():
         if red:
             try:
                 # Check if stream exists
-                stream_info = red.xinfo_stream('scc-logs:data')
+                stream_info = red.xinfo_stream('stream:scc-logs')
                 total_alarms = stream_info['length']
                 
                 # Get recent entries to analyze patterns (last 100 entries)
-                recent_entries = red.xrevrange('scc-logs:data', '+', '-', count=100)
+                recent_entries = red.xrevrange('stream:scc-logs', '+', '-', count=100)
                 
                 for entry_id, fields in recent_entries:
                     try:
@@ -1456,7 +1137,7 @@ def download_scc_alarms():
 
         # Get all SCC logs from Redis Stream
         try:
-            entries = red.xrevrange('scc-logs:data', count=limit)
+            entries = red.xrevrange('stream:scc-logs', count=limit)
         except Exception:
             # Stream doesn't exist
             entries = []
@@ -1548,10 +1229,10 @@ def clear_scc_alarms():
         # Get count before deletion
         deleted_count = 0
         try:
-            stream_info = red.xinfo_stream('scc-logs:data')
+            stream_info = red.xinfo_stream('stream:scc-logs')
             deleted_count = stream_info['length']
             # Delete the entire stream
-            red.delete('scc-logs:data')
+            red.delete('stream:scc-logs')
         except Exception:
             # Stream doesn't exist
             deleted_count = 0
@@ -1562,7 +1243,7 @@ def clear_scc_alarms():
             "message": f"Successfully cleared {deleted_count} SCC alarm logs",
             "data": {
                 "deleted_count": deleted_count,
-                "stream_name": "scc-logs:data",
+                "stream_name": "stream:scc-logs",
                 "cleared_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         }), 200

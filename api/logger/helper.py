@@ -6,11 +6,18 @@ from ..redisconnection import connection as red
 from config import PATH
 
 SQLITE_DB_PATH = f'{PATH}/database/data_storage.db'
+SQLITE_DB_PATH_BAKTI_MQTT = f'{PATH}/database/mqtt_logs.db'
 
-def get_sqlite_connection():
-    """Get SQLite database connection"""
+def get_sqlite_connection(db_path=None):
+    """Get SQLite database connection
+    
+    Parameters:
+    - db_path: Optional database path. If None, uses default SQLITE_DB_PATH
+    """
     try:
-        conn = sqlite3.connect(SQLITE_DB_PATH)
+        if db_path is None:
+            db_path = SQLITE_DB_PATH
+        conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row  # Enable dict-like access
         return conn
     except Exception as e:
@@ -246,166 +253,7 @@ def paginate_data(data=None, limit=50, offset=0, total_records=None):
         # Return page_info only when no data provided
         return page_info
 
-def delete_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug_mode=False):
-    """
-    Optimized delete Redis stream entries by timestamp with validation
-    
-    Parameters:
-    - redis_conn: Redis connection object
-    - timestamp: Timestamp to delete (exact match or prefix)
-    - match_type: 'exact' or 'prefix'
-    - debug_mode: Enable debug information
-    
-    Returns:
-    - Dictionary with deletion results and validation
-    """
-    try:
-        if not redis_conn:
-            return {
-                "error": "Redis connection unavailable",
-                "bms_deleted": 0,
-                "energy_deleted": 0,
-                "total_deleted": 0,
-                "timestamp_exists": False
-            }
-        
-        result = {
-            "bms_deleted": 0,
-            "energy_deleted": 0,
-            "total_deleted": 0,
-            "timestamp_exists": False,
-            "debug_info": {} if debug_mode else None
-        }
-        
-        if debug_mode:
-            result["debug_info"] = {
-                "timestamp_filter": timestamp,
-                "match_type": match_type,
-                "streams_processed": [],
-                "entries_found": {},
-                "validation_method": "fast_search_before_delete"
-            }
-        
-        # First, validate if timestamp exists (fast validation)
-        timestamp_found = False
-        
-        # Process both streams with optimized validation and deletion
-        for stream_name, stream_key in [('bms', 'stream:bms'), ('energy', 'stream:energy')]:
-            deleted_count = 0
-            stream_has_timestamp = False
-            
-            try:
-                # Check if stream exists first
-                try:
-                    stream_info = redis_conn.xinfo_stream(stream_key)
-                    total_entries = stream_info['length']
-                    if total_entries == 0:
-                        continue
-                except:
-                    continue  # Stream doesn't exist, skip
-                
-                if debug_mode:
-                    result["debug_info"]["streams_processed"].append(stream_name)
-                    result["debug_info"]["entries_found"][stream_name] = total_entries
-                
-                # Optimized search: Use XRANGE with efficient scanning
-                if match_type == 'exact':
-                    # For exact match, use more efficient chunked scanning
-                    chunk_size = 100
-                    start_id = "-"
-                    entries_to_delete = []
-                    
-                    while True:
-                        # Get chunk of entries
-                        chunk = redis_conn.xrange(stream_key, min=start_id, count=chunk_size)
-                        if not chunk:
-                            break
-                        
-                        # Scan chunk for exact timestamp match
-                        for entry_id, fields in chunk:
-                            # Fast field extraction
-                            timestamp_field = fields.get(b'timestamp') or fields.get('timestamp')
-                            if timestamp_field:
-                                entry_timestamp = timestamp_field.decode('utf-8') if isinstance(timestamp_field, bytes) else timestamp_field
-                                
-                                if entry_timestamp == timestamp:
-                                    entries_to_delete.append(entry_id)
-                                    stream_has_timestamp = True
-                                    timestamp_found = True
-                        
-                        # If we found matches in exact mode, we can stop after this chunk
-                        if stream_has_timestamp and match_type == 'exact':
-                            break
-                            
-                        # Update start_id for next chunk
-                        start_id = f"({chunk[-1][0].decode('utf-8') if isinstance(chunk[-1][0], bytes) else str(chunk[-1][0])}"
-                        
-                elif match_type == 'prefix':
-                    # For prefix match, scan all but with optimized field access
-                    chunk_size = 100
-                    start_id = "-"
-                    entries_to_delete = []
-                    
-                    while True:
-                        chunk = redis_conn.xrange(stream_key, min=start_id, count=chunk_size)
-                        if not chunk:
-                            break
-                            
-                        for entry_id, fields in chunk:
-                            timestamp_field = fields.get(b'timestamp') or fields.get('timestamp')
-                            if timestamp_field:
-                                entry_timestamp = timestamp_field.decode('utf-8') if isinstance(timestamp_field, bytes) else timestamp_field
-                                
-                                if entry_timestamp.startswith(timestamp):
-                                    entries_to_delete.append(entry_id)
-                                    stream_has_timestamp = True
-                                    timestamp_found = True
-                        
-                        # Update start_id for next chunk
-                        start_id = f"({chunk[-1][0].decode('utf-8') if isinstance(chunk[-1][0], bytes) else str(chunk[-1][0])}"
-                
-                # Delete matching entries in batch
-                if entries_to_delete:
-                    # Delete in chunks if there are many entries
-                    if len(entries_to_delete) > 100:
-                        for i in range(0, len(entries_to_delete), 100):
-                            chunk_to_delete = entries_to_delete[i:i+100]
-                            deleted_count += redis_conn.xdel(stream_key, *chunk_to_delete)
-                    else:
-                        deleted_count = redis_conn.xdel(stream_key, *entries_to_delete)
-                
-                # Update result
-                if stream_name == 'bms':
-                    result["bms_deleted"] = deleted_count
-                else:
-                    result["energy_deleted"] = deleted_count
-                    
-                if debug_mode and entries_to_delete:
-                    if "matches_found" not in result["debug_info"]:
-                        result["debug_info"]["matches_found"] = {}
-                    result["debug_info"]["matches_found"][stream_name] = len(entries_to_delete)
-                    
-            except Exception as e:
-                if debug_mode:
-                    if "errors" not in result["debug_info"]:
-                        result["debug_info"]["errors"] = {}
-                    result["debug_info"]["errors"][stream_name] = str(e)
-        
-        result["total_deleted"] = result["bms_deleted"] + result["energy_deleted"]
-        result["timestamp_exists"] = timestamp_found
-        
-        return result
-        
-    except Exception as e:
-        return {
-            "error": str(e),
-            "bms_deleted": 0,
-            "energy_deleted": 0,
-            "total_deleted": 0,
-            "timestamp_exists": False
-        }
-
-def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data', limit=100, offset=0, debug_mode=False):
+def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='', limit=100, offset=0, debug_mode=False):
     """
     Optimized SQLite data processing with filtering and pagination
     
@@ -437,13 +285,13 @@ def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data',
         params = []
 
         print(f"Processing {table_name} with limit={limit}, offset={offset}, start_dt={start_dt}, end_dt={end_dt}")
-        # Add date filters if provided
+        # Add date filters if provided (using timestamp column as per schema)
         if start_dt:
-            conditions.append("collection_time >= ?")
+            conditions.append("timestamp >= ?")
             params.append(start_dt.strftime("%Y-%m-%d %H:%M:%S"))
             
         if end_dt:
-            conditions.append("collection_time <= ?") 
+            conditions.append("timestamp <= ?") 
             params.append(end_dt.strftime("%Y-%m-%d %H:%M:%S"))
 
         # Apply WHERE clause if conditions exist
@@ -456,21 +304,14 @@ def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data',
         cursor = conn.execute(count_query, params)
         total_records = cursor.fetchone()['total']
 
-        # Get paginated data with proper ordering
-        query = f"{base_query} ORDER BY collection_time DESC LIMIT ? OFFSET ?"
+        # Get paginated data with proper ordering (using timestamp column)
+        query = f"{base_query} ORDER BY timestamp DESC LIMIT ? OFFSET ?"
         cursor = conn.execute(query, params + [limit, offset])
         
         # Process records efficiently
         records = []
         for row in cursor.fetchall():
             record = dict(row)
-            # Parse JSON fields if they exist
-            for json_field in ['energy_data', 'bms_data']:
-                if json_field in record and record[json_field]:
-                    try:
-                        record[json_field] = json.loads(record[json_field])
-                    except:
-                        pass  # Keep as string if JSON parsing fails
             records.append(record)
 
         # Build pagination info using the unified pagination function
@@ -496,7 +337,7 @@ def process_sqlite_data(conn, start_dt=None, end_dt=None, table_name='bms_data',
             "error": str(e)
         }
 
-def delete_sqlite_by_timestamp(conn, timestamp, table_name='bms_data', match_type='exact', debug_mode=False):
+def delete_sqlite_by_timestamp(conn, timestamp, table_name='', match_type='exact', debug_mode=False):
     """
     Delete SQLite data by timestamp with validation
     
@@ -569,87 +410,6 @@ def delete_sqlite_by_timestamp(conn, timestamp, table_name='bms_data', match_typ
             "deleted_count": 0,
             "timestamp_exists": False
         }
-
-def store_sqlite_data_batch(conn, site_id, site_name, records, table_name='bms_data', debug_mode=False):
-    """
-    Optimized batch storage for SQLite data
-    
-    Parameters:
-    - conn: SQLite connection object
-    - site_id: Site identifier
-    - site_name: Site name
-    - records: List of records to store
-    - table_name: Target table name
-    - debug_mode: Enable debug information
-    
-    Returns:
-    - Dictionary with storage results
-    """
-    try:
-        if not conn:
-            return {
-                "error": "SQLite connection unavailable",
-                "records_stored": 0
-            }
-
-        # Create table if not exists with optimized schema
-        create_table_query = f"""
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            site_id TEXT NOT NULL,
-            site_name TEXT,
-            timestamp TEXT NOT NULL,
-            energy_data TEXT,
-            bms_data TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_timestamp (timestamp),
-            INDEX idx_created_at (created_at),
-            INDEX idx_site_id (site_id)
-        )
-        """
-        conn.execute(create_table_query)
-
-        # Prepare batch insert
-        insert_query = f"""
-        INSERT INTO {table_name} (site_id, site_name, timestamp, energy_data, bms_data)
-        VALUES (?, ?, ?, ?, ?)
-        """
-
-        # Batch insert for better performance
-        batch_data = []
-        for record in records:
-            batch_data.append((
-                site_id,
-                site_name,
-                record.get('timestamp', datetime.now().isoformat()),
-                json.dumps(record.get('energy_data', {})) if record.get('energy_data') else None,
-                json.dumps(record.get('bms_data', [])) if record.get('bms_data') else None
-            ))
-
-        # Execute batch insert
-        cursor = conn.executemany(insert_query, batch_data)
-        conn.commit()
-        
-        result = {
-            "records_stored": cursor.rowcount,
-            "table_name": table_name
-        }
-
-        if debug_mode:
-            result["debug_info"] = {
-                "batch_size": len(batch_data),
-                "site_id": site_id,
-                "site_name": site_name
-            }
-
-        return result
-
-    except Exception as e:
-        return {
-            "error": str(e),
-            "records_stored": 0
-        }
-
 
 def delete_scc_entries_by_timestamp(redis_conn, timestamp, match_type='exact', debug_mode=False):
     """
