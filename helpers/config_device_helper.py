@@ -485,34 +485,68 @@ def update_ip_configuration(path, form):
     return True
 
 
-def update_setting_mqtt(path, data):
-    """Update MQTT settings in config_device.json"""
-    # Read json file first
-    with open(path, 'r') as f:
-        config_data = json.load(f)
+def update_setting_mqtt(path, data, broker_type='ehub_broker'):
+    """
+    Update MQTT settings in config_device.json
     
-    # Ensure mqtt_config section exists
-    if 'mqtt_config' not in config_data:
-        config_data['mqtt_config'] = {}
-    
-    # Update MQTT settings from data dictionary
-    mqtt_settings = ['host', 'port', 'username', 'password', 'openvpn_ip', 'topic']
-    for setting in mqtt_settings:
-        if setting in data:
-            # config_data['mqtt_config'][setting] = data[setting]
-            # if port is provided, convert to int
-            if setting == 'port':
-                try:
-                    config_data['mqtt_config'][setting] = int(data[setting])
-                except ValueError:
-                    continue
-            else:
-                config_data['mqtt_config'][setting] = data[setting]
-    
-    # Write json file
-    with open(path, 'w') as f:
-        json.dump(config_data, f, indent=4)
-    return True
+    Args:
+        path: Path to config_device.json
+        data: Form data dictionary
+        broker_type: 'ehub_broker' for Bakti or 'sundaya_broker' for Sundaya
+    """
+    try:
+        # Read json file first
+        with open(path, 'r') as f:
+            config_data = json.load(f)
+        
+        # Ensure mqtt_config section exists
+        if 'mqtt_config' not in config_data:
+            config_data['mqtt_config'] = {}
+        
+        # Ensure broker section exists
+        if broker_type not in config_data['mqtt_config']:
+            config_data['mqtt_config'][broker_type] = {}
+        
+        # Determine prefix based on broker type
+        if broker_type == 'ehub_broker':
+            prefix = 'bakti'
+        else:
+            prefix = 'sundaya'
+        
+        # Update MQTT settings from data dictionary
+        mqtt_settings = {
+            'host': f'{prefix}-host',
+            'port': f'{prefix}-port',
+            'username': f'{prefix}-username',
+            'password': f'{prefix}-password',
+            'topic': f'{prefix}-topic'
+        }
+        
+        # Add openvpn_ip only for ehub_broker (Bakti)
+        if broker_type == 'ehub_broker':
+            mqtt_settings['openvpn_ip'] = f'{prefix}-openvpn-ip'
+        
+        for config_key, form_key in mqtt_settings.items():
+            if form_key in data:
+                value = data[form_key]
+                # Convert port to int
+                if config_key == 'port':
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        continue
+                config_data['mqtt_config'][broker_type][config_key] = value
+        
+        # Write json file
+        with open(path, 'w') as f:
+            json.dump(config_data, f, indent=4)
+        
+        logger.info(f"MQTT {broker_type} settings updated successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error updating MQTT settings: {e}")
+        return False
 
 
 def update_rectifier_configuration(path, form):
