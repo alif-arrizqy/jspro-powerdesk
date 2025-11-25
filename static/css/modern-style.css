@@ -904,6 +904,40 @@ body {
 .text-danger { color: var(--danger-color); }
 .text-warning { color: var(--warning-color); }
 
+
+    /* MQTT service small helpers (migrated from mqtt-service.css) */
+    .mqtt-monitor {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 6px;
+    }
+    .monitor-log {
+        font-family: monospace;
+        font-size: 13px;
+        padding: 12px;
+        white-space: pre-wrap;
+        background: #0f1720;
+        color: #e6eef8;
+        border-radius: 4px;
+    }
+    .stats-card {
+        border-radius: 6px;
+        background: #fff;
+        padding: 12px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .status-indicator.active {
+        color: #198754;
+        font-weight: 600;
+    }
+    .status-indicator.stopped {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    @media (max-width: 576px) {
+        .monitor-log { font-size: 12px; }
+    }
 .bg-primary { background-color: var(--primary-color); }
 .bg-success { background-color: var(--success-color); }
 .bg-danger { background-color: var(--danger-color); }
