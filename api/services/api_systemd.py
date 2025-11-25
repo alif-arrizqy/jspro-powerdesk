@@ -8,10 +8,14 @@ from utils import bash_command
 
 # Log file paths configuration
 LOG_PATHS = {
-    'mqtt_publish.service': {
-        'mqtt_errors.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_errors.log',
-        'mqtt_warnings.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_warnings.log',
-        'mqtt_all.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_all.log'
+    'mqtt_bakti_publisher.service': {
+        'mqtt_bakti_all.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_bakti_all.log',
+        'mqtt_bakti_errors.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_bakti_errors.log',
+        'mqtt_bakti_warnings.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_bakti_warnings.log'
+    },
+    'mqtt_sundaya_publisher.timer': {
+        'mqtt_sundaya_info.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_sundaya_info.log',
+        'mqtt_sundaya_error.log': '/var/lib/sundaya/ehub-universal/logs/mqtt_sundaya_error.log'
     },
     'thread_bms.service': {
         'bms_errors.log': '/var/lib/sundaya/ehub-universal/logs/bms_errors.log',
@@ -30,7 +34,8 @@ LOG_PATHS = {
 
 # Allowed services for monitoring
 ALLOWED_SERVICES = [
-    'mqtt_publish.service',
+    'mqtt_bakti_publisher.service',
+    'mqtt_sundaya_publisher.timer',
     'redis.service',
     'snmp_handler.service',
     'thread_bms.service',
