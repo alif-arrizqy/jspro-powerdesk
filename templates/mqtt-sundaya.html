@@ -1,0 +1,706 @@
+{% extends 'modern-layout.html' %}
+{% block breadcrumbs %}MQTT Loggers Service{% endblock breadcrumbs %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <i class="fas fa-file-alt text-primary me-2"></i>
+                    MQTT Sundaya Service Management
+                </h3>
+            </div>
+            <div class="modern-card-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Info:</strong> Memantau aktifitas publish MQTT ke Sundaya Broker, mengunggah data logs, dan mengelola operasi layanan MQTT Loggers.
+                </div>
+                <p class="text-muted mb-0">Kamu bisa memantau dan mengelola MQTT messaging service secara realtime.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Status & Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cogs text-success me-2"></i>
+                    Service Status & Controls
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4 justify-content-center">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Service Status</h6>
+                                <div class="stats-card-icon bg-success">
+                                    <i class="fas fa-power-off"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value">
+                                <span class="status-indicator inactive" id="service-status">
+                                    Loading...
+                                </span>
+                            </h4>
+                            <p class="stats-card-subtitle">MQTT Sundaya Service</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Logs Published</h6>
+                                <div class="stats-card-icon bg-info">
+                                    <i class="fas fa-paper-plane"></i>
+                                </div>
+                            </div>
+                            <h4 class="stats-card-value" id="message-count">0</h4>
+                            <p class="stats-card-subtitle">Total Logs Today</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-card-header">
+                                <h6 class="stats-card-title">Service Control</h6>
+                                <div class="stats-card-icon bg-primary">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-modern btn-warning btn-sm" id="restart-service" onclick="restartMqttService()">
+                                    <i class="fas fa-redo me-1"></i>
+                                    Restart Service
+                                </button>
+                            </div>
+                            <p class="stats-card-subtitle">Service Management</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Stats Section -->
+<div class="row mb-4">
+    <!-- Battery Stats -->
+    <div class="col-lg-6 col-md-12 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-battery-three-quarters text-warning me-2"></i>
+                    Battery Stats
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-database me-1"></i>Total Records</h6>
+                            <h4 class="mb-0" id="battery-total-records">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-calendar-day me-1"></i>Today Records</h6>
+                            <h4 class="mb-0" id="battery-today-records">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-check-circle me-1"></i>Messages Sent</h6>
+                            <h4 class="mb-0 text-success" id="battery-msg-sent">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-clock me-1"></i>Messages Pending</h6>
+                            <h4 class="mb-0 text-warning" id="battery-msg-pending">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-history me-1"></i>First Record</h6>
+                            <p class="mb-0" id="battery-first-ts">-</p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-clock me-1"></i>Last Record</h6>
+                            <p class="mb-0" id="battery-last-ts">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Energy Stats -->
+    <div class="col-lg-6 col-md-12 mb-4">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-bolt text-info me-2"></i>
+                    Energy Stats
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-database me-1"></i>Total Records</h6>
+                            <h4 class="mb-0" id="energy-total-records">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-calendar-day me-1"></i>Today Records</h6>
+                            <h4 class="mb-0" id="energy-today-records">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-check-circle me-1"></i>Messages Sent</h6>
+                            <h4 class="mb-0 text-success" id="energy-msg-sent">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-clock me-1"></i>Messages Pending</h6>
+                            <h4 class="mb-0 text-warning" id="energy-msg-pending">-</h4>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-history me-1"></i>First Record</h6>
+                            <p class="mb-0" id="energy-first-ts">-</p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="stats-card">
+                            <h6 class="text-muted mb-1"><i class="fas fa-clock me-1"></i>Last Record</h6>
+                            <p class="mb-0" id="energy-last-ts">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Logs Monitor -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-terminal text-primary me-2"></i>
+                    MQTT Loggers Service Logs
+                    <span class="badge bg-secondary ms-2" id="log-type-badge">Info Logs</span>
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <!-- Log Parameters -->
+                <div class="row mb-3 g-3">
+                    <div class="col-md-3">
+                        <label for="log-type" class="form-label">
+                            <i class="fas fa-file-alt me-1"></i>
+                            Log File Type
+                        </label>
+                        <select class="form-select form-select-sm" id="log-type">
+                            <option value="mqtt_sundaya_info.log" selected>Info Logs</option>
+                            <option value="mqtt_sundaya_error.log">Error Logs</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="log-lines" class="form-label">
+                            <i class="fas fa-list-ol me-1"></i>
+                            Lines
+                        </label>
+                        <select class="form-select form-select-sm" id="log-lines">
+                            <option value="16">16 lines</option>
+                            <option value="32">32 lines</option>
+                            <option value="64" selected>64 lines</option>
+                            <option value="128">128 lines</option>
+                            <option value="256">256 lines</option>
+                            <option value="512">512 lines</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-sort me-1"></i>
+                            Order
+                        </label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="log-reverse" checked>
+                            <label class="form-check-label" for="log-reverse">
+                                Newest First
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-end">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn btn-modern btn-primary btn-sm" onclick="showMqttLogs()">
+                                <i class="fas fa-eye me-1"></i>
+                                Show Logs
+                            </button>
+                            <button class="btn btn-modern btn-outline-secondary btn-sm" onclick="refreshMqttLogs()">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-modern btn-outline-danger btn-sm" onclick="clearLogFile()">
+                                <i class="fas fa-trash me-1"></i>
+                                Clear Logs
+                            </button>
+                            <button class="btn btn-modern btn-outline-info btn-sm" onclick="downloadLogs()">
+                                <i class="fas fa-download me-1"></i>
+                                Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Display Area -->
+                <div class="mqtt-monitor">
+                    <div class="monitor-log" id="mqtt-log" style="height: 450px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; background-color: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 5px;">
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Click "Show Logs" to display MQTT Loggers service logs...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MQTT Loggers Configuration -->
+<div class="row">
+    <div class="col-12">
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cog text-warning me-2"></i>
+                    MQTT Loggers Configuration (Sundaya Broker)
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-4">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-server me-2"></i>
+                                Broker Host
+                            </label>
+                            <input type="text" class="form-control" value="{{ mqtt_config.sundaya_broker.host if mqtt_config and mqtt_config.sundaya_broker else 'localhost' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-plug me-2"></i>
+                                Port
+                            </label>
+                            <input type="text" class="form-control" value="{{ mqtt_config.sundaya_broker.port if mqtt_config and mqtt_config.sundaya_broker else '1883' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2"></i>
+                                Username
+                            </label>
+                            <input type="text" class="form-control" value="{{ mqtt_config.sundaya_broker.username if mqtt_config and mqtt_config.sundaya_broker else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Password
+                            </label>
+                            <input type="password" class="form-control" value="{{ mqtt_config.sundaya_broker.password if mqtt_config and mqtt_config.sundaya_broker else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="config-item">
+                            <label class="form-label">
+                                <i class="fas fa-tag me-2"></i>
+                                Topic Prefix
+                            </label>
+                            <input type="text" class="form-control" value="{{ mqtt_config.sundaya_broker.topic if mqtt_config and mqtt_config.sundaya_broker else 'N/A' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> MQTT Loggers configuration is managed through the system configuration file. 
+                            Contact administrator to modify these settings.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Action Modal -->
+<div class="modal fade" id="serviceActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cog me-2"></i>Restart MQTT Loggers Service
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This will restart the MQTT Loggers service. This action may briefly interrupt log publishing to Sundaya broker.
+                </div>
+                <div class="mb-3">
+                    <label for="action-user" class="form-label">
+                        <i class="fas fa-user me-2"></i>
+                        User
+                    </label>
+                    <select class="form-select" id="action-user" required>
+                        <option value="admin" selected>Admin</option>
+                        <option value="teknisi">Teknisi</option>
+                        <option value="apt">APT</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="action-password" class="form-label">
+                        <i class="fas fa-lock me-2"></i>
+                        Password
+                    </label>
+                    <input type="password" class="form-control" id="action-password" placeholder="Enter your password" required>
+                    <div class="invalid-feedback" id="action-password-error"></div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="action-confirm">
+                    <label class="form-check-label" for="action-confirm">
+                        I understand the consequences of this action
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirm-action-btn" onclick="executeServiceRestart()">
+                    <i class="fas fa-redo me-2"></i>Restart Service
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+// Inline MQTT Sundaya page script
+(function(){
+    'use strict';
+
+    // Inject user token from server-side session into JS
+    const userToken = '{{ session.get("auth_token", "") }}';
+
+    async function fetchJson(url, opts){
+        try{
+            opts = opts || {};
+            opts.headers = Object.assign({}, opts.headers || {});
+            if(userToken) opts.headers['Authorization'] = `Bearer ${userToken}`;
+
+            const res = await fetch(url, opts);
+            if(!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }catch(err){
+            console.error('fetchJson error', err, url);
+            return null;
+        }
+    }
+
+    function formatTimestamp(ts){
+        if(!ts || ts === 'N/A' || ts === '-') return 'N/A';
+        // Assuming format: YYYYMMDDThhmmss
+        try{
+            const match = ts.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
+            if(match){
+                return `${match[1]}-${match[2]}-${match[3]} ${match[4]}:${match[5]}:${match[6]}`;
+            }
+        }catch(e){}
+        return ts;
+    }
+
+    window.updateServiceStatus = async function(){
+        const fetchServiceStatus = await fetchJson('/api/v1/service/systemd/list');
+        
+        if (fetchServiceStatus && fetchServiceStatus.status === 'success' && fetchServiceStatus.data){
+            const data = fetchServiceStatus.data;
+            const servicesStatus = data.services_status;
+            
+            // Get mqtt_sundaya_publisher.timer status
+            const sundayaStatus = servicesStatus['mqtt_sundaya_publisher.timer'] || 'unknown';
+            
+            // Update status indicator
+            const statusIndicator = document.getElementById('service-status');
+            if(statusIndicator){
+                // Update text based on status
+                let displayText = 'Unknown';
+                let isActive = false;
+                
+                switch(sundayaStatus) {
+                    case 'active':
+                        displayText = 'Running';
+                        isActive = true;
+                        break;
+                    case 'inactive':
+                        displayText = 'Stopped';
+                        isActive = false;
+                        break;
+                    case 'failed':
+                        displayText = 'Failed';
+                        isActive = false;
+                        break;
+                    case 'unknown':
+                    default:
+                        displayText = 'Unknown';
+                        isActive = false;
+                        break;
+                }
+                
+                statusIndicator.textContent = displayText;
+                statusIndicator.classList.remove('active', 'inactive', 'stopped', 'failed');
+                
+                if(isActive) {
+                    statusIndicator.classList.add('active');
+                } else if(sundayaStatus === 'failed') {
+                    statusIndicator.classList.add('failed');
+                } else {
+                    statusIndicator.classList.add('inactive');
+                }
+            }
+        }
+    };
+
+    window.loadMqttStats = async function(){
+        const stats = await fetchJson('/api/v1/service/mqtt-sundaya/stats');
+        
+        if(stats && stats.status === 'success' && stats.data){
+            const data = stats.data;
+            
+            // Update battery stats
+            document.getElementById('battery-total-records').textContent = data.battery?.total_records || 0;
+            document.getElementById('battery-today-records').textContent = data.battery?.today_records || 0;
+            document.getElementById('battery-msg-sent').textContent = data.battery?.total_msg_sent || 0;
+            document.getElementById('battery-msg-pending').textContent = data.battery?.total_msg_pending || 0;
+            document.getElementById('battery-first-ts').textContent = formatTimestamp(data.battery?.first_record_timestamp);
+            document.getElementById('battery-last-ts').textContent = formatTimestamp(data.battery?.last_record_timestamp);
+            
+            // Update energy stats
+            document.getElementById('energy-total-records').textContent = data.energy?.total_records || 0;
+            document.getElementById('energy-today-records').textContent = data.energy?.today_records || 0;
+            document.getElementById('energy-msg-sent').textContent = data.energy?.total_msg_sent || 0;
+            document.getElementById('energy-msg-pending').textContent = data.energy?.total_msg_pending || 0;
+            document.getElementById('energy-first-ts').textContent = formatTimestamp(data.energy?.first_record_timestamp);
+            document.getElementById('energy-last-ts').textContent = formatTimestamp(data.energy?.last_record_timestamp);
+            
+            // Update service status
+            const msgCount = document.getElementById('message-count');
+            if(msgCount) msgCount.textContent = (data.battery?.today_records || 0) + (data.energy?.today_records || 0);
+        }
+    };
+
+    window.showMqttLogs = async function(){
+        const logType = document.getElementById('log-type')?.value || 'mqtt_sundaya_info.log';
+        const lines = document.getElementById('log-lines')?.value || 64;
+        const reverse = document.getElementById('log-reverse')?.checked || false;
+        const container = document.getElementById('mqtt-log');
+        
+        // Update badge
+        const badge = document.getElementById('log-type-badge');
+        if(badge) badge.textContent = logType.includes('info') ? 'Info Logs' : 'Error Logs';
+        
+        if(container) container.innerHTML = '<div class="text-center p-3" style="color: #888;"><i class="fas fa-spinner fa-spin me-2"></i>Loading logs...</div>';
+        
+        try{
+            const url = `/api/v1/service/mqtt-sundaya/logs?log_type=${encodeURIComponent(logType)}&lines=${encodeURIComponent(lines)}&reverse=${reverse}`;
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+            
+            if(!res.ok) throw new Error('Failed to fetch logs');
+            
+            const data = await res.json();
+            
+            if(data.status === 'success' && data.data && data.data.logs){
+                const logs = data.data.logs;
+                if(logs.length === 0){
+                    container.innerHTML = '<div class="text-center p-3" style="color: #888;"><i class="fas fa-info-circle me-2"></i>No logs available</div>';
+                } else {
+                    container.innerHTML = '<pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">' + 
+                                         logs.map(log => escapeHtml(log)).join('\n') + '</pre>';
+                    
+                    // Auto scroll to bottom if reverse is false
+                    if(!reverse){
+                        container.scrollTop = container.scrollHeight;
+                    }
+                }
+            } else {
+                container.innerHTML = '<div class="text-danger p-3"><i class="fas fa-exclamation-circle me-2"></i>Failed to load logs</div>';
+            }
+        }catch(err){
+            console.error('showMqttLogs error:', err);
+            if(container) container.innerHTML = '<div class="text-danger p-3"><i class="fas fa-exclamation-circle me-2"></i>Error: ' + escapeHtml(err.message) + '</div>';
+        }
+    };
+
+    window.refreshMqttLogs = function(){
+        showMqttLogs();
+    };
+
+    window.clearLogFile = async function(){
+        if(!confirm('Are you sure you want to clear the selected log file? This action cannot be undone.')){
+            return;
+        }
+        
+        const logType = document.getElementById('log-type')?.value || 'mqtt_sundaya_info.log';
+        
+        try{
+            const url = `/api/v1/service/mqtt-sundaya/logs/clear?log_type=${encodeURIComponent(logType)}`;
+            const res = await fetch(url, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+            
+            if(!res.ok) throw new Error('Failed to clear logs');
+            
+            const data = await res.json();
+            
+            if(data.status === 'success'){
+                alert(data.message || 'Log file cleared successfully');
+                // Clear the display
+                const container = document.getElementById('mqtt-log');
+                if(container) container.innerHTML = '<div class="text-center p-3" style="color: #888;"><i class="fas fa-info-circle me-2"></i>Log file has been cleared</div>';
+            } else {
+                alert('Failed to clear log file: ' + (data.message || 'Unknown error'));
+            }
+        }catch(err){
+            console.error('clearLogFile error:', err);
+            alert('Error clearing log file: ' + err.message);
+        }
+    };
+
+    window.downloadLogs = async function(){
+        const logType = document.getElementById('log-type')?.value || 'mqtt_sundaya_info.log';
+        const lines = 16000; // Default for download
+        
+        try{
+            const url = `/api/v1/service/mqtt-sundaya/logs/download?log_type=${encodeURIComponent(logType)}&lines=${lines}`;
+            const res = await fetch(url, { 
+                headers: { 'Authorization': `Bearer ${userToken}` } 
+            });
+            
+            if(!res.ok) throw new Error('Download failed');
+            
+            const blob = await res.blob();
+            const filename = `${logType.replace('.log', '')}_${new Date().toISOString().slice(0,10)}.log`;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }catch(err){
+            console.error('downloadLogs error:', err);
+            alert('Failed to download logs: ' + err.message);
+        }
+    };
+
+    window.restartMqttService = function(){
+        const modalEl = document.getElementById('serviceActionModal');
+        if(!modalEl) return;
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    };
+
+    window.executeServiceRestart = async function(){
+        const pwd = document.getElementById('action-password')?.value;
+        const user = document.getElementById('action-user')?.value || 'admin';
+        const confirm = document.getElementById('action-confirm')?.checked;
+        const errEl = document.getElementById('action-password-error');
+        
+        if(!confirm){
+            if(errEl) errEl.textContent = 'You must confirm the action.';
+            return;
+        }
+        if(!pwd){
+            if(errEl) errEl.textContent = 'Password required';
+            return;
+        }
+        if(errEl) errEl.textContent = '';
+
+        try{
+            const res = await fetch('/api/v1/service/systemd/action', {
+                method: 'POST',
+                headers: Object.assign({'Content-Type': 'application/json'}, userToken ? {'Authorization': `Bearer ${userToken}`} : {}),
+                body: JSON.stringify({
+                    service: 'mqtt_sundaya_publisher.timer',
+                    action: 'restart',
+                    password: pwd,
+                    user: user
+                })
+            });
+            
+            if(!res.ok) throw new Error('Restart failed');
+            
+            const json = await res.json();
+            const modalEl = document.getElementById('serviceActionModal');
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            
+            if(json.status === 'success'){
+                alert(json.message || 'Service restarted successfully');
+                // Refresh service status after restart
+                setTimeout(() => {
+                    updateServiceStatus();
+                    loadMqttStats();
+                }, 2000);
+            } else {
+                alert('Failed: ' + (json.message || 'Unknown error'));
+            }
+        }catch(err){
+            console.error('executeServiceRestart error:', err);
+            alert('Failed to request restart: ' + err.message);
+        }
+    };
+
+    function escapeHtml(text){
+        const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Auto refresh stats every 30 seconds
+    setInterval(() => {
+        loadMqttStats();
+        updateServiceStatus();
+    }, 30000);
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMqttStats();
+        updateServiceStatus();
+    });
+
+})();
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modern-style.css') }}">
+{% endblock scripts %}
