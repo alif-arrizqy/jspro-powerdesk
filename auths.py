@@ -64,6 +64,8 @@ ROLE_PERMISSIONS = {
             'dashboard',
             'scc_monitoring',
             'battery_monitoring',
+            'mqtt_bakti',
+            'mqtt_sundaya',
             'systemd_service',
             'snmp_service',
             'site_information',
@@ -77,6 +79,8 @@ ROLE_PERMISSIONS = {
             'view_dashboard',
             'view_scc_data',
             'view_battery_data',
+            'manage_mqtt_bakti',
+            'manage_mqtt_sundaya',
             'manage_systemd_services',
             'view_site_info',
             'configure_device',
@@ -120,7 +124,8 @@ ROLE_PERMISSIONS = {
             'scc_monitoring',
             'battery_monitoring',
             'rectifier_monitoring',
-            'mqtt_service',
+            'mqtt_bakti',
+            'mqtt_sundaya',
             'systemd_service',
             'snmp_service',
             'datalog',
@@ -138,7 +143,8 @@ ROLE_PERMISSIONS = {
             'view_scc_data',
             'view_battery_data',
             'view_rectifier_data',
-            'manage_mqtt_service',
+            'manage_mqtt_bakti',
+            'manage_mqtt_sundaya',
             'manage_systemd_services',
             'view_historical_data',
             'view_alarm_logs',
@@ -167,7 +173,10 @@ MENU_ACCESS = {
             'battery': True
         },
         'services': {
-            'mqtt': True,
+            'mqtt': {
+                'bakti': True,
+                'sundaya': True
+            },
             'systemd': True,
             'snmp': True
         },
@@ -191,7 +200,10 @@ MENU_ACCESS = {
             'battery': False
         },
         'services': {
-            'mqtt': False,
+            'mqtt': {
+                'bakti': False,
+                'sundaya': True
+            },
             'systemd': False,
             'snmp': True
         },
@@ -216,7 +228,10 @@ MENU_ACCESS = {
             'rectifier': True
         },
         'services': {
-            'mqtt': True,
+            'mqtt': {
+                'bakti': True,
+                'sundaya': True
+            },
             'systemd': True,
             'snmp': True
         },
@@ -540,12 +555,32 @@ def get_menu_access(username):
     
     # Apply service-based filtering for services menu
     if 'services' in dynamic_menu_access:
-        # MQTT service visibility
+        # MQTT service visibility - handle nested structure for bakti and sundaya
         if 'mqtt' in dynamic_menu_access['services']:
-            dynamic_menu_access['services']['mqtt'] = (
-                dynamic_menu_access['services']['mqtt'] and 
-                enabled_services.get('mqtt_service', False)
-            )
+            mqtt_service_enabled = enabled_services.get('mqtt_service', False)
+            
+            print(f"[DEBUG get_menu_access] User: {username}, MQTT service enabled: {mqtt_service_enabled}")
+            print(f"[DEBUG get_menu_access] MQTT structure before: {dynamic_menu_access['services']['mqtt']}")
+            
+            # If mqtt is a dict (new structure with bakti/sundaya)
+            if isinstance(dynamic_menu_access['services']['mqtt'], dict):
+                if 'bakti' in dynamic_menu_access['services']['mqtt']:
+                    dynamic_menu_access['services']['mqtt']['bakti'] = (
+                        dynamic_menu_access['services']['mqtt']['bakti'] and 
+                        mqtt_service_enabled
+                    )
+                if 'sundaya' in dynamic_menu_access['services']['mqtt']:
+                    dynamic_menu_access['services']['mqtt']['sundaya'] = (
+                        dynamic_menu_access['services']['mqtt']['sundaya'] and 
+                        mqtt_service_enabled
+                    )
+                print(f"[DEBUG get_menu_access] MQTT structure after: {dynamic_menu_access['services']['mqtt']}")
+            # If mqtt is boolean (old structure - for backward compatibility)
+            else:
+                dynamic_menu_access['services']['mqtt'] = (
+                    dynamic_menu_access['services']['mqtt'] and 
+                    mqtt_service_enabled
+                )
         
         # SNMP service visibility
         if 'snmp' in dynamic_menu_access['services']:
