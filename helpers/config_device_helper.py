@@ -6,7 +6,7 @@ from config import *
 from utils import bash_command
 
 # Configure logging for production use with file output
-log_file = f"/var/lib/sundaya/jspro-powerdesk/logs/handle_relay_config_update.log"
+log_file = f"{PATH}/logs/handle_relay_config_update.log"
 os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
 logging.basicConfig(
@@ -71,10 +71,14 @@ def update_device_model(path, form):
 
 
 def update_device_version(path, form):
+    """
+    Update device version and talis port configuration in config_device.json
+    """
     data = {}
     for key, value in form.items():
         data[key] = value
 
+    # Device version fields
     ehub_version = data.get('ehub-version')
     panel2_type = data.get('panel2-type')
     site_type = data.get('site-type')
@@ -83,11 +87,16 @@ def update_device_version(path, form):
     battery_type = data.get('battery-type')
     usb_type = data.get('usb-type')
     rectifier_type = data.get('rectifier-type')
+    
+    # Talis port fields
+    talis_port_0 = data.get('talis-port-0', '')
+    talis_port_1 = data.get('talis-port-1', '')
 
     # open json file
     with open(path, 'r') as f:
         json_data = json.load(f)
 
+    # Update device_version section
     json_data['device_version']['ehub_version'] = ehub_version
     json_data['device_version']['panel2_type'] = panel2_type
     json_data['device_version']['site_type'] = site_type
@@ -96,6 +105,15 @@ def update_device_version(path, form):
     json_data['device_version']['battery_type'] = battery_type
     json_data['device_version']['usb_type'] = usb_type
     json_data['device_version']['rectifier_type'] = rectifier_type
+
+    # Update talis_config section if talis ports are provided
+    if talis_port_0 or talis_port_1:
+        if 'talis_config' not in json_data:
+            json_data['talis_config'] = {}
+        if talis_port_0:
+            json_data['talis_config']['talis_port_0'] = talis_port_0
+        if talis_port_1:
+            json_data['talis_config']['talis_port_1'] = talis_port_1
 
     # write to json file
     with open(path, 'w') as f:
