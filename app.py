@@ -377,13 +377,13 @@ def scc_alarm_log():
         }
     return render_template('scc-alarm-log.html', **context)
 
-@app.route('/mqtt-service', methods=['GET'])
+@app.route('/mqtt-bakti', methods=['GET'])
 @login_required
-def mqtt_service():
+def mqtt_bakti():
     # Check page access permission
     username = current_user.id
-    if not can_access_page(username, 'mqtt_service'):
-        audit_access(username, 'mqtt_service', 'access_denied')
+    if not can_access_page(username, 'mqtt_bakti'):
+        audit_access(username, 'mqtt_bakti', 'access_denied')
         flash('You do not have permission to access this page.', 'error')
         return redirect(url_for('index'))
     
@@ -405,9 +405,7 @@ def mqtt_service():
             'site_name': site_name,
             'scc_type': scc_type,
             'ip_address': get_ip_address('eth0'),
-            # 'ip_address': '192.168.1.1',
             'mqtt_config': data.get('mqtt_config', {}),
-            # User passwords for service authentication
             'user_passwords': {
                 'apt': os.getenv('APT_PASSWORD'),
                 'teknisi': os.getenv('TEKNISI_PASSWORD'),
@@ -416,10 +414,10 @@ def mqtt_service():
         }
         
         # Audit page access
-        audit_access(username, 'mqtt_service', 'view')
+        audit_access(username, 'mqtt_bakti', 'view')
         
     except Exception as e:
-        print(f"mqtt_service() error: {e}")
+        print(f"mqtt_bakti() error: {e}")
         context = {
             'username': username,
             'user_role': get_user_role(username),
@@ -427,16 +425,71 @@ def mqtt_service():
             'site_name': 'Site Name',
             'scc_type': scc_type,
             'ip_address': get_ip_address('eth0'),
-            # 'ip_address': '192.168.1.1',
             'mqtt_config': data.get('mqtt_config', {}),
-            # User passwords for service authentication
             'user_passwords': {
                 'apt': os.getenv('APT_PASSWORD'),
                 'teknisi': os.getenv('TEKNISI_PASSWORD'),
                 'admin': os.getenv('ADMIN_PASSWORD')
             }
         }
-    return render_template('mqtt-service.html', **context)
+    return render_template('mqtt-bakti.html', **context)
+
+@app.route('/mqtt-sundaya', methods=['GET'])
+@login_required
+def mqtt_sundaya():
+    # Check page access permission
+    username = current_user.id
+    if not can_access_page(username, 'mqtt_sundaya'):
+        audit_access(username, 'mqtt_sundaya', 'access_denied')
+        flash('You do not have permission to access this page.', 'error')
+        return redirect(url_for('index'))
+    
+    site_name = ""
+    path = f'{PATH}/config_device.json'
+    with open(path, 'r') as file:
+        data = json.load(file)
+    
+    try:
+        # Get user role and menu access
+        user_role = get_user_role(username)
+        menu_access = get_menu_access(username)
+        
+        site_name = red.hget('device_config', 'site_name')
+        context = {
+            'username': username,
+            'user_role': user_role,
+            'menu_access': menu_access,
+            'site_name': site_name,
+            'scc_type': scc_type,
+            'ip_address': get_ip_address('eth0'),
+            'mqtt_config': data.get('mqtt_config', {}),
+            'user_passwords': {
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
+            }
+        }
+        
+        # Audit page access
+        audit_access(username, 'mqtt_sundaya', 'view')
+        
+    except Exception as e:
+        print(f"mqtt_sundaya() error: {e}")
+        context = {
+            'username': username,
+            'user_role': get_user_role(username),
+            'menu_access': get_menu_access(username),
+            'site_name': 'Site Name',
+            'scc_type': scc_type,
+            'ip_address': get_ip_address('eth0'),
+            'mqtt_config': data.get('mqtt_config', {}),
+            'user_passwords': {
+                'apt': os.getenv('APT_PASSWORD'),
+                'teknisi': os.getenv('TEKNISI_PASSWORD'),
+                'admin': os.getenv('ADMIN_PASSWORD')
+            }
+        }
+    return render_template('mqtt-sundaya.html', **context)
 
 @app.route('/systemd-service', methods=['GET'])
 @login_required
@@ -710,9 +763,9 @@ def setting_device():
         if form_device_version:
             response = update_device_version(path, data)
             if response:
-                flash('Device Version has been updated successfully', 'success')
+                flash('Device Version & Port Configuration has been updated successfully', 'success')
                 audit_access(username, 'device_settings', 'update_device_version')
-                bash_command('sudo systemctl restart device_config_loader.service webapp.service')
+                bash_command('sudo systemctl restart device_config_loader.service talis5.service webapp.service')
             else:
                 flash('Failed to update Device Version', 'danger')
             return redirect(url_for('setting_device'))
@@ -736,7 +789,21 @@ def setting_device():
 
         # get site name
         site_name = red.hget('device_config', 'site_name')
-
+        
+        # get usb port
+        get_port_usb = []
+        get_port_serial = []
+        
+        try:
+            get_port_usb = bash_command('ls /dev/ttyUSB*')
+        except Exception as e:
+            get_port_usb = ['/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2']
+        
+        try:
+            get_port_serial = bash_command('ls /dev/ttyS*')
+        except Exception as e:
+            get_port_serial = ['/dev/ttyS0']
+            
         context = {
             'username': username,
             'user_role': user_role,
@@ -747,8 +814,12 @@ def setting_device():
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
             'enabled_services': data.get('enabled_services'),
+            'talis_config': data.get('talis_config', {}),
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
+            'port_usb': get_port_usb,
+            'port_serial': get_port_serial,
+            
         }
         
         # Audit page access
@@ -770,8 +841,11 @@ def setting_device():
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
             'enabled_services': data.get('enabled_services', {}),
+            'talis_config': data.get('talis_config', {}),
             'ip_address': get_ip_address('eth0'),
             # 'ip_address': '192.168.1.1',
+            'port_usb': [],
+            'port_serial': [],
         }
     return render_template('setting-device.html', **context)
 
