@@ -273,16 +273,25 @@
     
 
     
-    // List of services to monitor
+    // List of services to monitor (synced with api_systemd.py ALLOWED_SERVICES)
     const services = [
         {
-            name: 'mqtt_publish.service',
-            displayName: 'MQTT Publisher',
-            description: 'MQTT message publishing service',
+            name: 'mqtt_bakti_publisher.service',
+            displayName: 'MQTT Bakti Publisher',
+            description: 'MQTT message publishing service for Bakti',
             category: 'communication',
             critical: true,
             hasLogs: true,
-            logFiles: ['mqtt_errors.log', 'mqtt_warnings.log', 'mqtt_all.log']
+            logFiles: ['mqtt_bakti_all.log', 'mqtt_bakti_errors.log', 'mqtt_bakti_warnings.log']
+        },
+        {
+            name: 'mqtt_sundaya_publisher.timer',
+            displayName: 'MQTT Sundaya Publisher',
+            description: 'MQTT message publishing timer for Sundaya',
+            category: 'communication',
+            critical: true,
+            hasLogs: true,
+            logFiles: ['mqtt_sundaya_info.log', 'mqtt_sundaya_error.log']
         },
         {
             name: 'redis.service',
@@ -307,7 +316,7 @@
             category: 'hardware',
             critical: true,
             hasLogs: true,
-            logFiles: ['bms_errors.log', 'bms_warnings.log', 'bms_all.log']
+            logFiles: ['bms_all.log', 'bms_errors.log', 'bms_warnings.log']
         },
         {
             name: 'scc.service',
@@ -316,7 +325,7 @@
             category: 'hardware',
             critical: true,
             hasLogs: true,
-            logFiles: ['scc_errors.log', 'scc_warnings.log', 'scc_all.log']
+            logFiles: ['scc_all.log', 'scc_errors.log', 'scc_warnings.log']
         },
         {
             name: 'scc_logs.timer',
@@ -856,36 +865,19 @@
         if (!serviceName || !logFile) return;
         
         try {
-            let response;
-            
-            // Check if this is an MQTT service log
-            if (serviceName === 'mqtt_publish.service') {
-                // Use MQTT service API for MQTT logs
-                const logType = logFile.includes('error') ? 'error' : 
-                             logFile.includes('warning') ? 'warning' : 'all';
-                
-                response = await fetch(`${API_BASE_URL}/mqtt/logs?log_type=${logType}&lines=100`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${userToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } else {
-                // Use systemd action API for other service logs
-                response = await fetch(`${SYSTEMD_API_URL}/action`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        service: serviceName,
-                        action: 'logs',
-                        log_file: logFile
-                    })
-                });
-            }
+            // Use systemd action API for all service logs
+            const response = await fetch(`${SYSTEMD_API_URL}/action`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    service: serviceName,
+                    action: 'logs',
+                    log_file: logFile
+                })
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -927,72 +919,41 @@
         if (!serviceName || !logFile) return;
         
         try {
-            let url;
+            // Use systemd action API for all service logs
+            const response = await fetch(`${SYSTEMD_API_URL}/action`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    service: serviceName,
+                    action: 'download_logs',
+                    log_file: logFile
+                })
+            });
             
-            // Check if this is an MQTT service log
-            if (serviceName === 'mqtt_publish.service') {
-                // Use MQTT service API for MQTT logs
-                const logType = logFile.includes('error') ? 'error' : logFile.includes('warning') ? 'warning' : 'all';
-                url = `${API_BASE_URL}/mqtt/logs/download?log_type=${logType}`;
-            } else {
-                // Use systemd action API for other service logs  
-                const response = await fetch(`${SYSTEMD_API_URL}/action`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userToken}`
-                    },
-                    body: JSON.stringify({
-                        service: serviceName,
-                        action: 'download_logs',
-                        log_file: logFile
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.status === 'success' && result.data && result.data.logs) {
-                    // Create downloadable file
-                    const blob = new Blob([result.data.logs], { type: 'text/plain' });
-                    url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                } else {
-                    throw new Error('No log data available');
-                }
-                return;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            // For MQTT logs, direct download
-            const a = document.createElement('a');
-            a.href = `${url}`;
-            a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
-            a.style.display = 'none';
+            const result = await response.json();
             
-            // Add authorization header for download
-            fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${userToken}`
-                }
-            }).then(response => response.blob())
-              .then(blob => {
-                  const downloadUrl = URL.createObjectURL(blob);
-                  a.href = downloadUrl;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(downloadUrl);
-                  document.body.removeChild(a);
-              });
+            if (result.status === 'success' && result.data && result.data.logs) {
+                // Create downloadable file
+                const logsContent = Array.isArray(result.data.logs) ? result.data.logs.join('\n') : result.data.logs;
+                const blob = new Blob([logsContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${serviceName}-${logFile}-${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
+            } else {
+                throw new Error('No log data available');
+            }
             
         } catch (error) {
             alert('Failed to download logs: ' + error.message);
