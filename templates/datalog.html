@@ -128,11 +128,29 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="modern-card">
-            <div class="modern-card-header">
-                <h5 class="modern-card-title">
+            <div class="modern-card-header flex-wrap gap-3 d-flex justify-content-between align-items-center">
+                <h5 class="modern-card-title mb-0">
                     <i class="fas fa-chart-line text-success me-2"></i>
                     Data Statistics
                 </h5>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div>
+                        <label for="log-type-select" class="form-label text-muted mb-1 small">Log Type</label>
+                        <select id="log-type-select" class="form-select form-select-sm shadow-sm">
+                            <option value="battery">Battery</option>
+                            <option value="energy">Energy / SCC</option>
+                            <option value="bakti_mqtt">Bakti MQTT</option>
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        <span class="badge bg-secondary text-white" id="redis-availability-badge">
+                            <i class="fas fa-bolt me-1"></i>Redis
+                        </span>
+                        <span class="badge bg-secondary text-white" id="sqlite-availability-badge">
+                            <i class="fas fa-database me-1"></i>SQLite
+                        </span>
+                    </div>
+                </div>
             </div>
             <div class="modern-card-body">
                 <div class="row g-4">
@@ -144,8 +162,12 @@
                                     <i class="fas fa-memory"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value" id="redis-records">Loading...</h3>
-                            <p class="stats-card-subtitle">BMS + Energy Records</p>
+                            <h3 class="stats-card-value" id="redis-log-count">--</h3>
+                            <p class="stats-card-subtitle">Selected log type</p>
+                            <p class="text-muted small mb-0">
+                                <i class="far fa-clock me-1"></i>
+                                <span id="redis-log-range">Awaiting data...</span>
+                            </p>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6">
@@ -156,8 +178,12 @@
                                     <i class="fas fa-database"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value" id="sqlite-records">Loading...</h3>
-                            <p class="stats-card-subtitle">Database Records</p>
+                            <h3 class="stats-card-value" id="sqlite-log-count">--</h3>
+                            <p class="stats-card-subtitle">Selected log type</p>
+                            <p class="text-muted small mb-0">
+                                <i class="far fa-clock me-1"></i>
+                                <span id="sqlite-log-range">Awaiting data...</span>
+                            </p>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6">
@@ -168,8 +194,22 @@
                                     <i class="fas fa-clock"></i>
                                 </div>
                             </div>
-                            <h3 class="stats-card-value" id="last-update">Loading...</h3>
-                            <p class="stats-card-subtitle">Data Refresh</p>
+                            <h3 class="stats-card-value" id="logs-last-update">--</h3>
+                            <p class="stats-card-subtitle">Data snapshot</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4 mt-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">Redis Status:</span>
+                            <span class="status-indicator" id="datalog-status">--</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">Data Health:</span>
+                            <span class="status-indicator" id="data-health">--</span>
                         </div>
                     </div>
                 </div>
@@ -189,6 +229,11 @@
                 </h3>
             </div>
             <div class="modern-card-body">
+                <p class="text-muted mb-3">
+                    Actions will be applied to
+                    <span class="fw-semibold" id="current-log-type-label">Battery</span>
+                    logs.
+                </p>
                 <div class="row g-3">
                     <div class="col-lg-3 col-md-6">
                         <div class="modern-card">
@@ -255,1713 +300,503 @@
         </div>
     </div>
 </div>
-
-<!-- ################### next plan - under development ########################## -->
-<!-- Upload Data Operations -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="modern-card">
-            <div class="modern-card-header">
-                <h3 class="modern-card-title">
-                    <i class="fas fa-upload text-success me-2"></i>
-                    Upload Data Operations
-                </h3>
-            </div>
-            <div class="modern-card-body">
-                <div class="row g-4">
-                    <!-- Upload SQLite Data by Date Range -->
-                    <!-- <div class="col-lg-6">
-                        <div class="modern-card border-success">
-                            <div class="modern-card-header">
-                                <h5 class="modern-card-title">
-                                    <i class="fas fa-database text-success me-2"></i>
-                                    Upload SQLite Data by Date Range
-                                </h5>
-                            </div>
-                            <div class="modern-card-body">
-                                <form id="upload-sqlite-form">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="sqlite-start-date" class="form-label">
-                                                    <i class="fas fa-calendar-alt me-2"></i>
-                                                    Start Date
-                                                </label>
-                                                <input type="date" class="form-control" id="sqlite-start-date" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="sqlite-end-date" class="form-label">
-                                                    <i class="fas fa-calendar-alt me-2"></i>
-                                                    End Date
-                                                </label>
-                                                <input type="date" class="form-control" id="sqlite-end-date" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="sqlite-table-name" class="form-label">
-                                            <i class="fas fa-table me-2"></i>
-                                            Table Name (Optional)
-                                        </label>
-                                        <input type="text" class="form-control" id="sqlite-table-name" placeholder="Leave empty for all tables">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="sqlite-batch-size" class="form-label">
-                                            <i class="fas fa-layer-group me-2"></i>
-                                            Batch Size
-                                        </label>
-                                        <select class="form-control" id="sqlite-batch-size">
-                                            <option value="100">100 records</option>
-                                            <option value="500" selected>500 records</option>
-                                            <option value="1000">1000 records</option>
-                                            <option value="2000">2000 records</option>
-                                        </select>
-                                    </div>
-                                    <div class="alert alert-info" role="alert">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        <small>This will upload SQLite data from the specified date range to the remote server.</small>
-                                    </div>
-                                    <div class="d-grid">
-                                        <button type="button" class="btn btn-modern btn-success" id="upload-sqlite-btn" onclick="uploadSqliteDataByRange();">
-                                            <i class="fas fa-upload me-2"></i>
-                                            Upload SQLite Data
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div> -->
-
-                    <!-- Upload Redis Data by Date Range -->
-                    <!-- <div class="col-lg-6">
-                        <div class="modern-card border-info">
-                            <div class="modern-card-header">
-                                <h5 class="modern-card-title">
-                                    <i class="fas fa-memory text-info me-2"></i>
-                                    Upload Redis Data by Date Range
-                                </h5>
-                            </div>
-                            <div class="modern-card-body">
-                                <form id="upload-redis-form">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="redis-start-date" class="form-label">
-                                                    <i class="fas fa-calendar-alt me-2"></i>
-                                                    Start Date
-                                                </label>
-                                                <input type="date" class="form-control" id="redis-start-date" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="redis-end-date" class="form-label">
-                                                    <i class="fas fa-calendar-alt me-2"></i>
-                                                    End Date
-                                                </label>
-                                                <input type="date" class="form-control" id="redis-end-date" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="redis-key-pattern" class="form-label">
-                                            <i class="fas fa-key me-2"></i>
-                                            Key Pattern (Optional)
-                                        </label>
-                                        <input type="text" class="form-control" id="redis-key-pattern" placeholder="e.g., loggers:*, sensor:*">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="redis-batch-size" class="form-label">
-                                            <i class="fas fa-layer-group me-2"></i>
-                                            Batch Size
-                                        </label>
-                                        <select class="form-control" id="redis-batch-size">
-                                            <option value="100">100 records</option>
-                                            <option value="500" selected>500 records</option>
-                                            <option value="1000">1000 records</option>
-                                            <option value="2000">2000 records</option>
-                                        </select>
-                                    </div>
-                                    <div class="alert alert-info" role="alert">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        <small>This will upload Redis cache data from the specified date range to the remote server.</small>
-                                    </div>
-                                    <div class="d-grid">
-                                        <button type="button" class="btn btn-modern btn-info" id="upload-redis-btn" onclick="uploadRedisDataByRange();">
-                                            <i class="fas fa-upload me-2"></i>
-                                            Upload Redis Data
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div> -->
-                    
-                    <!-- ################### next plan - under development ########################## -->
-                    <div class="col-lg-12">
-                        <div class="modern-card border-info">
-                            <div class="modern-card-header">
-                                <h5 class="modern-card-title">
-                                    <i class="fas fa-bed text-info me-2"></i>
-                                    Under Construction
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Upload Progress Modal -->
-<div class="modal fade" id="uploadProgressModal" tabindex="-1" aria-labelledby="uploadProgressModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="uploadProgressModalLabel">
-                    <i class="fas fa-upload me-2"></i>
-                    Upload Progress
-                </h5>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span id="upload-status-text">Preparing upload...</span>
-                        <span id="upload-percentage">0%</span>
-                    </div>
-                    <div class="progress" style="height: 20px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
-                             id="upload-progress-bar" role="progressbar" style="width: 0%" 
-                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                        </div>
-                    </div>
-                </div>
-                <div class="row text-center">
-                    <div class="col-4">
-                        <small class="text-muted">Records Processed</small>
-                        <div class="h5" id="upload-processed">0</div>
-                    </div>
-                    <div class="col-4">
-                        <small class="text-muted">Total Records</small>
-                        <div class="h5" id="upload-total">0</div>
-                    </div>
-                    <div class="col-4">
-                        <small class="text-muted">Upload Speed</small>
-                        <div class="h5" id="upload-speed">0/s</div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <div class="alert alert-info" role="alert" id="upload-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <span id="upload-info-text">Upload will begin shortly...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" id="cancel-upload-btn" onclick="cancelUpload();">
-                    <i class="fas fa-times me-2"></i>
-                    Cancel Upload
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 {% endblock content %}
 
 {% block scripts %}
 <script>
-    const API_BASE_URL = '/api/v1/loggers';
-    const siteName = "{{ site_name }}";
-    // JSPro PowerDesk section - filters data to show only JSPro battery data
-    // Available sections: 'jspro' (JSPro Battery), 'talis5' (BMS), 'scc' (Energy/SCC)
-    const SECTION = "jspro";
+    // Configuration
+const API_BASE_URL = '/api/v1/loggers';
+const siteName = "{{ site_name }}";
+const AUTH_TOKEN = '{{ session.get("auth_token", "") }}';
+const DOWNLOAD_PAGE_SIZE = 1000;
+const LOG_TYPE_CONFIG = {
+    battery: { label: 'Battery', sources: { redis: true, sqlite: true } },
+    energy: { label: 'Energy / SCC', sources: { redis: true, sqlite: true } },
+    bakti_mqtt: { label: 'Bakti MQTT', sources: { redis: false, sqlite: true } }
+};
+const sourceHealth = { redis: false, sqlite: false };
+let selectedLogType = 'battery';
+
+// Helper Functions
+function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'unhealthy']) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    element.textContent = status;
+    const statusLower = status.toLowerCase();
+    if (activeStates.some(state => statusLower.includes(state))) {
+        element.className = 'status-indicator active';
+    } else if (dangerStates.some(state => statusLower.includes(state))) {
+        element.className = 'status-indicator danger';
+    } else {
+        element.className = 'status-indicator inactive';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (!Number.isFinite(bytes) || bytes <= 0) return '0 Bytes';
+    const units = ['Bytes', 'KB', 'MB', 'GB'];
+    const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    const value = (bytes / Math.pow(1024, index)).toFixed(2);
+    return value + ' ' + units[index];
+}
+
+const updateDiskUsageDisplay = (diskUsage, isLoading = false, isError = false) => {
+    const progressBar = document.getElementById('disk-progress-bar');
+    const progressText = document.getElementById('disk-progress-text');
+    const freeValue = document.getElementById('disk-free-value');
+    const usedValue = document.getElementById('disk-used-value');
+    const totalValue = document.getElementById('disk-total-value');
+    const statusBadge = document.getElementById('disk-status-badge');
     
-    // Helper function to update status indicators
-    function updateStatusIndicator(elementId, status, activeStates = ['active', 'online', 'healthy'], dangerStates = ['error', 'offline', 'unhealthy']) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = status;
-            
-            const statusLower = status.toLowerCase();
-            if (activeStates.some(state => statusLower.includes(state))) {
-                element.className = 'status-indicator active';
-            } else if (dangerStates.some(state => statusLower.includes(state))) {
-                element.className = 'status-indicator danger';
-            } else {
-                element.className = 'status-indicator inactive';
-            }
-        }
+    if (!progressBar || !progressText || !freeValue || !usedValue || !totalValue || !statusBadge) {
+        return;
     }
-
-    // Helper function to format file size
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    
+    if (isLoading) {
+        progressBar.style.width = '0%';
+        progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+        progressBar.style.background = 'linear-gradient(90deg, #6b7280 0%, #9ca3af 100%)';
+        progressText.textContent = 'Loading...';
+        freeValue.textContent = '--- GB';
+        usedValue.textContent = '--- GB';
+        totalValue.textContent = '--- GB';
+        statusBadge.className = 'badge badge-info-custom';
+        statusBadge.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i>Checking Status...';
+        return;
     }
-
-    // Helper function to update last update time
-    function updateLastUpdate() {
-        const lastUpdateElement = document.getElementById('last-update');
-        if (lastUpdateElement) {
-            const now = new Date().toLocaleTimeString();
-            lastUpdateElement.textContent = now;
-        }
+    
+    if (isError || !diskUsage || !Number.isFinite(diskUsage.used) || !Number.isFinite(diskUsage.total)) {
+        progressBar.style.width = '100%';
+        progressBar.className = 'progress-bar';
+        progressBar.style.background = 'linear-gradient(90deg, #dc3545 0%, #b91c1c 100%)';
+        progressText.textContent = 'Error Loading Disk Data';
+        freeValue.textContent = 'Error';
+        usedValue.textContent = 'Error';
+        totalValue.textContent = 'Error';
+        statusBadge.className = 'badge badge-danger-custom';
+        statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+        return;
     }
-
-    // Helper function to show loading state
-    function showLoadingState() {
-        const downloadBtn = document.getElementById('download-datalog');
-        const clearBtn = document.getElementById('clear-datalog');
-        const refreshBtn = document.getElementById('refresh-datalog');
+    
+    const usagePercentage = Math.min(100, Math.max(0, Math.round((diskUsage.used / diskUsage.total) * 100)));
+    
+    setTimeout(() => {
+        progressBar.style.setProperty('--progress-width', usagePercentage + '%');
+        progressBar.style.width = usagePercentage + '%';
+        progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated-custom';
         
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        }
-        if (clearBtn) {
-            clearBtn.disabled = true;
-        }
-        if (refreshBtn) {
-            refreshBtn.disabled = true;
-            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-        }
-    }
-
-    // Helper function to reset button states
-    function resetButtonStates() {
-        const downloadBtn = document.getElementById('download-datalog');
-        const clearBtn = document.getElementById('clear-datalog');
-        const refreshBtn = document.getElementById('refresh-datalog');
-        
-        if (downloadBtn) {
-            downloadBtn.disabled = false;
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-        }
-        if (clearBtn) {
-            clearBtn.disabled = false;
-        }
-        if (refreshBtn) {
-            refreshBtn.disabled = false;
-            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-        }
-    }
-
-    // Helper function to disable buttons when no data
-    function disableButtonsNoData() {
-        const downloadBtn = document.getElementById('download-datalog');
-        const clearBtn = document.getElementById('clear-datalog');
-        
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> No Data';
-        }
-        if (clearBtn) {
-            clearBtn.disabled = true;
-            clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> No Data';
-        }
-    }
-
-    // Function to update disk usage display with visual progress bar
-    const updateDiskUsageDisplay = (diskUsage, isLoading = false, isError = false) => {
-        const progressBar = document.getElementById('disk-progress-bar');
-        const progressText = document.getElementById('disk-progress-text');
-        const freeValue = document.getElementById('disk-free-value');
-        const usedValue = document.getElementById('disk-used-value');
-        const totalValue = document.getElementById('disk-total-value');
-        const statusBadge = document.getElementById('disk-status-badge');
-        
-        if (isLoading) {
-            // Show loading state
-            progressBar.style.width = '0%';
-            progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
-            progressBar.style.background = 'linear-gradient(90deg, #6b7280 0%, #9ca3af 100%)';
-            progressText.textContent = 'Loading...';
-            progressText.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            progressText.style.fontWeight = '600';
-            progressText.style.letterSpacing = '0.5px';
-            
-            freeValue.textContent = '--- GB';
-            freeValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            freeValue.style.fontWeight = '600';
-            
-            usedValue.textContent = '--- GB';
-            usedValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            usedValue.style.fontWeight = '600';
-            
-            totalValue.textContent = '--- GB';
-            totalValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            totalValue.style.fontWeight = '600';
-            
-            statusBadge.className = 'badge badge-info-custom';
-            statusBadge.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i>Checking Status...';
-            return;
-        }
-        
-        if (isError) {
-            // Show error state
-            progressBar.style.width = '100%';
-            progressBar.className = 'progress-bar';
-            progressBar.style.background = 'linear-gradient(90deg, #dc3545 0%, #b91c1c 100%)';
-            progressText.textContent = 'Error Loading Disk Data';
-            progressText.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            progressText.style.fontWeight = '600';
-            progressText.style.letterSpacing = '0.5px';
-            
-            freeValue.textContent = 'Error';
-            freeValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            freeValue.style.fontWeight = '600';
-            
-            usedValue.textContent = 'Error';
-            usedValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            usedValue.style.fontWeight = '600';
-            
-            totalValue.textContent = 'Error';
-            totalValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            totalValue.style.fontWeight = '600';
-            
-            statusBadge.className = 'badge badge-danger-custom';
-            statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
-            return;
-        }
-        
-        if (!diskUsage) return;
-        
-        // Calculate usage percentage
-        const usagePercentage = Math.round((diskUsage.used / diskUsage.total) * 100);
-        
-        // Update progress bar with animation
-        setTimeout(() => {
-            progressBar.style.setProperty('--progress-width', usagePercentage + '%');
-            progressBar.style.width = usagePercentage + '%';
-            progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated-custom';
-            
-            // Set color based on usage - more refined gradients
-            if (usagePercentage >= 90) {
-                progressBar.style.background = 'linear-gradient(90deg, #dc3545 0%, #b91c1c 100%)';
-            } else if (usagePercentage >= 75) {
-                progressBar.style.background = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
-            } else if (usagePercentage >= 50) {
-                progressBar.style.background = 'linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%)';
-            } else {
-                progressBar.style.background = 'linear-gradient(90deg, #10b981 0%, #059669 100%)';
-            }
-            
-            progressText.textContent = `${usagePercentage}% Used`;
-            progressText.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            progressText.style.fontWeight = '700';
-            progressText.style.letterSpacing = '0.5px';
-        }, 100);
-        
-        // Update individual values
-        freeValue.textContent = `${diskUsage.free} ${diskUsage.unit}`;
-        freeValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        freeValue.style.fontWeight = '700';
-        
-        usedValue.textContent = `${diskUsage.used} ${diskUsage.unit}`;
-        usedValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        usedValue.style.fontWeight = '700';
-        
-        totalValue.textContent = `${diskUsage.total} ${diskUsage.unit}`;
-        totalValue.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        totalValue.style.fontWeight = '700';
-        
-        // Update status badge
-        let statusClass, statusText, statusIcon;
-        
+        let gradient = 'linear-gradient(90deg, #10b981 0%, #059669 100%)';
         if (usagePercentage >= 95) {
-            statusClass = 'badge badge-danger-custom';
-            statusText = 'Critical - Almost Full';
-            statusIcon = 'fas fa-exclamation-circle';
+            gradient = 'linear-gradient(90deg, #dc3545 0%, #b91c1c 100%)';
         } else if (usagePercentage >= 90) {
-            statusClass = 'badge badge-danger-custom';
-            statusText = 'Warning - Low Space';
-            statusIcon = 'fas fa-exclamation-triangle';
+            gradient = 'linear-gradient(90deg, #dc3545 0%, #b91c1c 100%)';
         } else if (usagePercentage >= 75) {
-            statusClass = 'badge badge-warning-custom';
-            statusText = 'Caution - Monitor Space';
-            statusIcon = 'fas fa-info-circle';
+            gradient = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
         } else if (usagePercentage >= 50) {
-            statusClass = 'badge badge-info-custom';
-            statusText = 'Normal - Good Space';
-            statusIcon = 'fas fa-check-circle';
+            gradient = 'linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%)';
+        }
+        progressBar.style.background = gradient;
+        progressText.textContent = usagePercentage + '% Used';
+    }, 100);
+    
+    freeValue.textContent = diskUsage.free + ' ' + diskUsage.unit;
+    usedValue.textContent = diskUsage.used + ' ' + diskUsage.unit;
+    totalValue.textContent = diskUsage.total + ' ' + diskUsage.unit;
+    
+    let statusClass = 'badge badge-success-custom';
+    let statusText = 'Excellent - Plenty Space';
+    let statusIcon = 'fas fa-thumbs-up';
+    
+    if (usagePercentage >= 95) {
+        statusClass = 'badge badge-danger-custom';
+        statusText = 'Critical - Almost Full';
+        statusIcon = 'fas fa-exclamation-circle';
+    } else if (usagePercentage >= 90) {
+        statusClass = 'badge badge-danger-custom';
+        statusText = 'Warning - Low Space';
+        statusIcon = 'fas fa-exclamation-triangle';
+    } else if (usagePercentage >= 75) {
+        statusClass = 'badge badge-warning-custom';
+        statusText = 'Caution - Monitor Space';
+        statusIcon = 'fas fa-info-circle';
+    } else if (usagePercentage >= 50) {
+        statusClass = 'badge badge-info-custom';
+        statusText = 'Normal - Good Space';
+        statusIcon = 'fas fa-check-circle';
+    }
+    
+    statusBadge.className = statusClass;
+    statusBadge.innerHTML = '<i class="' + statusIcon + ' me-2"></i>' + statusText;
+};
+
+const showNotification = (message, type = 'info') => {
+    if (window.powerDeskApp && window.powerDeskApp.showNotification) {
+        window.powerDeskApp.showNotification(message, type);
+    } else {
+        alert(message);
+    }
+};
+
+const setButtonLoading = (buttonId, isLoading, loadingLabel) => {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    if (isLoading) {
+        button.dataset.defaultHtml = button.dataset.defaultHtml || button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = loadingLabel;
+    } else {
+        button.disabled = false;
+        button.innerHTML = button.dataset.defaultHtml || button.innerHTML;
+    }
+};
+
+const formatRange = (first, last) => {
+    if (!first && !last) return 'No timestamps available';
+    if (first && last) return first + ' → ' + last;
+    return first || last || 'No timestamps available';
+};
+
+const getAuthHeaders = () => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (AUTH_TOKEN) {
+        headers['Authorization'] = 'Bearer ' + AUTH_TOKEN;
+    }
+    return headers;
+};
+
+// API Functions
+
+// Fetch Storage Overview
+const fetchStorageOverview = async () => {
+    try {
+        document.getElementById('redis-storage').textContent = 'Loading...';
+        document.getElementById('sqlite-storage').textContent = 'Loading...';
+        updateDiskUsageDisplay(null, true);
+        
+        const response = await fetch(`${API_BASE_URL}/data/overview`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        
+        const payload = await response.json();
+        
+        if (payload.status_code === 200 && payload.data) {
+            updateStorageOverviewUI(payload.data);
         } else {
-            statusClass = 'badge badge-success-custom';
-            statusText = 'Excellent - Plenty Space';
-            statusIcon = 'fas fa-thumbs-up';
+            throw new Error(payload.message || 'Failed to fetch data overview');
         }
-        
-        statusBadge.className = statusClass;
-        statusBadge.innerHTML = `<i class="${statusIcon} me-2"></i>${statusText}`;
-    };
+    } catch (error) {
+        console.error('Failed to get data overview:', error);
+        document.getElementById('redis-storage').textContent = 'Error';
+        document.getElementById('sqlite-storage').textContent = 'Error';
+        updateDiskUsageDisplay(null, false, true);
+    }
+};
 
-    const arrLoggersData = [];
-    const arrRedisData = [];
-    const arrSqliteData = [];
+const updateStorageOverviewUI = (data) => {
+    const storageOverview = data.storage_overview || {};
+    const redisInfo = storageOverview.redis || {};
+    const sqliteInfo = storageOverview.sqlite || {};
     
-    // Function to get data overview from API
-    const getDataOverview = async () => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/overview`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200 && result.data) {
-                return result.data;
-            } else {
-                throw new Error(result.message || 'Failed to fetch data overview');
-            }
-        } catch (error) {
-            console.error('Failed to get data overview:', error);
-            return null;
-        }
-    };
+    const redisLabel = (redisInfo.size !== undefined ? redisInfo.size : '--') + ' ' + (redisInfo.unit || 'MB');
+    const sqliteLabel = (sqliteInfo.size !== undefined ? sqliteInfo.size : '--') + ' ' + (sqliteInfo.unit || 'MB');
     
-    // Function to get Redis data
-    const getRedisData = async (limit = 100) => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=${limit}&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200 && result.data) {
-                return result.data;
-            } else {
-                throw new Error(result.message || 'Failed to fetch Redis data');
-            }
-        } catch (error) {
-            console.error('Failed to get Redis data:', error);
-            return null;
-        }
-    };
+    document.getElementById('redis-storage').textContent = redisLabel;
+    document.getElementById('sqlite-storage').textContent = sqliteLabel;
     
-    // Function to get SQLite data
-    const getSqliteData = async (limit = 100) => {
-        const userToken = '{{ session.get("auth_token", "") }}';        
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/sqlite?limit=${limit}&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200 && result.data) {
-                return result.data;
-            } else {
-                throw new Error(result.message || 'Failed to fetch SQLite data');
-            }
-        } catch (error) {
-            console.error('Failed to get SQLite data:', error);
-            return null;
-        }
-    };
-    
-    // Function to get SCC data
-    const getSccData = async (limit = 100) => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/scc-alarm/history?limit=${limit}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200 && result.data) {
-                return result.data;
-            } else {
-                throw new Error(result.message || 'Failed to fetch SCC data');
-            }
-        } catch (error) {
-            console.error('Failed to get SCC data:', error);
-            return null;
-        }
-    };
-    
-    // Function to update all data lengths and storage info
-    const updateAllDataLengths = async () => {
-        try {
-            // Show loading states
-            document.getElementById('redis-storage').textContent = 'Loading...';
-            document.getElementById('sqlite-storage').textContent = 'Loading...';
-            updateDiskUsageDisplay(null, true); // Show loading state for disk usage
-            document.getElementById('redis-records').textContent = 'Loading...';
-            document.getElementById('sqlite-records').textContent = 'Loading...';
-            
-            // Get data overview
-            const overview = await getDataOverview();
-            
-            if (overview) {
-                // Update storage overview
-                const storageOverview = overview.storage_overview;
-                const dataStatistics = overview.data_statistics;
-                
-                // Update storage values
-                document.getElementById('redis-storage').textContent = 
-                    `${storageOverview.redis_storage} ${storageOverview.unit}`;
-                document.getElementById('sqlite-storage').textContent = 
-                    `${storageOverview.sqlite_storage} ${storageOverview.unit}`;
-                
-                // Update disk usage with new visual display
-                if (storageOverview.disk_usage) {
-                    updateDiskUsageDisplay(storageOverview.disk_usage);
-                }
-                
-                // Update record counts
-                document.getElementById('redis-records').textContent = 
-                    (dataStatistics.bms_records + dataStatistics.energy_records).toLocaleString();
-                document.getElementById('sqlite-records').textContent = 
-                    dataStatistics.sqlite_records.toLocaleString();
-                
-                // Update last update time
-                document.getElementById('last-update').textContent = overview.last_update;
-                
-            } else {
-                // Handle error state
-                document.getElementById('redis-storage').textContent = 'Error';
-                document.getElementById('sqlite-storage').textContent = 'Error';
-                updateDiskUsageDisplay(null, false, true); // Show error state
-                document.getElementById('redis-records').textContent = 'Error';
-                document.getElementById('sqlite-records').textContent = 'Error';
-                document.getElementById('last-update').textContent = 'Error';
-            }
-            
-        } catch (error) {
-            console.error('Failed to update data lengths:', error);
-            
-            // Set error states
-            document.getElementById('redis-storage').textContent = 'Error';
-            document.getElementById('sqlite-storage').textContent = 'Error';
-            updateDiskUsageDisplay(null, false, true); // Show error state
-            document.getElementById('redis-records').textContent = 'Error';
-            document.getElementById('sqlite-records').textContent = 'Error';
-            document.getElementById('last-update').textContent = 'Error';
-        }
-    };
-    const handleLoggers = async (cursorValue = "") => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-        showLoadingState();
-
-        try {
-            // Use the correct Redis endpoint with section parameter
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=500&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-
-            if (result.status_code !== 200) {
-                console.log(`Error: ${result.message || result.status}`);
-                updateStatusIndicator('datalog-status', 'Error');
-                return;
-            }
-
-            // Process the Redis data - structure is different
-            if (result.data && result.data.records) {
-                arrLoggersData.push(...result.data.records);
-            }
-
-            // Redis endpoint doesn't have cursor-based pagination, so we're done
-            console.log('Data fetch completed.');
-            console.log(`Total data collected: ${arrLoggersData.length}`);
-            
-            const datalogLengthElement = document.getElementById('datalog-length');
-            const storageUsageElement = document.getElementById('storage-usage');
-            
-            if (datalogLengthElement) {
-                datalogLengthElement.textContent = arrLoggersData.length.toLocaleString();
-                
-                // Update status based on data length
-                if (arrLoggersData.length > 1000) {
-                    datalogLengthElement.classList.add('text-warning');
-                    updateStatusIndicator('datalog-status', 'High Volume');
-                } else if (arrLoggersData.length > 500) {
-                    datalogLengthElement.classList.add('text-info');
-                    updateStatusIndicator('datalog-status', 'Normal');
-                } else {
-                    updateStatusIndicator('datalog-status', 'Low Volume');
-                }
-            }
-            
-            // Estimate storage usage
-            if (storageUsageElement) {
-                const estimatedSize = arrLoggersData.length * 1024; // Rough estimate
-                storageUsageElement.textContent = formatFileSize(estimatedSize);
-            }
-            
-            // Update data health
-            updateStatusIndicator('data-health', 'Healthy');
-            
-            // Update last update time
-            updateLastUpdate();
-            
-            // Update all data lengths (Redis, SQLite)
-            updateAllDataLengths();
-            
-            // Reset button states
-            resetButtonStates();
-        } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
-            
-            // Update UI for error state
-            updateStatusIndicator('datalog-status', 'Error');
-            updateStatusIndicator('data-health', 'Error');
-            
-            // if status is 404, return No Data
-            if (error.message.includes('404')) {
-                const datalogLengthElement = document.getElementById('datalog-length');
-                const storageUsageElement = document.getElementById('storage-usage');
-                
-                if (datalogLengthElement) {
-                    datalogLengthElement.textContent = 'No Data';
-                    datalogLengthElement.classList.add('text-muted');
-                }
-                
-                if (storageUsageElement) {
-                    storageUsageElement.textContent = '0 Bytes';
-                    storageUsageElement.classList.add('text-muted');
-                }
-                
-                updateStatusIndicator('datalog-status', 'No Data');
-                updateStatusIndicator('data-health', 'No Data');
-                
-                disableButtonsNoData();
-            } else {
-                resetButtonStates();
-            }
-        }
-    };
-    
-    // Download Redis data
-    const downloadRedisData = async () => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        const downloadBtn = document.getElementById('download-redis');
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-        }
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200 && result.data) {
-                // Create download
-                const jsonData = JSON.stringify(result.data, null, 2);
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filename = `${siteName}-redis-data-${timestamp}.json`;
-                
-                const blob = new Blob([jsonData], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                // Show success message
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('Redis data downloaded successfully!', 'success');
-                } else {
-                    alert('Redis data downloaded successfully!');
-                }
-            } else {
-                throw new Error(result.message || 'Failed to download Redis data');
-            }
-            
-        } catch (error) {
-            console.error('Failed to download Redis data:', error);
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to download Redis data. Please try again.', 'error');
-            } else {
-                alert('Failed to download Redis data. Please try again.');
-            }
-        } finally {
-            // Reset button
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Redis';
-            }
-        }
-    };
-    
-    // Download SQLite data
-    const downloadSqliteData = async () => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        const downloadBtn = document.getElementById('download-sqlite');
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-        }
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/sqlite?limit=5000&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200 && result.data) {
-                // Create download
-                const jsonData = JSON.stringify(result.data, null, 2);
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filename = `${siteName}-sqlite-data-${timestamp}.json`;
-                
-                const blob = new Blob([jsonData], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                // Show success message
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('SQLite data downloaded successfully!', 'success');
-                } else {
-                    alert('SQLite data downloaded successfully!');
-                }
-            } else {
-                throw new Error(result.message || 'Failed to download SQLite data');
-            }
-            
-        } catch (error) {
-            console.error('Failed to download SQLite data:', error);
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to download SQLite data. Please try again.', 'error');
-            } else {
-                alert('Failed to download SQLite data. Please try again.');
-            }
-        } finally {
-            // Reset button
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download SQLite';
-            }
-        }
-    };
-    
-    // Clear Redis data
-    const clearRedisData = async () => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all Redis cache data!\n\nThis action cannot be undone. Are you sure you want to continue?');
-        if (!confirmClear) {
-            return;
-        }
-        
-        const clearBtn = document.getElementById('clear-redis');
-        if (clearBtn) {
-            clearBtn.disabled = true;
-            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
-        }
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/redis?confirm=yes&section=${SECTION}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200) {
-                // Show success message
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('Redis data cleared successfully!', 'success');
-                } else {
-                    alert('Redis data cleared successfully!');
-                }
-                
-                // Update UI
-                const redisLengthElement = document.getElementById('redis-length');
-                const redisStorageElement = document.getElementById('redis-storage');
-                
-                if (redisLengthElement) {
-                    redisLengthElement.textContent = '0';
-                }
-                
-                if (redisStorageElement) {
-                    redisStorageElement.textContent = '0.00 MB';
-                }
-                
-                // Update total storage
-                updateAllDataLengths();
-            } else {
-                throw new Error(result.message || 'Failed to clear Redis data');
-            }
-            
-        } catch (error) {
-            console.error('Failed to clear Redis data:', error);
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to clear Redis data. Please try again.', 'error');
-            } else {
-                alert('Failed to clear Redis data. Please try again.');
-            }
-        } finally {
-            // Reset button
-            if (clearBtn) {
-                clearBtn.disabled = false;
-                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear Redis';
-            }
-        }
-    };
-    
-    // Clear SQLite data
-    const clearSqliteData = async () => {
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all SQLite database data!\n\nThis action cannot be undone. Are you sure you want to continue?');
-        if (!confirmClear) {
-            return;
-        }
-        
-        const clearBtn = document.getElementById('clear-sqlite');
-        if (clearBtn) {
-            clearBtn.disabled = true;
-            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
-        }
-        
-        try {
-            // For JSPro section, use jspro_battery_data table
-            const tableName = SECTION === 'jspro' ? 'jspro_battery_data' : 
-                             SECTION === 'talis5' ? 'bms_data' : 
-                             SECTION === 'scc' ? 'energy_data' : 'bms_data';
-            
-            const response = await fetch(`${API_BASE_URL}/data/sqlite?confirm=yes&table=${tableName}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.status_code === 200) {
-                // Show success message
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('SQLite data cleared successfully!', 'success');
-                } else {
-                    alert('SQLite data cleared successfully!');
-                }
-                
-                // Update UI
-                const sqliteLengthElement = document.getElementById('sqlite-length');
-                const sqliteStorageElement = document.getElementById('sqlite-storage');
-                
-                if (sqliteLengthElement) {
-                    sqliteLengthElement.textContent = '0';
-                }
-                
-                if (sqliteStorageElement) {
-                    sqliteStorageElement.textContent = '0.00 MB';
-                }
-                
-                // Update total storage
-                updateAllDataLengths();
-            } else {
-                throw new Error(result.message || 'Failed to clear SQLite data');
-            }
-            
-        } catch (error) {
-            console.error('Failed to clear SQLite data:', error);
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to clear SQLite data. Please try again.', 'error');
-            } else {
-                alert('Failed to clear SQLite data. Please try again.');
-            }
-        } finally {
-            // Reset button
-            if (clearBtn) {
-                clearBtn.disabled = false;
-                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear SQLite';
-            }
-        }
-    };
-    
-    // Download data
-    const downloadLoggers = async () => {
-        const siteName = "{{ site_name }}"; // Ensure siteName is defined
-        const userToken = '{{ session.get("auth_token", "") }}';
-
-        const downloadBtn = document.getElementById('download-datalog');
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-        }
-        
-        try {
-            // Use Redis endpoint with higher limit for download
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-
-            if (result.status_code !== 200) {
-                console.log(`Error: ${result.message || result.status}`);
-                return;
-            }
-
-            // Process the Redis data
-            const jsonData = JSON.stringify(result.data, null, 2);
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filename = `${siteName}-jspro-datalog-${timestamp}.json`;
-            
-            const blob = new Blob([jsonData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            // No cursor pagination, so we're done
-            console.log('Download complete.');
-            
-            // Show success message
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('JSPro datalog downloaded successfully!', 'success');
-            } else {
-                alert('JSPro datalog downloaded successfully!');
-            }
-            
-            // Reset button
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-            }
-        } catch (error) {
-            console.error(`Failed to download data: ${error.message}`);
-            
-            // Show error message
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Download failed. Please try again.', 'error');
-            } else {
-                alert('Download failed. Please try again.');
-            }
-            
-            // Reset button
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
-            }
-        }
-    };
-
-    // Clear data
-    const arrClearLoggers = [];
-    const clearLoggers = async (cursorValue) => {
-        console.log('Clearing data...');
-        
-        // Enhanced confirmation dialog
-        const confirmClear = confirm('⚠️ WARNING: This will permanently delete all data logs!\n\nThis action cannot be undone. Are you sure you want to continue?');
-        if (!confirmClear) {
-            return;
-        }
-        
-        const clearBtn = document.getElementById('clear-datalog');
-        if (clearBtn) {
-            clearBtn.disabled = true;
-            clearBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
-        }
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/data/redis?limit=5000&section=${SECTION}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-
-            if (result.status_code !== 200) {
-                console.log(`Error: ${result.message}`);
-                return;
-            }
-
-            // Process the data here
-            // get keys from the records object and push them to the array
-            if (result.data && result.data.records) {
-                arrClearLoggers.push(...Object.keys(result.data.records));
-            }
-
-            // Start deleting the data immediately (no cursor pagination)
-            const deletePromises = arrClearLoggers.map((el) => {
-                return fetch(`${API_BASE_URL}/data/redis/${el}?section=${SECTION}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer d1587d98aa2348b600edc7e7569e3997'
-                        }
-                    }).then((response) => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        
-                        return response.json();
-                    }).then((result) => {
-                        console.log(`Data deleted: ${result.message}`);
-                        return { status: true };
-                    }).catch((error) => {
-                        console.error(`Failed to delete data: ${error.message}`);
-                        return { status: false };
-                    });
-                });
-
-                Promise.all(deletePromises).then((results) => {
-                    const successResults = results.filter((el) => el.status === true);
-                    const errorResults = results.filter((el) => el.status === false);
-
-                    if (successResults.length > 0 && errorResults.length > 0) {
-                        if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                            window.powerDeskApp.showNotification('Some data failed to delete. Please try again.', 'warning');
-                        } else {
-                            alert('Some data failed to delete. Please try again.');
-                        }
-                    } else if (successResults.length > 0 && errorResults.length === 0) {
-                        if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                            window.powerDeskApp.showNotification('All data successfully cleared!', 'success');
-                        } else {
-                            alert('All data successfully cleared!');
-                        }
-                        
-                        // Update UI
-                        const datalogLengthElement = document.getElementById('datalog-length');
-                        const storageUsageElement = document.getElementById('storage-usage');
-                        
-                        if (datalogLengthElement) {
-                            datalogLengthElement.textContent = 'No Data';
-                            datalogLengthElement.classList.add('text-muted');
-                        }
-                        
-                        if (storageUsageElement) {
-                            storageUsageElement.textContent = '0 Bytes';
-                            storageUsageElement.classList.add('text-muted');
-                        }
-                        
-                        updateStatusIndicator('datalog-status', 'No Data');
-                        updateStatusIndicator('data-health', 'No Data');
-                        
-                        disableButtonsNoData();
-                    }
-                }).catch((error) => {
-                    console.error(`Failed to delete some data: ${error.message}`);
-                    
-                    if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                        window.powerDeskApp.showNotification('Failed to delete data. Please try again.', 'error');
-                    } else {
-                        alert('Failed to delete data. Please try again.');
-                    }
-                });
-                
-                // Reset button after successful processing
-                if (clearBtn) {
-                    clearBtn.disabled = false;
-                    clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear All';
-                }
-        } catch (error) {
-            console.error(`Failed to fetch data: ${error.message}`);
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to clear data. Please try again.', 'error');
-            } else {
-                alert('Failed to clear data. Please try again.');
-            }
-            
-            // Reset button
-            if (clearBtn) {
-                clearBtn.disabled = false;
-                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear All';
-            }
-        }
-    };
-
-    // Upload SQLite Data by Date Range
-    let uploadCancelled = false;
-    let uploadStartTime = null;
-    
-    const uploadSqliteDataByRange = async () => {
-        const startDate = document.getElementById('sqlite-start-date').value;
-        const endDate = document.getElementById('sqlite-end-date').value;
-        const tableName = document.getElementById('sqlite-table-name').value;
-        const batchSize = parseInt(document.getElementById('sqlite-batch-size').value);
-        
-        if (!startDate || !endDate) {
-            alert('Please select both start and end dates.');
-            return;
-        }
-        
-        if (new Date(startDate) > new Date(endDate)) {
-            alert('Start date cannot be later than end date.');
-            return;
-        }
-        
-        // Show progress modal
-        showUploadProgress('SQLite');
-        uploadCancelled = false;
-        uploadStartTime = Date.now();
-        
-        const uploadBtn = document.getElementById('upload-sqlite-btn');
-        if (uploadBtn) {
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
-        }
-        
-        try {
-            // First, get the count of records in the date range
-            const countResponse = await fetch('/api/sqlite/count-by-range', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                },
-                body: JSON.stringify({
-                    start_date: startDate,
-                    end_date: endDate,
-                    table_name: tableName
-                })
-            });
-            
-            if (!countResponse.ok) {
-                throw new Error(`HTTP error! status: ${countResponse.status}`);
-            }
-            
-            const countData = await countResponse.json();
-            const totalRecords = countData.count || 0;
-            
-            if (totalRecords === 0) {
-                hideUploadProgress();
-                alert('No records found in the specified date range.');
-                return;
-            }
-            
-            updateUploadProgress(0, totalRecords, 'Fetching data from SQLite...');
-            
-            let offset = 0;
-            let processedRecords = 0;
-            let uploadSuccess = 0;
-            let uploadErrors = 0;
-            
-            while (offset < totalRecords && !uploadCancelled) {
-                // Fetch batch of data
-                const fetchResponse = await fetch('/api/sqlite/data-by-range', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                    },
-                    body: JSON.stringify({
-                        start_date: startDate,
-                        end_date: endDate,
-                        table_name: tableName,
-                        limit: batchSize,
-                        offset: offset
-                    })
-                });
-                
-                if (!fetchResponse.ok) {
-                    throw new Error(`HTTP error! status: ${fetchResponse.status}`);
-                }
-                
-                const batchData = await fetchResponse.json();
-                
-                if (batchData.data && batchData.data.length > 0) {
-                    // Upload batch to remote server
-                    updateUploadProgress(processedRecords, totalRecords, `Uploading batch ${Math.floor(offset/batchSize) + 1}...`);
-                    
-                    const uploadResponse = await fetch('/api/upload/sqlite-data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                        },
-                        body: JSON.stringify({
-                            data: batchData.data,
-                            batch_info: {
-                                start_date: startDate,
-                                end_date: endDate,
-                                table_name: tableName,
-                                batch_number: Math.floor(offset/batchSize) + 1,
-                                total_batches: Math.ceil(totalRecords/batchSize)
-                            }
-                        })
-                    });
-                    
-                    if (uploadResponse.ok) {
-                        uploadSuccess += batchData.data.length;
-                    } else {
-                        uploadErrors += batchData.data.length;
-                        console.error(`Failed to upload batch ${Math.floor(offset/batchSize) + 1}`);
-                    }
-                    
-                    processedRecords += batchData.data.length;
-                    updateUploadProgress(processedRecords, totalRecords, `Uploaded ${processedRecords} of ${totalRecords} records`);
-                }
-                
-                offset += batchSize;
-                
-                // Small delay to prevent overwhelming the server
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            hideUploadProgress();
-            
-            if (uploadCancelled) {
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('Upload cancelled by user.', 'warning');
-                } else {
-                    alert('Upload cancelled by user.');
-                }
-            } else {
-                const message = `Upload completed! Success: ${uploadSuccess}, Errors: ${uploadErrors}`;
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification(message, uploadErrors > 0 ? 'warning' : 'success');
-                } else {
-                    alert(message);
-                }
-            }
-            
-        } catch (error) {
-            console.error('Failed to upload SQLite data:', error);
-            hideUploadProgress();
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to upload SQLite data. Please try again.', 'error');
-            } else {
-                alert('Failed to upload SQLite data. Please try again.');
-            }
-        } finally {
-            // Reset button
-            if (uploadBtn) {
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload SQLite Data';
-            }
-        }
-    };
-    
-    // Upload Redis Data by Date Range
-    const uploadRedisDataByRange = async () => {
-        const startDate = document.getElementById('redis-start-date').value;
-        const endDate = document.getElementById('redis-end-date').value;
-        const keyPattern = document.getElementById('redis-key-pattern').value;
-        const batchSize = parseInt(document.getElementById('redis-batch-size').value);
-        
-        if (!startDate || !endDate) {
-            alert('Please select both start and end dates.');
-            return;
-        }
-        
-        if (new Date(startDate) > new Date(endDate)) {
-            alert('Start date cannot be later than end date.');
-            return;
-        }
-        
-        // Show progress modal
-        showUploadProgress('Redis');
-        uploadCancelled = false;
-        uploadStartTime = Date.now();
-        
-        const uploadBtn = document.getElementById('upload-redis-btn');
-        if (uploadBtn) {
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
-        }
-        
-        try {
-            // First, get the keys matching the pattern and date range
-            const keysResponse = await fetch('/api/redis/keys-by-range', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                },
-                body: JSON.stringify({
-                    start_date: startDate,
-                    end_date: endDate,
-                    key_pattern: keyPattern
-                })
-            });
-            
-            if (!keysResponse.ok) {
-                throw new Error(`HTTP error! status: ${keysResponse.status}`);
-            }
-            
-            const keysData = await keysResponse.json();
-            const keys = keysData.keys || [];
-            
-            if (keys.length === 0) {
-                hideUploadProgress();
-                alert('No Redis keys found in the specified date range.');
-                return;
-            }
-            
-            updateUploadProgress(0, keys.length, 'Fetching data from Redis...');
-            
-            let processedKeys = 0;
-            let uploadSuccess = 0;
-            let uploadErrors = 0;
-            
-            // Process keys in batches
-            for (let i = 0; i < keys.length && !uploadCancelled; i += batchSize) {
-                const batchKeys = keys.slice(i, i + batchSize);
-                
-                // Fetch batch of data from Redis
-                const fetchResponse = await fetch('/api/redis/data-by-keys', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                    },
-                    body: JSON.stringify({
-                        keys: batchKeys
-                    })
-                });
-                
-                if (!fetchResponse.ok) {
-                    throw new Error(`HTTP error! status: ${fetchResponse.status}`);
-                }
-                
-                const batchData = await fetchResponse.json();
-                
-                if (batchData.data) {
-                    // Upload batch to remote server
-                    updateUploadProgress(processedKeys, keys.length, `Uploading batch ${Math.floor(i/batchSize) + 1}...`);
-                    
-                    const uploadResponse = await fetch('/api/upload/redis-data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer d1587d98aa2348b600edc7e7569e3997`
-                        },
-                        body: JSON.stringify({
-                            data: batchData.data,
-                            batch_info: {
-                                start_date: startDate,
-                                end_date: endDate,
-                                key_pattern: keyPattern,
-                                batch_number: Math.floor(i/batchSize) + 1,
-                                total_batches: Math.ceil(keys.length/batchSize)
-                            }
-                        })
-                    });
-                    
-                    if (uploadResponse.ok) {
-                        uploadSuccess += batchKeys.length;
-                    } else {
-                        uploadErrors += batchKeys.length;
-                        console.error(`Failed to upload batch ${Math.floor(i/batchSize) + 1}`);
-                    }
-                }
-                
-                processedKeys += batchKeys.length;
-                updateUploadProgress(processedKeys, keys.length, `Uploaded ${processedKeys} of ${keys.length} keys`);
-                
-                // Small delay to prevent overwhelming the server
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            hideUploadProgress();
-            
-            if (uploadCancelled) {
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification('Upload cancelled by user.', 'warning');
-                } else {
-                    alert('Upload cancelled by user.');
-                }
-            } else {
-                const message = `Upload completed! Success: ${uploadSuccess}, Errors: ${uploadErrors}`;
-                if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                    window.powerDeskApp.showNotification(message, uploadErrors > 0 ? 'warning' : 'success');
-                } else {
-                    alert(message);
-                }
-            }
-            
-        } catch (error) {
-            console.error('Failed to upload Redis data:', error);
-            hideUploadProgress();
-            
-            if (window.powerDeskApp && window.powerDeskApp.showNotification) {
-                window.powerDeskApp.showNotification('Failed to upload Redis data. Please try again.', 'error');
-            } else {
-                alert('Failed to upload Redis data. Please try again.');
-            }
-        } finally {
-            // Reset button
-            if (uploadBtn) {
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Redis Data';
-            }
-        }
-    };
-    
-    // Show upload progress modal
-    function showUploadProgress(dataType) {
-        const modal = document.getElementById('uploadProgressModal');
-        const title = document.getElementById('uploadProgressModalLabel');
-        
-        title.innerHTML = `<i class="fas fa-upload me-2"></i>Upload ${dataType} Data Progress`;
-        
-        const progressModal = new bootstrap.Modal(modal);
-        progressModal.show();
+    if (storageOverview.disk_usage) {
+        updateDiskUsageDisplay(storageOverview.disk_usage);
     }
     
-    // Update upload progress
-    function updateUploadProgress(processed, total, statusText) {
-        const progressBar = document.getElementById('upload-progress-bar');
-        const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
-        const statusElement = document.getElementById('upload-status-text');
-        const percentageElement = document.getElementById('upload-percentage');
-        const processedElement = document.getElementById('upload-processed');
-        const totalElement = document.getElementById('upload-total');
-        const speedElement = document.getElementById('upload-speed');
-        const infoElement = document.getElementById('upload-info-text');
-        
-        progressBar.style.width = percentage + '%';
-        progressBar.setAttribute('aria-valuenow', percentage);
-        
-        if (statusElement) statusElement.textContent = statusText;
-        if (percentageElement) percentageElement.textContent = percentage + '%';
-        if (processedElement) processedElement.textContent = processed.toLocaleString();
-        if (totalElement) totalElement.textContent = total.toLocaleString();
-        
-        // Calculate upload speed
-        if (uploadStartTime && processed > 0) {
-            const elapsed = (Date.now() - uploadStartTime) / 1000; // seconds
-            const speed = Math.round(processed / elapsed);
-            if (speedElement) speedElement.textContent = speed + '/s';
-        }
-        
-        // Update info text
-        if (infoElement) {
-            if (percentage === 100) {
-                infoElement.textContent = 'Upload completed successfully!';
-            } else if (percentage > 75) {
-                infoElement.textContent = 'Almost done, finishing upload...';
-            } else if (percentage > 50) {
-                infoElement.textContent = 'Upload in progress, please wait...';
-            } else {
-                infoElement.textContent = 'Processing data, this may take a while...';
-            }
-        }
+    const lastUpdateLabel = document.getElementById('logs-last-update');
+    if (lastUpdateLabel && data.last_update) {
+        lastUpdateLabel.textContent = data.last_update;
     }
-    
-    // Hide upload progress modal
-    function hideUploadProgress() {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('uploadProgressModal'));
-        if (modal) {
-            modal.hide();
-        }
-    }
-    
-    // Cancel upload
-    function cancelUpload() {
-        uploadCancelled = true;
-        const cancelBtn = document.getElementById('cancel-upload-btn');
-        if (cancelBtn) {
-            cancelBtn.disabled = true;
-            cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cancelling...';
-        }
-    }
+};
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add fade-in animation to disk usage container
-        const diskContainer = document.querySelector('.disk-usage-container');
-        if (diskContainer) {
-            diskContainer.style.opacity = '0';
-            diskContainer.style.transform = 'translateY(20px)';
-            diskContainer.style.transition = 'all 0.6s ease';
-            
-            setTimeout(() => {
-                diskContainer.style.opacity = '1';
-                diskContainer.style.transform = 'translateY(0)';
-            }, 300);
-        }
-        
-        handleLoggers();
-        updateAllDataLengths();
-        
-        // Set default date ranges (last 7 days)
-        const today = new Date();
-        const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        
-        const formatDate = (date) => {
-            return date.toISOString().split('T')[0];
-        };
-        
-        // Set default dates for SQLite upload (check if elements exist)
-        const sqliteStartDate = document.getElementById('sqlite-start-date');
-        const sqliteEndDate = document.getElementById('sqlite-end-date');
-        const redisStartDate = document.getElementById('redis-start-date');
-        const redisEndDate = document.getElementById('redis-end-date');
-        
-        if (sqliteStartDate) sqliteStartDate.value = formatDate(lastWeek);
-        if (sqliteEndDate) sqliteEndDate.value = formatDate(today);
-        if (redisStartDate) redisStartDate.value = formatDate(lastWeek);
-        if (redisEndDate) redisEndDate.value = formatDate(today);
-        
-        // Update last update time every minute
-        setInterval(updateLastUpdate, 60000);
-        
-        // Update data lengths every 5 minutes
-        setInterval(updateAllDataLengths, 300000);
-        
-        // Form validation for upload forms
-        const uploadForms = document.querySelectorAll('#upload-sqlite-form, #upload-redis-form');
-        uploadForms.forEach(form => {
-            const inputs = form.querySelectorAll('input[type="date"]');
-            inputs.forEach(input => {
-                input.addEventListener('change', function() {
-                    validateDateRange(form);
-                });
-            });
-        });
-        
-        // Add hover effects to stat cards
-        document.querySelectorAll('.disk-stat-item').forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px) scale(1.02)';
-            });
-            
-            item.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
-        });
+// Initialize Log Type Selector
+const initLogTypeSelector = () => {
+    const selector = document.getElementById('log-type-select');
+    if (!selector) return;
+    
+    selector.value = selectedLogType;
+    selector.addEventListener('change', () => {
+        selectedLogType = selector.value;
+        refreshLogStats();
+        updateAvailabilityBadges();
+    });
+};
+
+const updateAvailabilityBadges = () => {
+    const config = LOG_TYPE_CONFIG[selectedLogType];
+    const redisBadge = document.getElementById('redis-availability-badge');
+    const sqliteBadge = document.getElementById('sqlite-availability-badge');
+    const currentLabel = document.getElementById('current-log-type-label');
+    
+    if (currentLabel) currentLabel.textContent = config.label;
+    
+    const setBadge = (badge, isActive, label) => {
+        if (!badge) return;
+        badge.className = 'badge ' + (isActive ? 'bg-success' : 'bg-secondary') + ' text-white';
+        badge.innerHTML = '<i class="fas ' + (isActive ? 'fa-check' : 'fa-ban') + ' me-1"></i>' + label;
+    };
+    
+    setBadge(redisBadge, config.sources.redis, 'Redis');
+    setBadge(sqliteBadge, config.sources.sqlite, 'SQLite');
+    
+    ['download-redis', 'clear-redis'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = !config.sources.redis;
     });
     
-    // Validate date range
-    function validateDateRange(form) {
-        const startDateInput = form.querySelector('input[type="date"]:first-of-type');
-        const endDateInput = form.querySelector('input[type="date"]:last-of-type');
-        
-        if (startDateInput && endDateInput) {
-            const startDate = new Date(startDateInput.value);
-            const endDate = new Date(endDateInput.value);
-            
-            if (startDate > endDate) {
-                endDateInput.setCustomValidity('End date must be after start date');
-                endDateInput.classList.add('is-invalid');
-            } else {
-                endDateInput.setCustomValidity('');
-                endDateInput.classList.remove('is-invalid');
-            }
-        }
+    ['download-sqlite', 'clear-sqlite'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = !config.sources.sqlite;
+    });
+};
+
+// Fetch Log Source Data
+const refreshLogStats = async () => {
+    updateAvailabilityBadges();
+    await Promise.all(['redis', 'sqlite'].map(source => fetchLogSourceData(source)));
+};
+
+const fetchLogSourceData = async (source) => {
+    const config = LOG_TYPE_CONFIG[selectedLogType];
+    if (!config.sources[source]) {
+        setLogSourceUnavailable(source);
+        return;
     }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/data/logs/${selectedLogType}?source=${source}&limit=1`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        
+        const payload = await response.json();
+        
+        if (payload.status === 'success') {
+            updateLogSourceCard(source, payload);
+        } else {
+            throw new Error(payload.message || 'Failed to fetch logs');
+        }
+    } catch (error) {
+        console.error('Failed to fetch ' + source + ' logs:', error);
+        setLogSourceUnavailable(source, true);
+    }
+};
+
+const updateLogSourceCard = (source, payload) => {
+    const prefix = source === 'redis' ? 'redis' : 'sqlite';
+    const countEl = document.getElementById(prefix + '-log-count');
+    const rangeEl = document.getElementById(prefix + '-log-range');
+    
+    const stats = payload.data?.statistics || {};
+    const logs = payload.data?.logs || [];
+    const totalRecords = payload.page_info?.total_records ?? stats.total_records ?? logs.length ?? 0;
+    const firstTimestamp = stats.first_timestamp || (logs.length ? logs[logs.length - 1].timestamp : null);
+    const lastTimestamp = stats.last_timestamp || (logs.length ? logs[0].timestamp : null);
+    
+    if (countEl) countEl.textContent = totalRecords.toLocaleString();
+    if (rangeEl) rangeEl.textContent = formatRange(firstTimestamp, lastTimestamp);
+    
+    const lastUpdateLabel = document.getElementById('logs-last-update');
+    if (lastUpdateLabel && payload.timestamp) {
+        lastUpdateLabel.textContent = payload.timestamp;
+    }
+    
+    sourceHealth[source] = totalRecords > 0;
+    
+    if (source === 'redis') {
+        updateStatusIndicator('datalog-status', totalRecords > 0 ? 'Active' : 'No Data');
+    }
+    
+    updateDataHealthIndicator();
+};
+
+const setLogSourceUnavailable = (source, errored = false) => {
+    const prefix = source === 'redis' ? 'redis' : 'sqlite';
+    const countEl = document.getElementById(prefix + '-log-count');
+    const rangeEl = document.getElementById(prefix + '-log-range');
+    
+    if (countEl) countEl.textContent = errored ? 'Error' : 'N/A';
+    if (rangeEl) rangeEl.textContent = errored ? 'Unable to load data' : 'Not available for this log type';
+    
+    sourceHealth[source] = false;
+    
+    if (source === 'redis') {
+        updateStatusIndicator('datalog-status', errored ? 'Error' : 'Unavailable');
+    }
+    
+    updateDataHealthIndicator();
+};
+
+const updateDataHealthIndicator = () => {
+    const config = LOG_TYPE_CONFIG[selectedLogType];
+    const availableSources = Object.entries(config.sources).filter(([, available]) => available);
+    
+    if (!availableSources.length) {
+        updateStatusIndicator('data-health', 'Unavailable');
+        return;
+    }
+    
+    const anyData = availableSources.some(([source]) => sourceHealth[source]);
+    updateStatusIndicator('data-health', anyData ? 'Healthy' : 'No Data');
+};
+
+// Download Logs (Multiple Files)
+const downloadLogs = async (source) => {
+    const config = LOG_TYPE_CONFIG[selectedLogType];
+    if (!config.sources[source]) {
+        showNotification(source.toUpperCase() + ' source is not available for ' + config.label, 'warning');
+        return;
+    }
+    
+    const buttonId = source === 'redis' ? 'download-redis' : 'download-sqlite';
+    setButtonLoading(buttonId, true, '<i class="fas fa-spinner fa-spin"></i> Downloading...');
+    
+    try {
+        let offset = 0;
+        let fileIndex = 0;
+        let hasData = false;
+        
+        while (true) {
+            const response = await fetch(`${API_BASE_URL}/data/logs/${selectedLogType}?source=${source}&limit=${DOWNLOAD_PAGE_SIZE}&offset=${offset}`, {
+                method: 'GET',
+                headers: getAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            
+            const payload = await response.json();
+            
+            if (payload.status !== 'success') {
+                throw new Error(payload.message || 'Failed to download logs');
+            }
+            
+            const logs = payload.data?.logs || [];
+            if (!logs.length) break;
+            
+            hasData = true;
+            
+            const fileData = {
+                log_type: selectedLogType,
+                source,
+                site_info: payload.site_info,
+                page_info: payload.page_info,
+                logs
+            };
+            
+            const blob = new Blob([JSON.stringify(fileData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `data_logs_${selectedLogType}_${fileIndex}.json`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(anchor);
+            
+            fileIndex += 1;
+            offset += DOWNLOAD_PAGE_SIZE;
+            
+            if (!payload.page_info?.has_next) break;
+        }
+        
+        if (!hasData) {
+            showNotification('No data available for the selected log type.', 'warning');
+        } else {
+            showNotification(`Logs downloaded successfully (${fileIndex} file${fileIndex > 1 ? 's' : ''}).`, 'success');
+        }
+    } catch (error) {
+        console.error('Failed to download logs:', error);
+        showNotification('Failed to download logs. Please try again.', 'error');
+    } finally {
+        setButtonLoading(buttonId, false);
+    }
+};
+
+// Delete Logs
+const deleteLogs = async (source) => {
+    const config = LOG_TYPE_CONFIG[selectedLogType];
+    if (!config.sources[source]) {
+        showNotification(source.toUpperCase() + ' source is not available for ' + config.label, 'warning');
+        return;
+    }
+    
+    const buttonId = source === 'redis' ? 'clear-redis' : 'clear-sqlite';
+    const confirmMessage = `⚠️ WARNING: This will delete all ${source.toUpperCase()} logs for ${config.label}. Continue?`;
+    
+    if (!confirm(confirmMessage)) return;
+    
+    setButtonLoading(buttonId, true, '<i class="fas fa-spinner fa-spin"></i> Clearing...');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/data/logs/${selectedLogType}?source=${source}&confirm=yes`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        
+        const payload = await response.json();
+        
+        if (payload.status === 'success') {
+            showNotification(`${source.toUpperCase()} logs cleared successfully.`, 'success');
+            await refreshLogStats();
+            await fetchStorageOverview();
+        } else {
+            throw new Error(payload.message || 'Failed to clear logs');
+        }
+    } catch (error) {
+        console.error('Failed to clear logs:', error);
+        showNotification('Failed to clear logs. Please try again.', 'error');
+    } finally {
+        setButtonLoading(buttonId, false);
+    }
+};
+
+// Public Functions (called from HTML)
+window.downloadRedisData = () => downloadLogs('redis');
+window.downloadSqliteData = () => downloadLogs('sqlite');
+window.clearRedisData = () => deleteLogs('redis');
+window.clearSqliteData = () => deleteLogs('sqlite');
+
+// Initialize on Page Load
+document.addEventListener('DOMContentLoaded', () => {
+    const diskContainer = document.querySelector('.disk-usage-container');
+    if (diskContainer) {
+        diskContainer.style.opacity = '0';
+        diskContainer.style.transform = 'translateY(20px)';
+        diskContainer.style.transition = 'all 0.6s ease';
+        
+        setTimeout(() => {
+            diskContainer.style.opacity = '1';
+            diskContainer.style.transform = 'translateY(0)';
+        }, 300);
+    }
+    
+    initLogTypeSelector();
+    fetchStorageOverview();
+    refreshLogStats();
+    
+    setInterval(() => {
+        fetchStorageOverview();
+        refreshLogStats();
+    }, 60000);
+});
 </script>
 {% endblock scripts %}
