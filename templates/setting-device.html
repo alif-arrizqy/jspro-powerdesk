@@ -174,13 +174,13 @@
         </div>
     </div>
 
-        <!-- Device Version -->
+    <!-- Device Version & Port Configuration -->
     <div class="col-lg-6 mb-4">
         <div class="modern-card">
             <div class="modern-card-header">
                 <h5 class="modern-card-title">
                     <i class="fas fa-code-branch text-info me-2"></i>
-                    Device Version
+                    Device Version & Port Configuration
                 </h5>
             </div>
             <div class="modern-card-body">
@@ -210,8 +210,8 @@
                             <label for="site-type" class="form-label">Site Type</label>
                             <select class="form-control" name="site-type" id="site-type">
                                 <option value="" disabled {% if not device_version.site_type %}selected{% endif %}>Select Site Type</option>
-                                <option value="teresterial" {% if device_version.site_type == 'teresterial' %}selected{% endif %}>Teresterial (Land-based)</option>
-                                <option value="non-teresterial" {% if device_version.site_type == 'non-teresterial' %}selected{% endif %}>Non-Teresterial (Maritime/Remote)</option>
+                                <option value="teresterial" {% if device_version.site_type == 'teresterial' %}selected{% endif %}>Teresterial</option>
+                                <option value="non-teresterial" {% if device_version.site_type == 'non-teresterial' %}selected{% endif %}>Non-Teresterial</option>
                                 <option value="ehub-recti" {% if device_version.site_type == 'ehub-recti' %}selected{% endif %}>Ehub Rectifier System</option>
                             </select>
                         </div>
@@ -220,7 +220,7 @@
                     <!-- SCC Configuration Section -->
                     <div class="mb-4">
                         <h6 class="text-muted mb-3">
-                            <i class="fas fa-plug me-2"></i>Solar Charge Controller Configuration
+                            <i class="fas fa-plug me-2"></i>Solar Charge Controller
                         </h6>
                         <div class="row">
                             <div class="col-md-6">
@@ -251,7 +251,7 @@
                     <!-- Battery Configuration Section -->
                     <div class="mb-4">
                         <h6 class="text-muted mb-3">
-                            <i class="fas fa-battery-full me-2"></i>Battery Management System Configuration
+                            <i class="fas fa-battery-full me-2"></i>Battery Management System
                         </h6>
                         <div class="row">
                             <div class="col-md-6">
@@ -275,13 +275,45 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="talis-port-0" class="form-label">Talis Port 0 (Primary)</label>
+                                    <select class="form-control" name="talis-port-0" id="talis-port-0">
+                                        <option value="" disabled>Select USB Port</option>
+                                        {% for port in port_usb %}
+                                        <option value="{{ port }}" {% if talis_config.talis_port_0 == port %}selected{% endif %}>{{ port }}</option>
+                                        {% endfor %}
+                                        {% if not port_usb %}
+                                        <option value="/dev/ttyUSB0" {% if talis_config.talis_port_0 == '/dev/ttyUSB0' %}selected{% endif %}>/dev/ttyUSB0</option>
+                                        <option value="/dev/ttyUSB1" {% if talis_config.talis_port_0 == '/dev/ttyUSB1' %}selected{% endif %}>/dev/ttyUSB1</option>
+                                        <option value="/dev/ttyUSB2" {% if talis_config.talis_port_0 == '/dev/ttyUSB2' %}selected{% endif %}>/dev/ttyUSB2</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="talis-port-1" class="form-label">Talis Port 1 (Secondary)</label>
+                                    <select class="form-control" name="talis-port-1" id="talis-port-1">
+                                        <option value="" disabled>Select USB Port</option>
+                                        {% for port in port_usb %}
+                                        <option value="{{ port }}" {% if talis_config.talis_port_1 == port %}selected{% endif %}>{{ port }}</option>
+                                        {% endfor %}
+                                        {% if not port_usb %}
+                                        <option value="/dev/ttyUSB0" {% if talis_config.talis_port_1 == '/dev/ttyUSB0' %}selected{% endif %}>/dev/ttyUSB0</option>
+                                        <option value="/dev/ttyUSB1" {% if talis_config.talis_port_1 == '/dev/ttyUSB1' %}selected{% endif %}>/dev/ttyUSB1</option>
+                                        <option value="/dev/ttyUSB2" {% if talis_config.talis_port_1 == '/dev/ttyUSB2' %}selected{% endif %}>/dev/ttyUSB2</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Rectifier Configuration Section -->
                     <div class="mb-4">
                         <h6 class="text-muted mb-3">
-                            <i class="fas fa-bolt me-2"></i>Rectifier System Configuration
+                            <i class="fas fa-bolt me-2"></i>Rectifier System
                         </h6>
                         <div class="mb-3">
                             <label for="rectifier-type" class="form-label">Rectifier Type</label>
@@ -299,16 +331,13 @@
                                        value="{% if device_version.rectifier_type and device_version.rectifier_type != 'N/A' %}{{ device_version.rectifier_type }}{% endif %}"
                                        style="{% if device_version.rectifier_type == 'N/A' or not device_version.rectifier_type %}display: none;{% endif %}">
                             </div>
-                            <small class="text-muted">Pilih dari daftar atau ketik tipe rectifier yang digunakan</small>
+                            <small class="text-muted">Pilih dari daftar atau ketik tipe rectifier</small>
                         </div>
                     </div>
                     
-                    <div class="alert alert-warning d-flex align-items-center" role="alert">
-                        <i class="fas fa-exclamation-triangle me-3"></i>
-                        <div>
-                            <strong>Perhatian:</strong><br>
-                            <small>Konfigurasi ini memerlukan <strong>restart sistem</strong> untuk menerapkan perubahan</small>
-                        </div>
+                    <div class="alert alert-warning d-flex align-items-center py-2" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <small>Konfigurasi ini memerlukan <strong>restart sistem</strong> untuk menerapkan perubahan</small>
                     </div>
                     
                     <div class="d-grid">
@@ -452,6 +481,7 @@
         </div>
     </div>
 </div>
+
 {% endblock content %}
 
 {% block scripts %}
