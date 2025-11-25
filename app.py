@@ -1191,20 +1191,30 @@ def setting_mqtt():
     # path config device
     path = f'{PATH}/config_device.json'
 
-    form_setting_mqtt = request.form.get('setting-mqtt-form')
+    form_setting_mqtt_bakti = request.form.get('setting-mqtt-bakti-form')
+    form_setting_mqtt_sundaya = request.form.get('setting-mqtt-sundaya-form')
 
     if request.method == 'POST':
         data = request.form.to_dict()
 
-        if form_setting_mqtt:
-            response = update_setting_mqtt(path, data)            
+        if form_setting_mqtt_bakti:
+            response = update_setting_mqtt(path, data, broker_type='ehub_broker')            
             if response:
-                flash('MQTT Settings have been updated successfully', 'success')
-                audit_access(username, 'mqtt_settings', 'update_mqtt_settings')
-                os.system(f'sudo python3 {PATH}/config_scc.py')
-                bash_command('sudo systemctl restart mqtt_publish.service device_config_loader.service webapp.service')
+                flash('MQTT Bakti Settings have been updated successfully', 'success')
+                audit_access(username, 'mqtt_settings', 'update_mqtt_bakti')
+                bash_command('sudo systemctl restart mqtt_publish.service device_config_loader.service')
             else:
-                flash('Failed to update MQTT Settings', 'danger')
+                flash('Failed to update MQTT Bakti Settings', 'danger')
+            return redirect(url_for('setting_mqtt'))
+
+        if form_setting_mqtt_sundaya:
+            response = update_setting_mqtt(path, data, broker_type='sundaya_broker')            
+            if response:
+                flash('MQTT Sundaya Settings have been updated successfully', 'success')
+                audit_access(username, 'mqtt_settings', 'update_mqtt_sundaya')
+                bash_command('sudo systemctl restart mqtt_publish.service device_config_loader.service')
+            else:
+                flash('Failed to update MQTT Sundaya Settings', 'danger')
             return redirect(url_for('setting_mqtt'))
     
     try:
@@ -1217,6 +1227,13 @@ def setting_mqtt():
 
         # get site name
         site_name = red.hget('device_config', 'site_name')
+        
+        # Get mqtt_config with default structure
+        mqtt_config = data.get('mqtt_config', {})
+        if 'ehub_broker' not in mqtt_config:
+            mqtt_config['ehub_broker'] = {}
+        if 'sundaya_broker' not in mqtt_config:
+            mqtt_config['sundaya_broker'] = {}
 
         context = {
             'username': username,
@@ -1224,9 +1241,8 @@ def setting_mqtt():
             'menu_access': menu_access,
             'site_name': site_name,
             'scc_type': scc_type,
-            'mqtt_config': data.get('mqtt_config'),
+            'mqtt_config': mqtt_config,
             'ip_address': get_ip_address('eth0'),
-            # 'ip_address': '192.168.1.1',
         }
         
         # Audit page access
@@ -1238,8 +1254,15 @@ def setting_mqtt():
         try:
             with open(path, 'r') as file:
                 data = json.load(file)
+            mqtt_config = data.get('mqtt_config', {})
         except:
-            data = {'mqtt_config': {}}
+            mqtt_config = {}
+        
+        # Ensure default structure
+        if 'ehub_broker' not in mqtt_config:
+            mqtt_config['ehub_broker'] = {}
+        if 'sundaya_broker' not in mqtt_config:
+            mqtt_config['sundaya_broker'] = {}
 
         context = {
             'username': username,
@@ -1247,9 +1270,8 @@ def setting_mqtt():
             'menu_access': get_menu_access(username),
             'site_name': 'Site Name',
             'scc_type': scc_type,
-            'mqtt_config': data.get('mqtt_config', {}),
+            'mqtt_config': mqtt_config,
             'ip_address': get_ip_address('eth0'),
-            # 'ip_address': '192.168.1.1',
         }
     return render_template('setting-mqtt.html', **context)
 
