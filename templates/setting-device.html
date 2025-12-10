@@ -210,8 +210,8 @@
                             <label for="site-type" class="form-label">Site Type</label>
                             <select class="form-control" name="site-type" id="site-type">
                                 <option value="" disabled {% if not device_version.site_type %}selected{% endif %}>Select Site Type</option>
-                                <option value="teresterial" {% if device_version.site_type == 'teresterial' %}selected{% endif %}>Teresterial</option>
-                                <option value="non-teresterial" {% if device_version.site_type == 'non-teresterial' %}selected{% endif %}>Non-Teresterial</option>
+                                <option value="terestrial" {% if device_version.site_type == 'terestrial' %}selected{% endif %}>terestrial</option>
+                                <option value="non-terestrial" {% if device_version.site_type == 'non-terestrial' %}selected{% endif %}>Non-terestrial</option>
                                 <option value="ehub-recti" {% if device_version.site_type == 'ehub-recti' %}selected{% endif %}>Ehub Rectifier System</option>
                             </select>
                         </div>
