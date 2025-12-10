@@ -421,59 +421,121 @@
 <!-- MQTT Configuration -->
 {% if enabled_services.mqtt_service %}
 <div class="row mb-4">
-    <div class="col-12">
-        <div class="modern-card">
+    <!-- EHub Broker (Bakti) -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card h-100">
             <div class="modern-card-header">
-                <h2 class="modern-card-title">
-                    <i class="fas fa-wifi text-primary"></i>
-                    MQTT Configuration
-                </h2>
+                <h5 class="modern-card-title">
+                    <i class="fas fa-broadcast-tower text-primary me-2"></i>
+                    EHub Broker (Bakti)
+                </h5>
             </div>
             <div class="modern-card-body">
-                <div class="row g-4">
+                <div class="row g-3">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="mqtt-host" class="form-label">
+                            <label for="ehub-host" class="form-label">
                                 <i class="fas fa-server me-2"></i>
-                                MQTT Host
+                                Host
                             </label>
-                            <input type="text" class="form-control" id="mqtt-host" value="{{mqtt_config.host or 'N/A'}}" readonly>
+                            <input type="text" class="form-control" id="ehub-host" value="{{ehub_broker.host or 'N/A'}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="mqtt-port" class="form-label">
+                            <label for="ehub-port" class="form-label">
                                 <i class="fas fa-plug me-2"></i>
-                                MQTT Port
+                                Port
                             </label>
-                            <input type="text" class="form-control" id="mqtt-port" value="{{mqtt_config.port or 'N/A'}}" readonly>
+                            <input type="text" class="form-control" id="ehub-port" value="{{ehub_broker.port or 'N/A'}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="mqtt-username" class="form-label">
+                            <label for="ehub-username" class="form-label">
                                 <i class="fas fa-user me-2"></i>
-                                MQTT Username
+                                Username
                             </label>
-                            <input type="text" class="form-control" id="mqtt-username" value="{{mqtt_config.username or 'N/A'}}" readonly>
+                            <input type="text" class="form-control" id="ehub-username" value="{{ehub_broker.username or 'N/A'}}" readonly>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="mqtt-topic" class="form-label">
-                                <i class="fas fa-tag me-2"></i>
-                                MQTT Topic
-                            </label>
-                            <input type="text" class="form-control" id="mqtt-topic" value="{{mqtt_config.topic or 'N/A'}}" readonly>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="mqtt-openvpn" class="form-label">
+                            <label for="ehub-openvpn" class="form-label">
                                 <i class="fas fa-shield-alt me-2"></i>
                                 OpenVPN IP
                             </label>
-                            <input type="text" class="form-control" id="mqtt-openvpn" value="{{mqtt_config.openvpn_ip or 'N/A'}}" readonly>
+                            <input type="text" class="form-control" id="ehub-openvpn" value="{{ehub_broker.openvpn_ip or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="ehub-topic" class="form-label">
+                                <i class="fas fa-tag me-2"></i>
+                                Topic
+                            </label>
+                            <input type="text" class="form-control" id="ehub-topic" value="{{ehub_broker.topic or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sundaya Broker -->
+    <div class="col-lg-6 mb-4">
+        <div class="modern-card h-100">
+            <div class="modern-card-header">
+                <h5 class="modern-card-title">
+                    <i class="fas fa-cloud text-primary me-2"></i>
+                    Sundaya Broker
+                </h5>
+            </div>
+            <div class="modern-card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sundaya-host" class="form-label">
+                                <i class="fas fa-server me-2"></i>
+                                Host
+                            </label>
+                            <input type="text" class="form-control" id="sundaya-host" value="{{sundaya_broker.host or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sundaya-port" class="form-label">
+                                <i class="fas fa-plug me-2"></i>
+                                Port
+                            </label>
+                            <input type="text" class="form-control" id="sundaya-port" value="{{sundaya_broker.port or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sundaya-username" class="form-label">
+                                <i class="fas fa-user me-2"></i>
+                                Username
+                            </label>
+                            <input type="text" class="form-control" id="sundaya-username" value="{{sundaya_broker.username or 'N/A'}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="sundaya-password" class="form-label">
+                                <i class="fas fa-key me-2"></i>
+                                Password
+                            </label>
+                            <input type="password" class="form-control" id="sundaya-password" value="{{sundaya_broker.password or ''}}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="sundaya-topic" class="form-label">
+                                <i class="fas fa-tag me-2"></i>
+                                Topic
+                            </label>
+                            <input type="text" class="form-control" id="sundaya-topic" value="{{sundaya_broker.topic or 'N/A'}}" readonly>
                         </div>
                     </div>
                 </div>
