@@ -676,7 +676,8 @@ def site_information():
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
             'enabled_services': data.get('enabled_services'),
-            'mqtt_config': data.get('mqtt_config'),
+            'ehub_broker': data.get('mqtt_config').get('ehub_broker'),
+            'sundaya_broker': data.get('mqtt_config').get('sundaya_broker'),
             'rectifier_config': data.get('rectifier_config'),
             'ip_address': get_ip_address('eth0'),
             'subnet_mask': f"/{get_subnet_mask('eth0')}",
@@ -696,6 +697,8 @@ def site_information():
         with open(path, 'r') as file:
             data = json.load(file)
         
+        mqtt_config = data.get('mqtt_config', {})
+        
         context = {
             'username': username,
             'user_role': get_user_role(username),
@@ -705,14 +708,14 @@ def site_information():
             'site_information': data.get('site_information'),
             'device_model': data.get('device_model'),
             'device_version': data.get('device_version'),
+            'enabled_services': data.get('enabled_services', {}),
+            'ehub_broker': mqtt_config.get('ehub_broker', {}),
+            'sundaya_broker': mqtt_config.get('sundaya_broker', {}),
+            'rectifier_config': data.get('rectifier_config', {}),
             'ip_address': get_ip_address('eth0'),
             'ip_address_primary': get_ip_address('eth0'),
             'subnet_mask': f"/{get_subnet_mask('eth0')}",
             'gateway': get_gateway('eth0'),
-            # 'ip_address': '192.168.1.1',
-            # 'ip_address_primary': '192.168.1.1',
-            # 'subnet_mask': '/29',
-            # 'gateway': '192.168.1.1'
         }
     return render_template('site-information.html', **context)
 
