@@ -95,32 +95,6 @@ def get_redis_keys_for_section(section=None):
             'ports': ['usb0', 'usb1']
         }
 
-
-def get_tables_for_section(section=None, default_table='bms_data'):
-    """
-    Get appropriate SQLite table names based on section parameter
-    
-    Args:
-        section: Battery section (talis5, jspro, mix) or None for default
-        default_table: Default table name if not specified
-        
-    Returns:
-        list: List of table names to query
-    """
-    if section is None:
-        section = default_battery_type
-    
-    if section == 'talis5':
-        return ['bms_data', 'energy_data']
-    elif section == 'jspro':
-        return ['jspro_battery_data']  # Assuming JSPro has its own table
-    elif section == 'mix':
-        return ['bms_data', 'energy_data', 'jspro_battery_data']
-    else:
-        # Default fallback based on specified table or default
-        return [default_table]
-
-
 @monitoring_bp.route('/scc', methods=['GET'])
 @auth.login_required
 def get_scc_monitoring():
@@ -239,8 +213,7 @@ def get_scc_monitoring():
 def get_scc_chart_data():
     """Get SCC power generation data for chart from SQLite database"""
     try:
-        # Path to SQLite database (adjust as needed)
-        # db_path = "D:/sundaya/developments/ehub-developments/ehub_talis/ehub-talis/data_storage.db"
+        # Path to SQLite database
         db_path = f"{PATH}/database/data_storage.db"
 
         # Check if database exists
@@ -256,17 +229,16 @@ def get_scc_chart_data():
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
-        # Get last 24 hours of energy data
         # Calculate timestamp for 24 hours ago
         twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
         
-        # Query energy data for the last 24 hours
+        # Query loggers_scc data for the last 24 hours
         cursor.execute("""
             SELECT 
-                collection_time, batt_volt
-            FROM energy_data 
-            WHERE collection_time >= ? 
-            ORDER BY collection_time ASC
+                timestamp, battery_voltage
+            FROM loggers_scc 
+            WHERE timestamp >= ? 
+            ORDER BY timestamp ASC
         """, (twenty_four_hours_ago.strftime('%Y-%m-%d %H:%M:%S'),))
         
         rows = cursor.fetchall()
@@ -274,88 +246,76 @@ def get_scc_chart_data():
         
         # Process data for chart
         chart_data = {
-            "labels": [],
-            "datasets": []
+            "datasets": [],
+            "labels": []
         }
         
         # Initialize datasets for each SCC
         for i in range(1, number_of_scc + 1):
             chart_data["datasets"].append({
-                "label": f"SCC {i} Battery (V)",
                 "data": [],
+                "label": f"SCC {i} Battery (V)"
             })
         
         # Process each row
         for row in rows:
-            collection_time, batt_volt = row[0], row[1]
+            timestamp = row[0]
+            battery_voltage = row[1] if row[1] and row[1] != -1 else 0
             
             # Parse datetime and format for chart label
             try:
-                dt = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S')
+                dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
                 time_label = dt.strftime('%H:%M')
                 chart_data["labels"].append(time_label)
                 
-                # Calculate power from voltage * current for each SCC
-                power_values = []
-                voltage_values = []
-                current_values = []
-                
-                # SCC 1
-                if len(chart_data["datasets"]) >= 1:
-                    power = batt_volt / 100 # Convert batt_volt to power in watts
-                    chart_data["datasets"][0]["data"].append(round(power, 2))
-                
-                # SCC 2
-                if len(chart_data["datasets"]) >= 2:
-                    power = batt_volt / 100 # Convert batt_volt to power in watts
-                    chart_data["datasets"][1]["data"].append(round(power, 2))
-                
-                # SCC 3
-                if len(chart_data["datasets"]) >= 3:
-                    power = batt_volt / 100 # Convert batt_volt to power in watts
-                    chart_data["datasets"][2]["data"].append(round(power, 2))
+                # Add battery voltage to each SCC dataset
+                for i in range(number_of_scc):
+                    chart_data["datasets"][i]["data"].append(battery_voltage)
                 
             except ValueError as e:
                 print(f"Error parsing datetime: {e}")
                 continue
         
-        # If no data found, generate dummy data for demonstration
+        # If no data found, return empty chart with time labels
         if not chart_data["labels"]:
-            # Generate last 24 hours labels
             now = datetime.now()
             for i in range(24, 0, -1):
                 time_point = now - timedelta(hours=i)
                 chart_data["labels"].append(time_point.strftime('%H:%M'))
         
+        # Calculate total data points (labels * datasets)
+        data_points = len(chart_data["labels"]) * number_of_scc
+        
         response_data = {
             "chart_data": chart_data,
-            "data_points": len(chart_data["labels"]),
+            "data_points": data_points,
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "query_time": twenty_four_hours_ago.strftime("%Y-%m-%d %H:%M:%S"),
-            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "scc_count": number_of_scc
         }
 
         return jsonify({
-            "status_code": 200,
+            "data": response_data,
             "status": "success",
-            "data": response_data
+            "status_code": 200
         }), 200
 
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
         return jsonify({
-            "status_code": 500,
+            "data": None,
             "status": "error",
-            "message": f"Database error: {str(e)}",
-            "data": None
+            "status_code": 500,
+            "message": f"Database error: {str(e)}"
         }), 500
         
     except Exception as e:
         print(f"Error getting SCC chart data: {e}")
         return jsonify({
+            "data": None,
+            "status": "error",
             "status_code": 500,
-            "status": "error", 
-            "message": "Internal server error",
-            "data": None
+            "message": "Internal server error"
         }), 500
 
 
