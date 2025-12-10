@@ -40,9 +40,9 @@ LOG_TYPE_CONFIG = {
         'sqlite_table': 'loggers_battery',
         'description': 'Battery monitoring logs'
     },
-    'energy': {
-        'redis_stream': 'stream:energy',
-        'sqlite_table': 'loggers_energy',
+    'scc': {
+        'redis_stream': 'stream:scc',
+        'sqlite_table': 'loggers_scc',
         'description': 'Energy/SCC monitoring logs'
     },
     'bakti_mqtt': {
@@ -581,10 +581,10 @@ def get_unified_logs(log_type):
     Unified endpoint for getting logs from Redis or SQLite
     
     Path parameters:
-    - log_type: 'battery' | 'energy' | 'bakti_mqtt'
+    - log_type: 'battery' | 'scc' | 'bakti_mqtt'
     
     Query parameters:
-    - source: 'redis' | 'sqlite' (default: 'redis' for battery/energy, 'sqlite' for bakti_mqtt)
+    - source: 'redis' | 'sqlite' (default: 'redis' for battery/scc, 'sqlite' for bakti_mqtt)
     - limit: Maximum records (default: 1000, max: 10000)
     - offset: Records to skip (default: 0)
     - start_date: Start date (ISO 8601 format)
@@ -644,7 +644,7 @@ def delete_logs_by_timestamp(log_type, timestamp):
     Delete logs by timestamp from Redis or SQLite
     
     Path parameters:
-    - log_type: 'battery' | 'energy' | 'bakti_mqtt'
+    - log_type: 'battery' | 'scc' | 'bakti_mqtt'
     - timestamp: Timestamp to delete
     
     Query parameters:
@@ -810,7 +810,7 @@ def delete_all_logs(log_type):
     Bulk delete all logs from Redis or SQLite
     
     Path parameters:
-    - log_type: 'battery' | 'energy' | 'bakti_mqtt'
+    - log_type: 'battery' | 'scc' | 'bakti_mqtt'
     
     Query parameters:
     - source: 'redis' | 'sqlite' (required)
