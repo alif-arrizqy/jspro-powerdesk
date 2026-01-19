@@ -559,9 +559,6 @@ def get_menu_access(username):
         if 'mqtt' in dynamic_menu_access['services']:
             mqtt_service_enabled = enabled_services.get('mqtt_service', False)
             
-            print(f"[DEBUG get_menu_access] User: {username}, MQTT service enabled: {mqtt_service_enabled}")
-            print(f"[DEBUG get_menu_access] MQTT structure before: {dynamic_menu_access['services']['mqtt']}")
-            
             # If mqtt is a dict (new structure with bakti/sundaya)
             if isinstance(dynamic_menu_access['services']['mqtt'], dict):
                 if 'bakti' in dynamic_menu_access['services']['mqtt']:
@@ -574,7 +571,6 @@ def get_menu_access(username):
                         dynamic_menu_access['services']['mqtt']['sundaya'] and 
                         mqtt_service_enabled
                     )
-                print(f"[DEBUG get_menu_access] MQTT structure after: {dynamic_menu_access['services']['mqtt']}")
             # If mqtt is boolean (old structure - for backward compatibility)
             else:
                 dynamic_menu_access['services']['mqtt'] = (

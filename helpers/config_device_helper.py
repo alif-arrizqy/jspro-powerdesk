@@ -473,7 +473,16 @@ def update_ip_configuration(path, form):
     if ip_address:
         data['ip_configuration']['ip_address'] = ip_address
     if net_mask:
-        data['ip_configuration']['subnet_mask'] = net_mask
+        # Normalize subnet_mask to ensure format /XX
+        net_mask = str(net_mask).strip()
+        if net_mask.startswith('/'):
+            normalized_net_mask = net_mask
+        elif net_mask.isdigit():
+            normalized_net_mask = f"/{net_mask}"
+        else:
+            digits = ''.join(filter(str.isdigit, net_mask))
+            normalized_net_mask = f"/{digits}" if digits else net_mask
+        data['ip_configuration']['subnet_mask'] = normalized_net_mask
     if gateway:
         data['ip_configuration']['gateway'] = gateway
     if site:

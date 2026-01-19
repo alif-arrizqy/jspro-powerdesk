@@ -884,8 +884,22 @@ def setting_ip():
                 if 'ip_configuration' not in config_data:
                     config_data['ip_configuration'] = {}
                 
+                raw_subnet_mask = data.get('net-mask', '')
+                if raw_subnet_mask:
+                    # Normalize subnet_mask inline
+                    raw_subnet_mask = str(raw_subnet_mask).strip()
+                    if raw_subnet_mask.startswith('/'):
+                        normalized_subnet_mask = raw_subnet_mask
+                    elif raw_subnet_mask.isdigit():
+                        normalized_subnet_mask = f"/{raw_subnet_mask}"
+                    else:
+                        digits = ''.join(filter(str.isdigit, raw_subnet_mask))
+                        normalized_subnet_mask = f"/{digits}" if digits else raw_subnet_mask
+                else:
+                    normalized_subnet_mask = ""
+                
                 config_data['ip_configuration']['ip_address'] = data.get('ip-address', '')
-                config_data['ip_configuration']['subnet_mask'] = data.get('net-mask', '')
+                config_data['ip_configuration']['subnet_mask'] = normalized_subnet_mask
                 config_data['ip_configuration']['gateway'] = data.get('gateway', '')
                 
                 # Save updated configuration
@@ -898,10 +912,10 @@ def setting_ip():
                 change_ip_path = f'./commands/change_ip.py'
                 type_ip_address = data.get('type-ip-address')
                 ip_address = data.get('ip-address')
-                subnet_mask = data.get('net-mask')
+                subnet_mask = normalized_subnet_mask
                 gateway = data.get('gateway')
                 
-                if type_ip_address == 'ip-address' and ip_address and gateway and subnet_mask:
+                if type_ip_address == 'ip-address':
                     result = change_ip(change_ip_path, ip_address, gateway, subnet_mask)
                     if result:
                         flash('IP Configuration has been saved and applied successfully. System will reboot.', 'success')
@@ -915,7 +929,7 @@ def setting_ip():
                 flash('Failed to save IP Configuration', 'danger')
                 
             return redirect(url_for('setting_ip'))
-        else:
+        else:            
             flash('Invalid IP Address format', 'danger')
             return redirect(url_for('setting_ip'))
     try:
@@ -928,7 +942,7 @@ def setting_ip():
         
         # Read IP configuration directly from eth0 interface
         ip_address = get_ip_address('eth0')
-        subnet_mask = get_subnet_mask('eth0')
+        subnet_mask = get_subnet_mask('eth0')  # Already normalized by get_subnet_mask
         gateway = get_gateway('eth0')
         
         # Load data_site.json for fallback/reference (optional)
@@ -959,7 +973,7 @@ def setting_ip():
         # Fallback: try to read directly from eth0
         try:
             ip_address = get_ip_address('eth0') or ""
-            subnet_mask = get_subnet_mask('eth0') or ""
+            subnet_mask = get_subnet_mask('eth0') or ""  # Already normalized by get_subnet_mask
             gateway = get_gateway('eth0') or ""
         except:
             ip_address = ""

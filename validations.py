@@ -6,8 +6,37 @@ def validate_ip_address(ip_address):
     return True if pat.match(ip_address) else False
 
 def validate_subnet_mask(subnet):
-    pat = re.compile('^\A/\d{1,2}$')
-    return True if pat.match(subnet) else False
+    # Normalize subnet_mask first to ensure format /XX
+    if not subnet:
+        return False
+    
+    # Convert to string and strip whitespace
+    subnet = str(subnet).strip()
+    
+    # If already starts with '/', use as is
+    if subnet.startswith('/'):
+        normalized_subnet = subnet
+    elif subnet.isdigit():
+        # If it's just a number, add '/' prefix
+        normalized_subnet = f"/{subnet}"
+    else:
+        # If it doesn't start with '/', try to extract number
+        digits = ''.join(filter(str.isdigit, subnet))
+        if digits:
+            normalized_subnet = f"/{digits}"
+        else:
+            normalized_subnet = subnet
+    
+    if not normalized_subnet:
+        return False
+    
+    pat = re.compile('^/(\d{1,2})$')
+    match = pat.match(normalized_subnet)
+    if match:
+        # Check if the number is between 1-32
+        num = int(match.group(1))
+        return 1 <= num <= 32
+    return False
 
 def validate_setting_ip(form):
     ip_address = None

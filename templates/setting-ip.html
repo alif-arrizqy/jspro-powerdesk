@@ -231,6 +231,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (primaryForm) {
         primaryForm.addEventListener('submit', function(e) {
+            // Normalize subnet_mask before submit
+            const netMaskInput = document.getElementById('net-mask');
+            if (netMaskInput && netMaskInput.value) {
+                const normalized = normalizeSubnetMask(netMaskInput.value);
+                netMaskInput.value = normalized;
+            }
             handleFormSubmit(e, 'primary-submit', 'Save IP Address');
         });
     }
@@ -290,21 +296,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function normalizeSubnetMask(value) {
+        if (!value) return '';
+        
+        value = value.trim();
+        
+        // If already starts with '/', return as is
+        if (value.startsWith('/')) {
+            return value;
+        }
+        
+        // If it's just a number, add '/' prefix
+        if (/^\d+$/.test(value)) {
+            return '/' + value;
+        }
+        
+        // If it doesn't start with '/', try to extract number
+        const digits = value.replace(/\D/g, '');
+        if (digits) {
+            return '/' + digits;
+        }
+        
+        return value;
+    }
+
     function validateNetMask(input) {
-        const value = input.value.trim();
+        let value = input.value.trim();
         
         if (value === '') {
             input.classList.remove('is-valid', 'is-invalid');
             return;
         }
         
-        // Check if it's CIDR notation (1-32) or dotted decimal
-        const cidrPattern = /^([1-9]|[1-2][0-9]|3[0-2])$/;
-        const dottedPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        // Normalize to format /XX
+        const normalized = normalizeSubnetMask(value);
+        if (normalized !== value) {
+            input.value = normalized;
+            value = normalized;
+        }
         
-        if (cidrPattern.test(value) || dottedPattern.test(value)) {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
+        // Check if it's CIDR notation /XX where XX is 1-32
+        const cidrPattern = /^\/\d{1,2}$/;
+        
+        if (cidrPattern.test(value)) {
+            // Check if the number is between 1-32
+            const num = parseInt(value.substring(1));
+            if (num >= 1 && num <= 32) {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            } else {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+            }
         } else {
             input.classList.remove('is-valid');
             input.classList.add('is-invalid');
@@ -371,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tooltips = {
         'select_ip': 'Select a predefined site configuration or choose custom for manual setup',
         'ip-address': 'IP address for the main network interface',
-        'net-mask': 'Network mask in CIDR notation (e.g., 24) or dotted decimal (e.g., 255.255.255.0)',
+        'net-mask': 'Network mask in CIDR notation (e.g., /24 or /29). Format harus dimulai dengan "/"',
         'gateway': 'Default gateway IP address for routing network traffic'
     };
 
