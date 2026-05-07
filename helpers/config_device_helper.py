@@ -422,17 +422,62 @@ def update_config_scc(path, form):
     with open(path, 'r') as f:
         data = json.load(f)
     
-    # Get scc type from device_version
-    scc_type = data.get('device_version', {}).get('scc_type', '')
+    requested_scc_type = form_data.pop('current-scc-type', '').strip()
+
+    # Get scc type from form first, fallback to device_version in file
+    valid_scc_type = {'scc-srne', 'scc-epever', 'scc-tristar'}
+    if requested_scc_type in valid_scc_type:
+        scc_type = requested_scc_type
+        if 'device_version' not in data:
+            data['device_version'] = {}
+        data['device_version']['scc_type'] = requested_scc_type
+    else:
+        scc_type = data.get('device_version', {}).get('scc_type', '')
     scc_type_underscore = scc_type.replace('-', '_')
+
+    allowed_keys_by_scc = {
+        'scc_srne': {
+            'battery_capacity',
+            'system_voltage',
+            'battery_type',
+            'overvoltage_threshold',
+            'charging_limit_voltage',
+            'equalizing_charge_voltage',
+            'boost_charging_voltage',
+            'floating_charging_voltage',
+            'boost_charging_recovery_voltage',
+            'overdischarge_time_delay',
+            'equalizing_charging_time',
+            'boost_charging_time',
+            'equalizing_charging_interval',
+            'temperature_comp',
+        },
+        'scc_epever': {
+            'overvoltage_disconnect',
+            'charging_limit_voltage',
+            'overvoltage_reconnect',
+            'equalize_charging_voltage',
+            'boost_charging_voltage',
+            'float_charging_voltage',
+            'boost_reconnect_charging_voltage',
+            'battery_rated_voltage',
+            'default_load_state',
+            'equalizing_duration',
+            'boost_duration',
+        },
+    }
     
     # Update parameters based on scc type
     if scc_type_underscore in data:
         if 'parameter' not in data[scc_type_underscore]:
             data[scc_type_underscore]['parameter'] = {}
         
+        allowed_keys = allowed_keys_by_scc.get(scc_type_underscore)
+
         # Update all parameters from form
         for key, value in form_data.items():
+            if allowed_keys is not None and key not in allowed_keys:
+                continue
             try:
                 # Try to convert to int if possible
                 if value.isdigit():

@@ -334,6 +334,7 @@
             <div class="modern-card-body">
                 <form method="POST" id="sccParamsForm">
                     <input type="hidden" name="config-scc-form" value="config-scc-form">
+                    <input type="hidden" name="current-scc-type" value="{{ scc_type }}">
                     
                     <div class="row g-3">
                         {% for key, value in config_scc.items() %}
@@ -469,10 +470,23 @@ document.addEventListener('DOMContentLoaded', function() {
         rulesPanel.style.display = 'none';
     });
     
+    const sccTypeSelect = document.querySelector('select[name="scc-type"]');
+    const currentSccTypeInput = document.querySelector('#sccParamsForm input[name="current-scc-type"]');
+    if (sccTypeSelect && currentSccTypeInput) {
+        const syncCurrentSccType = () => {
+            currentSccTypeInput.value = sccTypeSelect.value || currentSccTypeInput.value;
+        };
+        sccTypeSelect.addEventListener('change', syncCurrentSccType);
+        syncCurrentSccType();
+    }
+
     // Handle all form submissions
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
+            if (form.id === 'sccParamsForm' && sccTypeSelect && currentSccTypeInput) {
+                currentSccTypeInput.value = sccTypeSelect.value || currentSccTypeInput.value;
+            }
             const submitButton = form.querySelector('button[type="submit"]');
             if (submitButton) {
                 const originalText = submitButton.innerHTML;
