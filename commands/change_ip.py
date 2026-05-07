@@ -41,7 +41,7 @@ if __name__ == '__main__':
             # Restart networking instead of full reboot for testing
             # os.system('sudo systemctl restart dhcpcd')
             # For production, use reboot
-            os.system('sudo reboot now')
+            os.system('sudo reboot')
         else:
             print('Fail')
             
