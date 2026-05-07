@@ -139,6 +139,9 @@ body {
 }
 
 .btn-close-sidebar {
+    display: none;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     font-size: 1.25rem;
@@ -771,6 +774,20 @@ body {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .btn-close-sidebar {
+        display: inline-flex;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.92);
+        transition: opacity var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .sidebar.active .btn-close-sidebar {
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1);
+    }
+
     .sidebar {
         transform: translateX(-100%);
     }
