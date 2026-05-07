@@ -601,7 +601,7 @@ def get_unified_logs(log_type):
         
         # Parse query parameters
         source = request.args.get('source', 'redis' if log_type != 'bakti_mqtt' else 'sqlite')
-        limit = min(int(request.args.get('limit', 1000)), 10000)
+        limit = min(int(request.args.get('limit', 100)), 100)
         offset = int(request.args.get('offset', 0))
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
