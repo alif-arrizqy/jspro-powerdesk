@@ -196,21 +196,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update summary display
             updateSummaryDisplay();
             
-            // Handle custom IP configuration
+            // Always allow manual edits after loading selected site data
+            document.getElementById('ip-address').removeAttribute('readonly');
+            document.getElementById('net-mask').removeAttribute('readonly');
+            document.getElementById('gateway').removeAttribute('readonly');
+
+            // Keep custom site naming behavior, but still editable for all sites
             if (result.site === 'IP CUSTOM') {
-                // Remove readonly attributes for custom configuration
-                document.getElementById('ip-address').removeAttribute('readonly');
-                document.getElementById('net-mask').removeAttribute('readonly');
-                document.getElementById('gateway').removeAttribute('readonly');
                 document.getElementById('site').value = '{{ site_name|upper }}';
-                
-                // Show custom configuration alert
                 showAlert('Custom IP mode enabled. You can now edit the IP configuration.', 'info');
             } else {
-                // Re-add readonly attributes for preset configurations
-                document.getElementById('ip-address').setAttribute('readonly', 'readonly');
-                document.getElementById('net-mask').setAttribute('readonly', 'readonly');
-                document.getElementById('gateway').setAttribute('readonly', 'readonly');
+                showAlert('Site configuration loaded. You can edit the IP configuration before saving.', 'info');
             }
             
             // Visual feedback
